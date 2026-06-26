@@ -78,7 +78,7 @@ function defaultLayout(theme: BoardTheme): Layout {
 // v2: bump инвалидирует старые сохранённые раскладки, где последняя строка
 // (65→72) могла попасть в localStorage из ранее сломанного дефолта.
 function layoutKey(themeId: string) {
-  return `lila.layout.v2.${themeId}`;
+  return `lila.layout.v3.${themeId}`;
 }
 
 function loadLayout(theme: BoardTheme): Layout {
