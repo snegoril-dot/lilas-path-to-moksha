@@ -65,19 +65,29 @@ export function Dice({ value, rolling }: { value: number; rolling: boolean }) {
   useEffect(() => {
     const target = FACE_ROTATION[value] ?? { x: 0, y: 0 };
     if (rolling) {
-      // Add several full spins and land on the requested face
       spinRef.current += 1;
-      const turns = 2 + (spinRef.current % 2);
+      // Vary spin axis a bit each throw so it feels alive
+      const turnsX = 2 + (spinRef.current % 2);
+      const turnsY = 3 + ((spinRef.current + 1) % 2);
+      const endX = 360 * turnsX + target.x;
+      const endY = 360 * turnsY + target.y;
       controls.start({
-        rotateX: [0, 360 * turns + target.x],
-        rotateY: [0, 360 * turns + target.y],
-        transition: { duration: 0.95, ease: [0.22, 1, 0.36, 1] },
+        // Overshoot then settle — physical landing
+        rotateX: [0, endX * 0.55, endX + 14, endX - 6, endX],
+        rotateY: [0, endY * 0.55, endY - 12, endY + 5, endY],
+        y: [0, -28, -10, -2, 0],
+        transition: {
+          duration: 1.1,
+          times: [0, 0.45, 0.75, 0.9, 1],
+          ease: [0.16, 0.84, 0.3, 1],
+        },
       });
     } else {
       controls.start({
         rotateX: target.x,
         rotateY: target.y,
-        transition: { duration: 0.4, ease: "easeOut" },
+        y: 0,
+        transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
       });
     }
   }, [value, rolling, controls]);
