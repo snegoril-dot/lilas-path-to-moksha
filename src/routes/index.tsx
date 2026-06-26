@@ -113,13 +113,15 @@ function Index() {
     // Дождаться окончания анимации кубика (см. Dice.tsx — 1.1с)
     setTimeout(() => {
       const target = computeNewPosition(pos, value);
-      const bounced = pos + value > 68;
+      const overshoot = pos + value > 68;
 
-      if (bounced) {
+      if (overshoot) {
         addMsg(
-          `Кубик показал больше, чем нужно. Фишка достигает Кайласа и отскакивает назад — карма ещё не готова.`,
+          `Чтобы войти в Кайлас, нужно ровно ${68 - pos}. Карма ещё не готова — фишка остаётся на «${BOARD[pos - 1].name}».`,
           "system"
         );
+        setRolling(false);
+        return;
       }
 
       animateStep(pos, target, () => {
@@ -127,10 +129,7 @@ function Index() {
         const landed = BOARD[target - 1];
 
         if (target === 68) {
-          addMsg(
-            `✨ Ты достиг Кайласа. ${landed.wisdom}`,
-            "guru"
-          );
+          addMsg(`✨ Ты достиг Кайласа. ${landed.wisdom}`, "guru");
           setTimeout(() => {
             setWon(true);
             setRolling(false);
@@ -142,25 +141,30 @@ function Index() {
           const dest = BOARD[final - 1];
           if (landed.type === "snake") {
             addMsg(
-              `🐍 Твоя карма тяжела. «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
+              `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
             addMsg(
-              `🪜 Твоя душа светла. «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
+              `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
             );
           }
           setTimeout(() => {
             animateStep(target, final, () => {
-              setRolling(false);
+              if (final === 68) {
+                addMsg(`✨ ${BOARD[67].wisdom}`, "guru");
+                setTimeout(() => {
+                  setWon(true);
+                  setRolling(false);
+                }, 600);
+              } else {
+                setRolling(false);
+              }
             });
           }, 700);
         } else {
-          addMsg(
-            `Ты постигаешь «${landed.name}». ${landed.wisdom}`,
-            "guru"
-          );
+          addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
           setRolling(false);
         }
       });

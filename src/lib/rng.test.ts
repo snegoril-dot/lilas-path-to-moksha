@@ -18,9 +18,9 @@ describe("seeded RNG (mulberry32)", () => {
     }
   });
 
-  it("reproduces a deterministic game run end-to-end", () => {
-    // Scripted sequence reaches Кайлас (cell 68) via ladders.
-    const rolls = [5, 5, 3, 6, 3];
+  it("reproduces a deterministic game run end-to-end (classical Johari)", () => {
+    // 1 +5=6, +4=10(↑23), +4=27(↑41), +6=47, +3=50, +4=54(↑68)
+    const rolls = [5, 4, 4, 6, 3, 4];
     let pos = 1;
     const trace: number[] = [];
     for (const roll of rolls) {
@@ -28,7 +28,7 @@ describe("seeded RNG (mulberry32)", () => {
       pos = resolveJump(pos).final;
       trace.push(pos);
     }
-    expect(trace).toEqual([6, 33, 59, 65, 68]);
+    expect(trace).toEqual([6, 23, 41, 47, 50, 68]);
     expect(pos).toBe(68);
   });
 });
