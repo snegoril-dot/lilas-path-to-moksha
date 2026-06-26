@@ -289,7 +289,7 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion, play]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, addMsg, animateStep, reduceMotion, play]);
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
 
