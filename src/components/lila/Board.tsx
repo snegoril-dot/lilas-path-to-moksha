@@ -1,17 +1,16 @@
 import { motion } from "framer-motion";
 import { BOARD } from "@/lib/lila-board";
+import boardBg from "@/assets/lila-board-bg.jpg";
 
 interface Props {
   playerPos: number;
   onSelectCell?: (id: number) => void;
 }
 
-// Змейка-раскладка 8 столбцов × 9 строк = 72, идёт снизу вверх, змейкой
 const COLS = 8;
 const ROWS = 9;
 
 export function Board({ playerPos, onSelectCell }: Props) {
-  // Строим сетку: ряд 0 (нижний) = 1..8, ряд 1 = 16..9, ряд 2 = 17..24...
   const grid: number[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: number[] = [];
@@ -22,13 +21,19 @@ export function Board({ playerPos, onSelectCell }: Props) {
     }
     grid.push(row);
   }
-  // Отрисовываем сверху вниз (ряд 8 наверху)
   const displayRows = [...grid].reverse();
 
   return (
-    <div className="rounded-2xl bg-[var(--lila-board-bg)] p-2 shadow-lg ring-1 ring-[var(--lila-board-ring)]">
+    <div
+      className="relative rounded-2xl p-2 shadow-2xl ring-1 ring-amber-200/30 overflow-hidden"
+      style={{
+        backgroundImage: `url(${boardBg})`,
+        backgroundSize: "100% 100%",
+        backgroundPosition: "center",
+      }}
+    >
       <div
-        className="grid gap-1"
+        className="relative grid gap-[2px]"
         style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
       >
         {displayRows.flat().map((id) => {
@@ -36,32 +41,34 @@ export function Board({ playerPos, onSelectCell }: Props) {
           const isPlayer = id === playerPos;
           const isKailas = id === 68;
           const base =
-            "relative aspect-square flex items-center justify-center rounded-md text-[10px] font-medium leading-tight cursor-pointer select-none p-0.5 text-center";
+            "relative aspect-square flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight cursor-pointer select-none p-0.5 text-center transition hover:bg-white/10";
           const typeClass =
             cell.type === "snake"
-              ? "bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/40"
+              ? "ring-1 ring-rose-400/60"
               : cell.type === "ladder"
-                ? "bg-amber-400/15 text-amber-200 ring-1 ring-amber-400/50"
+                ? "ring-1 ring-amber-300/70"
                 : isKailas
-                  ? "bg-gradient-to-br from-amber-300 via-amber-200 to-amber-400 text-stone-900 ring-2 ring-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.6)]"
-                  : "bg-[var(--lila-cell-bg)] text-[var(--lila-cell-fg)] ring-1 ring-[var(--lila-board-ring)]";
+                  ? "ring-2 ring-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.7)]"
+                  : "ring-1 ring-white/10";
           return (
             <button
               key={id}
               onClick={() => onSelectCell?.(id)}
               className={`${base} ${typeClass}`}
             >
-              <span className="absolute left-1 top-0.5 text-[9px] opacity-60">
+              <span className="absolute left-1 top-0.5 text-[9px] font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                 {id}
               </span>
-              <span className="line-clamp-2 mt-2 px-0.5">{cell.name}</span>
+              <span className="relative line-clamp-2 px-0.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+                {cell.name}
+              </span>
               {isPlayer && (
                 <motion.div
                   layoutId="player-token"
                   transition={{ type: "spring", stiffness: 260, damping: 24 }}
-                  className="absolute inset-1 rounded-md ring-2 ring-emerald-300 bg-emerald-400/30 backdrop-blur-sm flex items-center justify-center"
+                  className="absolute inset-1 rounded-md ring-2 ring-emerald-300 bg-emerald-400/30 backdrop-blur-[2px] flex items-center justify-center"
                 >
-                  <span className="text-base">🪷</span>
+                  <span className="text-base drop-shadow">🪷</span>
                 </motion.div>
               )}
             </button>
