@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { mulberry32, rollDice } from "./rng";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { getRuntimeRng, mulberry32, rollDice } from "./rng";
 import { computeNewPosition, resolveJump } from "./lila-board";
 
 describe("seeded RNG (mulberry32)", () => {
