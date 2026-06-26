@@ -76,6 +76,7 @@ function Index() {
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
+  const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
@@ -343,6 +344,10 @@ function Index() {
           };
 
           setTimeout(() => {
+            if (!notesEnabled) {
+              doJump();
+              return;
+            }
             // Рефлексия: пауза с заметкой о связи с Санкальпой.
             pendingResume.current = doJump;
             setReflection({
