@@ -30,7 +30,7 @@ function InsightsPage() {
   const refresh = () => {
     setLoading(true);
     load()
-      .then((rows) => setItems(rows as Weekly[]))
+      .then((rows) => setItems(rows as unknown as Weekly[]))
       .catch((e: Error) => setErr(e.message))
       .finally(() => setLoading(false));
   };

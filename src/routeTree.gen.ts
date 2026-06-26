@@ -9,9 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as JournalRouteImport } from './routes/journal'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
 
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,32 +37,54 @@ const ApiGuruChatRoute = ApiGuruChatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/insights': typeof InsightsRoute
+  '/journal': typeof JournalRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/insights': typeof InsightsRoute
+  '/journal': typeof JournalRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/insights': typeof InsightsRoute
+  '/journal': typeof JournalRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/guru/chat'
+  fullPaths: '/' | '/insights' | '/journal' | '/api/guru/chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/guru/chat'
-  id: '__root__' | '/' | '/api/guru/chat'
+  to: '/' | '/insights' | '/journal' | '/api/guru/chat'
+  id: '__root__' | '/' | '/insights' | '/journal' | '/api/guru/chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InsightsRoute: typeof InsightsRoute
+  JournalRoute: typeof JournalRoute
   ApiGuruChatRoute: typeof ApiGuruChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,6 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InsightsRoute: InsightsRoute,
+  JournalRoute: JournalRoute,
   ApiGuruChatRoute: ApiGuruChatRoute,
 }
 export const routeTree = rootRouteImport
