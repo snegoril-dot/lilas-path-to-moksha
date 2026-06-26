@@ -15,8 +15,9 @@ import { ReflectionModal, type ReflectionPayload } from "@/components/lila/Refle
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette, Ruler, Volume2, VolumeX } from "lucide-react";
+import { Palette, Ruler, Volume2, VolumeX, NotebookPen, NotebookText } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
+import { useNotes } from "@/hooks/use-notes";
 import { useAuth } from "@/hooks/use-auth";
 import { saveSession } from "@/lib/guru.functions";
 
@@ -75,6 +76,7 @@ function Index() {
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
+  const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
@@ -342,6 +344,10 @@ function Index() {
           };
 
           setTimeout(() => {
+            if (!notesEnabled) {
+              doJump();
+              return;
+            }
             // Рефлексия: пауза с заметкой о связи с Санкальпой.
             pendingResume.current = doJump;
             setReflection({
@@ -359,7 +365,7 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
@@ -437,6 +443,15 @@ function Index() {
             title={soundEnabled ? "Звук включён" : "Звук выключен"}
           >
             {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
+          <button
+            onClick={toggleNotes}
+            className={`p-2 rounded-full active:scale-95 transition ${notesEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
+            aria-label={notesEnabled ? "Выключить заметки" : "Включить заметки"}
+            aria-pressed={notesEnabled}
+            title={notesEnabled ? "Заметки рефлексии включены" : "Заметки рефлексии выключены"}
+          >
+            {notesEnabled ? <NotebookText size={18} /> : <NotebookPen size={18} />}
           </button>
           <button
             onClick={() => setDebug((d) => !d)}
