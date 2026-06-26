@@ -459,6 +459,12 @@ function Index() {
       </div>
 
       <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
+      <ReflectionModal
+        data={reflection}
+        sankalpa={sankalpa}
+        onSubmit={(note) => closeReflection(note)}
+        onSkip={() => closeReflection(null)}
+      />
       <WinOverlay
         open={won}
         onRestart={restart}
