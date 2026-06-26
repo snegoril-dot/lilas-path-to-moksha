@@ -156,6 +156,24 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
     [layout]
   );
 
+  // Подсветка ячеек, чьи визуальные соседи по ID не примыкают на сетке.
+  const brokenIds = useMemo(() => {
+    const bad = new Set<number>();
+    const approx = (a: number, b: number, eps = 1.5) => Math.abs(a - b) <= eps;
+    for (let id = 1; id < 72; id++) {
+      const a = layout[id];
+      const b = layout[id + 1];
+      if (!a || !b) continue;
+      const sameRow = approx(a.y, b.y) && approx(Math.abs(a.x - b.x), a.w, Math.max(a.w, 2));
+      const stacked = approx(a.x, b.x) && approx(Math.abs(a.y - b.y), a.h, Math.max(a.h, 2));
+      if (!sameRow && !stacked) {
+        bad.add(id);
+        bad.add(id + 1);
+      }
+    }
+    return bad;
+  }, [layout]);
+
   useEffect(() => {
     if (layoutIssues.length > 0) {
       // eslint-disable-next-line no-console
