@@ -1,8 +1,17 @@
 // Фигурки игрока в стилистике Лилы (таттвы и сакральные символы).
+// Используем сгенерированные PNG-медальоны (512×512, прозрачный фон,
+// нормализованные по бокс-кропу), глиф остаётся фолбэком для эмодзи.
+import lotusImg    from "@/assets/tokens/lotus.png";
+import omImg       from "@/assets/tokens/om.png";
+import chakraImg   from "@/assets/tokens/chakra.png";
+import mandalaImg  from "@/assets/tokens/mandala.png";
+import trishulaImg from "@/assets/tokens/trishula.png";
+import conchImg    from "@/assets/tokens/conch.png";
+import diyaImg     from "@/assets/tokens/diya.png";
+import starImg     from "@/assets/tokens/star.png";
+
 export interface TokenMotion {
-  // Плавное "дыхание" фишки в покое + характер при перемещении.
   idle: { rotate?: number[]; scale?: number[]; y?: number[]; duration: number };
-  // Параметры spring-перелёта между клетками (Framer Motion).
   travel: { stiffness: number; damping: number; mass?: number };
 }
 
@@ -10,13 +19,12 @@ export interface PlayerToken {
   id: string;
   name: string;
   glyph: string;
-  // Кольцо/подсветка фишки. Hex/rgb значения, чтобы не зависеть от Tailwind.
+  image: string;
   ring: string;
   bg: string;
   motion: TokenMotion;
 }
 
-// Базовые пресеты движения, подобранные под форму глифа.
 const SPIN: TokenMotion = {
   idle: { rotate: [0, 360], duration: 8 },
   travel: { stiffness: 200, damping: 22 },
@@ -39,14 +47,14 @@ const FLICKER: TokenMotion = {
 };
 
 export const PLAYER_TOKENS: PlayerToken[] = [
-  { id: "lotus",    name: "Лотос",   glyph: "🪷", ring: "#6ee7b7", bg: "rgba(52,211,153,0.30)",  motion: FLOAT },
-  { id: "om",       name: "ОМ",      glyph: "🕉", ring: "#fcd34d", bg: "rgba(251,191,36,0.30)",  motion: PULSE },
-  { id: "chakra",   name: "Чакра",   glyph: "☸", ring: "#93c5fd", bg: "rgba(96,165,250,0.30)",  motion: SPIN },
-  { id: "mandala",  name: "Мандала", glyph: "❂", ring: "#f0abfc", bg: "rgba(232,121,249,0.28)", motion: { ...SPIN, idle: { rotate: [0, -360], duration: 12 } } },
-  { id: "trishula", name: "Тришула", glyph: "🔱", ring: "#fda4af", bg: "rgba(244,114,182,0.28)", motion: SWAY },
-  { id: "conch",    name: "Шанкха",  glyph: "🐚", ring: "#fde68a", bg: "rgba(253,224,71,0.25)",  motion: SWAY },
-  { id: "diya",     name: "Дия",     glyph: "🪔", ring: "#fdba74", bg: "rgba(251,146,60,0.30)",  motion: FLICKER },
-  { id: "star",     name: "Звезда",  glyph: "✨", ring: "#a5f3fc", bg: "rgba(103,232,249,0.28)", motion: FLICKER },
+  { id: "lotus",    name: "Лотос",   glyph: "🪷", image: lotusImg,    ring: "#6ee7b7", bg: "rgba(52,211,153,0.30)",  motion: FLOAT },
+  { id: "om",       name: "ОМ",      glyph: "🕉", image: omImg,       ring: "#fcd34d", bg: "rgba(251,191,36,0.30)",  motion: PULSE },
+  { id: "chakra",   name: "Чакра",   glyph: "☸", image: chakraImg,   ring: "#93c5fd", bg: "rgba(96,165,250,0.30)",  motion: SPIN },
+  { id: "mandala",  name: "Мандала", glyph: "❂", image: mandalaImg,  ring: "#f0abfc", bg: "rgba(232,121,249,0.28)", motion: { ...SPIN, idle: { rotate: [0, -360], duration: 12 } } },
+  { id: "trishula", name: "Тришула", glyph: "🔱", image: trishulaImg, ring: "#fda4af", bg: "rgba(244,114,182,0.28)", motion: SWAY },
+  { id: "conch",    name: "Шанкха",  glyph: "🐚", image: conchImg,    ring: "#fde68a", bg: "rgba(253,224,71,0.25)",  motion: SWAY },
+  { id: "diya",     name: "Дия",     glyph: "🪔", image: diyaImg,     ring: "#fdba74", bg: "rgba(251,146,60,0.30)",  motion: FLICKER },
+  { id: "star",     name: "Звезда",  glyph: "✨", image: starImg,     ring: "#a5f3fc", bg: "rgba(103,232,249,0.28)", motion: FLICKER },
 ];
 
 export const DEFAULT_TOKEN_ID = "lotus";
