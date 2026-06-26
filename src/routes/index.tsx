@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dice5 as DiceIcon, Map as MapIcon, RotateCcw } from "lucide-react";
+import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
 import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
@@ -8,6 +9,7 @@ import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
+import { GuruChatSheet, type GuruChatContext } from "@/components/lila/GuruChatSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -15,6 +17,8 @@ import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
 import { Palette, Ruler, Volume2, VolumeX } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
+import { useAuth } from "@/hooks/use-auth";
+import { saveSession } from "@/lib/guru.functions";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
