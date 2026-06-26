@@ -7,7 +7,7 @@ import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
-import { WinOverlay } from "@/components/lila/WinOverlay";
+import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
 import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
@@ -32,12 +32,16 @@ function Index() {
   const [started, setStarted] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [cellOpen, setCellOpen] = useState<number | null>(null);
-  const [pos, setPos] = useState(1);
+  // pos = 0 ⇒ душа ещё не воплощена (ждём 6 для входа в игру).
+  const [pos, setPos] = useState(0);
   const [dice, setDice] = useState(1);
   const [rolling, setRolling] = useState(false);
   const [won, setWon] = useState(false);
   const [sixStreak, setSixStreak] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sankalpa, setSankalpa] = useState("");
+  const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
+  const [totalRolls, setTotalRolls] = useState(0);
   const [themeId, setThemeId] = useState<BoardThemeId>(() => {
     if (typeof window === "undefined") return "classic";
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
@@ -71,29 +75,51 @@ function Index() {
     tg?.expand();
   }, []);
 
-  const startGame = useCallback(() => {
-    setStarted(true);
-    setPos(1);
-    setWon(false);
-    setSixStreak(0);
-    setMessages([]);
-    setTimeout(() => {
-      addMsg(
-        "🙏 Намасте. Ты на клетке 1 — «Земное рождение». Душа облеклась в плоть. Бросай кубик, когда будешь готов."
-      );
-    }, 300);
-  }, [addMsg]);
+  const startGame = useCallback(
+    (userSankalpa: string) => {
+      setStarted(true);
+      setPos(0);
+      setWon(false);
+      setSixStreak(0);
+      setMessages([]);
+      setKeyCells([]);
+      setTotalRolls(0);
+      setSankalpa(userSankalpa);
+      setTimeout(() => {
+        if (userSankalpa) {
+          addMsg(
+            `🙏 Намасте. Твоя Санкальпа принята:\n«${userSankalpa}»\n\nПусть путь даст на неё ответ.`
+          );
+        } else {
+          addMsg("🙏 Намасте, странник.");
+        }
+        setTimeout(() => {
+          addMsg(
+            "Душа ещё не воплощена. Чтобы войти в игру, выброси шестёрку — священное число рождения."
+          );
+        }, 600);
+      }, 250);
+    },
+    [addMsg]
+  );
 
   const restart = useCallback(() => {
     setStarted(false);
     setWon(false);
-    setPos(1);
+    setPos(0);
     setSixStreak(0);
     setMessages([]);
+    setKeyCells([]);
+    setTotalRolls(0);
+    setSankalpa("");
   }, []);
 
   const animateStep = useCallback(
     (from: number, to: number, onDone: () => void) => {
+      if (from === to) {
+        onDone();
+        return;
+      }
       const step = to > from ? 1 : -1;
       let cur = from;
       const tick = () => {
@@ -115,12 +141,40 @@ function Index() {
     setRolling(true);
     const value = rollDice(getRuntimeRng());
     setDice(value);
+    setTotalRolls((n) => n + 1);
     addMsg(`🎲 Бросок: ${value}`, "player");
+
+    const diceDelay = reduceMotion ? 280 : 1150;
+
+    // Фаза входа в игру: pos = 0, нужна 6.
+    if (pos === 0) {
+      setTimeout(() => {
+        if (value !== 6) {
+          addMsg(
+            "Душа ещё ждёт воплощения. Только шестёрка открывает врата рождения.",
+            "system"
+          );
+          setRolling(false);
+          return;
+        }
+        addMsg(
+          "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
+          "guru"
+        );
+        // Войти на клетку 1 и сразу получить право бросить ещё раз (правило 6).
+        animateStep(0, 1, () => {
+          addMsg(BOARD[0].wisdom, "guru");
+          setSixStreak(1);
+          addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
+          setRolling(false);
+        });
+      }, diceDelay);
+      return;
+    }
 
     const rule = applySixRule(sixStreak, value);
     setSixStreak(rule.nextConsecutiveSixes);
 
-    // Дождаться окончания анимации кубика (см. Dice.tsx — 1.1с)
     setTimeout(() => {
       if (rule.forfeited) {
         addMsg(
@@ -163,7 +217,7 @@ function Index() {
         };
 
         if (target === 68) {
-          addMsg(`✨ Ты достиг Кайласа. ${landed.wisdom}`, "guru");
+          addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setTimeout(() => {
             setWon(true);
             setRolling(false);
@@ -173,7 +227,9 @@ function Index() {
 
         if (jumped) {
           const dest = BOARD[final - 1];
-          if (landed.type === "snake") {
+          const kind: KeyCell["kind"] = landed.type === "snake" ? "snake" : "ladder";
+          setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind }]);
+          if (kind === "snake") {
             addMsg(
               `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
@@ -193,6 +249,7 @@ function Index() {
                   setRolling(false);
                 }, 600);
               } else {
+                addMsg(`Ты постигаешь «${dest.name}». ${dest.wisdom}`, "guru");
                 finishTurn();
               }
             });
@@ -202,10 +259,10 @@ function Index() {
           finishTurn();
         }
       });
-    }, reduceMotion ? 280 : 1150);
+    }, diceDelay);
   }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion]);
 
-  const currentCell = useMemo(() => BOARD[pos - 1], [pos]);
+  const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
 
   if (!started) {
     return (
@@ -227,7 +284,7 @@ function Index() {
           <div className="leading-tight">
             <div className="text-sm font-semibold">Гуру</div>
             <div className="text-[11px] opacity-60">
-              Клетка {pos} · {currentCell.name}
+              {currentCell ? `Клетка ${pos} · ${currentCell.name}` : "Душа ждёт воплощения · нужна 🎲 6"}
             </div>
           </div>
         </div>
@@ -281,7 +338,7 @@ function Index() {
               Бросить
             </button>
             <button
-              onClick={() => setCellOpen(pos)}
+              onClick={() => setCellOpen(pos === 0 ? 1 : pos)}
               className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] font-semibold shadow-md hover:brightness-110 active:scale-[0.97] transition"
             >
               <MapIcon size={18} />
@@ -292,7 +349,13 @@ function Index() {
       </div>
 
       <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
-      <WinOverlay open={won} onRestart={restart} />
+      <WinOverlay
+        open={won}
+        onRestart={restart}
+        sankalpa={sankalpa}
+        keyCells={keyCells}
+        totalRolls={totalRolls}
+      />
     </div>
   );
 }
