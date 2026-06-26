@@ -81,7 +81,7 @@ function Index() {
       };
       tick();
     },
-    []
+    [reduceMotion]
   );
 
   const handleRoll = useCallback(() => {
