@@ -249,6 +249,7 @@ function Index() {
           setTimeout(() => {
             animateStep(target, final, () => {
               if (final === 68) {
+                play("moksha");
                 addMsg(`✨ ${BOARD[67].wisdom}`, "guru");
                 setTimeout(() => {
                   setWon(true);
@@ -266,7 +267,7 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion]);
+  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion, play]);
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
 
