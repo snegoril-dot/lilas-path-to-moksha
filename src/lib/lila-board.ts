@@ -216,6 +216,35 @@ export const BOARD: Cell[] = Array.from({ length: 72 }, (_, i) => {
 });
 
 /**
+ * План сознания (лока) для текущей клетки. Помогает игроку понимать, «где он».
+ * Основано на классической группировке Джохари по 8 клеток (9 планов).
+ */
+export interface Loka {
+  id: number;
+  name: string;
+  range: [number, number];
+  hint: string;
+  color: string;
+}
+
+export const LOKAS: Loka[] = [
+  { id: 0, name: "Бху-лока · Земной план", range: [1, 8], hint: "Тело, чувства, базовые страсти", color: "from-orange-400 to-rose-500" },
+  { id: 1, name: "Бхувар-лока · План очищения", range: [9, 16], hint: "Тапас, ревность, первые добродетели", color: "from-amber-300 to-orange-400" },
+  { id: 2, name: "Свар-лока · Небеса", range: [17, 24], hint: "Благочестие, дхарма, наслаждение", color: "from-yellow-300 to-amber-400" },
+  { id: 3, name: "Махар-лока · План равновесия", range: [25, 32], hint: "Служение, радость, бхуварлока", color: "from-emerald-300 to-teal-400" },
+  { id: 4, name: "Джана-лока · План человека", range: [33, 40], hint: "Йога, знание, истинная религия", color: "from-sky-300 to-cyan-400" },
+  { id: 5, name: "Тапа-лока · План аскезы", range: [41, 48], hint: "Земля, бхакти, вивека, карма-йога", color: "from-indigo-300 to-blue-400" },
+  { id: 6, name: "Сатья-лока · План Истины", range: [49, 56], hint: "Совесть, Брахма, Сат-Карма", color: "from-violet-300 to-indigo-400" },
+  { id: 7, name: "Высшие планы", range: [57, 64], hint: "Звук, энергия, знание, ментал", color: "from-fuchsia-300 to-violet-400" },
+  { id: 8, name: "Космос · Кайлас", range: [65, 68], hint: "Реальность, блаженство, Мокша", color: "from-amber-200 to-amber-400" },
+];
+
+export function getLoka(pos: number): Loka | null {
+  if (pos < 1 || pos > 68) return null;
+  return LOKAS.find((l) => pos >= l.range[0] && pos <= l.range[1]) ?? null;
+}
+
+/**
  * Классическое правило Джохари: для победы нужно попасть на клетку 68 ровно.
  * Если выпавшее число уводит за 68 — игрок остаётся на месте (карма ещё не готова).
  * Клетки 69-72 в классической игре недоступны обычным броском.

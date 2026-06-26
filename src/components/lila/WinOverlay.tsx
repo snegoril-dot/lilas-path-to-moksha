@@ -35,6 +35,8 @@ export interface KeyCell {
   id: number;
   name: string;
   kind: "ladder" | "snake";
+  note?: string;
+  visitCount?: number;
 }
 
 export function WinOverlay({
@@ -113,14 +115,28 @@ export function WinOverlay({
               <div className="text-[11px] uppercase tracking-wider text-amber-300/80 mb-2">
                 Путь души · ключевые узлы
               </div>
-              <ol className="space-y-1.5 text-sm text-amber-50/90">
+              <ol className="space-y-2 text-sm text-amber-50/90">
                 {keyCells.map((c, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="opacity-60 w-6 shrink-0">{c.id}.</span>
                     <span className="shrink-0">
                       {c.kind === "ladder" ? "🪜" : "🐍"}
                     </span>
-                    <span>{c.name}</span>
+                    <div className="flex-1">
+                      <div>
+                        {c.name}
+                        {c.visitCount && c.visitCount > 1 && (
+                          <span className="ml-1 text-[10px] text-rose-300/80">
+                            ×{c.visitCount}
+                          </span>
+                        )}
+                      </div>
+                      {c.note && (
+                        <div className="mt-0.5 text-xs italic text-amber-100/60 border-l-2 border-amber-300/30 pl-2">
+                          «{c.note}»
+                        </div>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ol>

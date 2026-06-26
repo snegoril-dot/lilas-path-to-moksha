@@ -8,7 +8,8 @@ import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
-import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
+import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
+import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
@@ -45,6 +46,9 @@ function Index() {
   const [sankalpa, setSankalpa] = useState("");
   const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
   const [totalRolls, setTotalRolls] = useState(0);
+  const [cellVisits, setCellVisits] = useState<Record<number, number>>({});
+  const [reflection, setReflection] = useState<ReflectionPayload | null>(null);
+  const pendingResume = useRef<(() => void) | null>(null);
   const [themeId, setThemeId] = useState<BoardThemeId>(() => {
     if (typeof window === "undefined") return "classic";
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
@@ -90,6 +94,7 @@ function Index() {
       setMessages([]);
       setKeyCells([]);
       setTotalRolls(0);
+      setCellVisits({});
       setSankalpa(userSankalpa);
       setTimeout(() => {
         if (userSankalpa) {
@@ -119,6 +124,8 @@ function Index() {
     setMessages([]);
     setKeyCells([]);
     setTotalRolls(0);
+    setCellVisits({});
+    setReflection(null);
     setSankalpa("");
   }, []);
 
@@ -219,14 +226,22 @@ function Index() {
       const overshoot = pos + value > 68;
 
       if (overshoot) {
-        addMsg(
-          `Чтобы войти в Кайлас, нужно ровно ${68 - pos}. Карма ещё не готова — фишка остаётся на «${BOARD[pos - 1].name}».`,
-          "system"
-        );
-        if (rule.extraTurn) {
-          addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
-        }
-        setRolling(false);
+        const need = 68 - pos;
+        // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
+        animateStep(pos, 68, () => {
+          addMsg(
+            `Нужно ровно ${need}, а выпало ${value}. Карма ещё не готова — фишка отскакивает.`,
+            "system"
+          );
+          setTimeout(() => {
+            animateStep(68, pos, () => {
+              if (rule.extraTurn) {
+                addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+              }
+              setRolling(false);
+            });
+          }, reduceMotion ? 250 : 600);
+        });
         return;
       }
 
@@ -254,7 +269,10 @@ function Index() {
         if (jumped) {
           const dest = BOARD[final - 1];
           const kind: KeyCell["kind"] = landed.type === "snake" ? "snake" : "ladder";
-          setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind }]);
+          const prevVisits = cellVisits[landed.id] ?? 0;
+          const visitCount = prevVisits + 1;
+          setCellVisits((m) => ({ ...m, [landed.id]: visitCount }));
+          setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
           if (kind === "snake") {
             play("snake");
             addMsg(
@@ -268,7 +286,17 @@ function Index() {
               "guru"
             );
           }
-          setTimeout(() => {
+          // Кармический счётчик: повтор того же узла.
+          if (visitCount > 1) {
+            addMsg(
+              kind === "snake"
+                ? `⚠️ Ты возвращаешься сюда уже ${visitCount}-й раз. Урок не усвоен — карма повторяет до тех пор, пока не услышишь.`
+                : `🌟 Снова эта добродетель (${visitCount}-й раз). Гуру улыбается: ты узнал свой путь.`,
+              "system"
+            );
+          }
+
+          const doJump = () => {
             animateStep(target, final, () => {
               if (final === 68) {
                 play("moksha");
@@ -282,6 +310,18 @@ function Index() {
                 finishTurn();
               }
             });
+          };
+
+          setTimeout(() => {
+            // Рефлексия: пауза с заметкой о связи с Санкальпой.
+            pendingResume.current = doJump;
+            setReflection({
+              fromId: landed.id,
+              fromName: landed.name,
+              toId: final,
+              toName: dest.name,
+              kind,
+            });
           }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
@@ -289,9 +329,29 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, addMsg, animateStep, reduceMotion, play]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play]);
+
+  const closeReflection = useCallback(
+    (note: string | null) => {
+      if (note && note.length > 0) {
+        // Прикрепляем заметку к последнему добавленному ключевому узлу.
+        setKeyCells((arr) => {
+          if (arr.length === 0) return arr;
+          const copy = [...arr];
+          copy[copy.length - 1] = { ...copy[copy.length - 1], note };
+          return copy;
+        });
+      }
+      setReflection(null);
+      const resume = pendingResume.current;
+      pendingResume.current = null;
+      resume?.();
+    },
+    []
+  );
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
+  const currentLoka = useMemo(() => getLoka(pos), [pos]);
 
   if (!started) {
     return (
@@ -311,9 +371,21 @@ function Index() {
             🕉
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold">Гуру</div>
+            <div className="text-sm font-semibold flex items-center gap-2">
+              Гуру
+              {currentLoka && (
+                <span
+                  className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r ${currentLoka.color} text-stone-900 font-bold shadow-sm`}
+                  title={currentLoka.hint}
+                >
+                  {currentLoka.name.split("·")[0].trim()}
+                </span>
+              )}
+            </div>
             <div className="text-[11px] opacity-60">
-              {currentCell ? `Клетка ${pos} · ${currentCell.name}` : "Душа ждёт воплощения · нужна 🎲 6"}
+              {currentCell
+                ? `Клетка ${pos} · ${currentCell.name}`
+                : "Душа ждёт воплощения · нужна 🎲 6"}
             </div>
           </div>
         </div>
@@ -387,6 +459,12 @@ function Index() {
       </div>
 
       <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
+      <ReflectionModal
+        data={reflection}
+        sankalpa={sankalpa}
+        onSubmit={(note) => closeReflection(note)}
+        onSkip={() => closeReflection(null)}
+      />
       <WinOverlay
         open={won}
         onRestart={restart}
