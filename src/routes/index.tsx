@@ -52,7 +52,12 @@ function Index() {
   const [totalRolls, setTotalRolls] = useState(0);
   const [cellVisits, setCellVisits] = useState<Record<number, number>>({});
   const [reflection, setReflection] = useState<ReflectionPayload | null>(null);
+  const [guruCtx, setGuruCtx] = useState<GuruChatContext | null>(null);
+  const [pathLog, setPathLog] = useState<Array<{ cell: number; kind: string; to?: number }>>([]);
+  const sessionSavedRef = useRef(false);
   const pendingResume = useRef<(() => void) | null>(null);
+  useAuth(); // ensures anonymous session
+  const persistSession = useServerFn(saveSession);
   const [themeId, setThemeId] = useState<BoardThemeId>(() => {
     if (typeof window === "undefined") return "classic";
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
