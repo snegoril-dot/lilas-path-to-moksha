@@ -36,6 +36,7 @@ function Index() {
   const [dice, setDice] = useState(1);
   const [rolling, setRolling] = useState(false);
   const [won, setWon] = useState(false);
+  const [sixStreak, setSixStreak] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [themeId, setThemeId] = useState<BoardThemeId>(() => {
     if (typeof window === "undefined") return "classic";
