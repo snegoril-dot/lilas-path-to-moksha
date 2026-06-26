@@ -286,6 +286,7 @@ function Index() {
         if (target === 68) {
           play("moksha");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
+          setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
           setTimeout(() => {
             setWon(true);
             setRolling(false);
@@ -300,6 +301,7 @@ function Index() {
           const visitCount = prevVisits + 1;
           setCellVisits((m) => ({ ...m, [landed.id]: visitCount }));
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
+          setPathLog((p) => [...p, { cell: landed.id, kind, to: final }]);
           if (kind === "snake") {
             play("snake");
             addMsg(
@@ -352,6 +354,7 @@ function Index() {
           }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
+          setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
           finishTurn();
         }
       });
