@@ -156,6 +156,24 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
     [layout]
   );
 
+  // Подсветка ячеек, чьи визуальные соседи по ID не примыкают на сетке.
+  const brokenIds = useMemo(() => {
+    const bad = new Set<number>();
+    const approx = (a: number, b: number, eps = 1.5) => Math.abs(a - b) <= eps;
+    for (let id = 1; id < 72; id++) {
+      const a = layout[id];
+      const b = layout[id + 1];
+      if (!a || !b) continue;
+      const sameRow = approx(a.y, b.y) && approx(Math.abs(a.x - b.x), a.w, Math.max(a.w, 2));
+      const stacked = approx(a.x, b.x) && approx(Math.abs(a.y - b.y), a.h, Math.max(a.h, 2));
+      if (!sameRow && !stacked) {
+        bad.add(id);
+        bad.add(id + 1);
+      }
+    }
+    return bad;
+  }, [layout]);
+
   useEffect(() => {
     if (layoutIssues.length > 0) {
       // eslint-disable-next-line no-console
@@ -363,7 +381,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
               onClick={() => !debug && onSelectCell?.(id)}
               className={`absolute flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight select-none p-0.5 text-center transition ${
                 debug
-                  ? "bg-fuchsia-500/25 ring-2 ring-fuchsia-300/90 cursor-move touch-none"
+                  ? `bg-fuchsia-500/25 ring-2 ${brokenIds.has(id) ? "ring-red-500 bg-red-500/40" : "ring-fuchsia-300/90"} cursor-move touch-none`
                   : `${tint} ${typeClass} cursor-pointer hover:brightness-125`
               }`}
               style={{
