@@ -11,6 +11,10 @@ import { WinOverlay } from "@/components/lila/WinOverlay";
 import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
+import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
+import { Palette } from "lucide-react";
+
+const THEME_STORAGE_KEY = "lila.boardTheme";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +37,20 @@ function Index() {
   const [rolling, setRolling] = useState(false);
   const [won, setWon] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [themeId, setThemeId] = useState<BoardThemeId>(() => {
+    if (typeof window === "undefined") return "classic";
+    const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
+    return saved && BOARD_THEMES.some((t) => t.id === saved) ? saved : "classic";
+  });
+  const theme = useMemo(() => getTheme(themeId), [themeId]);
+  const cycleTheme = useCallback(() => {
+    setThemeId((cur) => {
+      const idx = BOARD_THEMES.findIndex((t) => t.id === cur);
+      const next = BOARD_THEMES[(idx + 1) % BOARD_THEMES.length].id;
+      if (typeof window !== "undefined") window.localStorage.setItem(THEME_STORAGE_KEY, next);
+      return next;
+    });
+  }, []);
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
 
@@ -175,18 +193,29 @@ function Index() {
             </div>
           </div>
         </div>
-        <button
-          onClick={restart}
-          className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-          aria-label="Начать заново"
-        >
-          <RotateCcw size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={cycleTheme}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
+            aria-label="Сменить тему доски"
+            title={`Тема: ${theme.name}`}
+          >
+            <Palette size={18} />
+            <span className="hidden sm:inline opacity-70">{theme.name}</span>
+          </button>
+          <button
+            onClick={restart}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Начать заново"
+          >
+            <RotateCcw size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} />
+        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} />
       </div>
 
       {/* Chat */}

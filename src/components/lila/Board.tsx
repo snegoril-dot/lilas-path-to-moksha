@@ -1,16 +1,17 @@
 import { motion } from "framer-motion";
 import { BOARD } from "@/lib/lila-board";
-import boardBg from "@/assets/lila-board-bg.jpg";
+import { type BoardTheme } from "@/lib/board-themes";
 
 interface Props {
   playerPos: number;
+  theme: BoardTheme;
   onSelectCell?: (id: number) => void;
 }
 
 const COLS = 8;
 const ROWS = 9;
 
-export function Board({ playerPos, onSelectCell }: Props) {
+export function Board({ playerPos, theme, onSelectCell }: Props) {
   const grid: number[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: number[] = [];
@@ -25,9 +26,9 @@ export function Board({ playerPos, onSelectCell }: Props) {
 
   return (
     <div
-      className="relative rounded-2xl p-2 shadow-2xl ring-1 ring-amber-200/30 overflow-hidden"
+      className={`relative rounded-2xl p-2 shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
       style={{
-        backgroundImage: `url(${boardBg})`,
+        backgroundImage: `url(${theme.bg})`,
         backgroundSize: "100% 100%",
         backgroundPosition: "center",
       }}
@@ -56,10 +57,10 @@ export function Board({ playerPos, onSelectCell }: Props) {
               onClick={() => onSelectCell?.(id)}
               className={`${base} ${typeClass}`}
             >
-              <span className="absolute left-1 top-0.5 text-[9px] font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
                 {id}
               </span>
-              <span className="relative line-clamp-2 px-0.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+              <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
                 {cell.name}
               </span>
               {isPlayer && (
