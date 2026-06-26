@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BOARD, LADDERS, SNAKES, computeNewPosition, resolveJump } from "./lila-board";
+import { BOARD, LADDERS, SNAKES, computeNewPosition, resolveJump, applySixRule } from "./lila-board";
 
 describe("dice roll values", () => {
   it("simulates only values 1..6", () => {
@@ -112,5 +112,35 @@ describe("full turn pipeline: dice -> move -> jump (classical Johari)", () => {
       expect(c.plane).toBeGreaterThanOrEqual(0);
       expect(c.plane).toBeLessThanOrEqual(8);
     }
+  });
+});
+
+describe("applySixRule (классическое правило шестёрки)", () => {
+  it("обычный бросок не даёт доп. хода и сбрасывает счётчик", () => {
+    expect(applySixRule(0, 4)).toEqual({ applyMove: true, extraTurn: false, nextConsecutiveSixes: 0, forfeited: false });
+    expect(applySixRule(2, 3)).toEqual({ applyMove: true, extraTurn: false, nextConsecutiveSixes: 0, forfeited: false });
+  });
+
+  it("первая и вторая шестёрки дают доп. ход", () => {
+    const r1 = applySixRule(0, 6);
+    expect(r1).toEqual({ applyMove: true, extraTurn: true, nextConsecutiveSixes: 1, forfeited: false });
+    const r2 = applySixRule(1, 6);
+    expect(r2).toEqual({ applyMove: true, extraTurn: true, nextConsecutiveSixes: 2, forfeited: false });
+  });
+
+  it("третья шестёрка подряд — ход аннулируется, счётчик сбрасывается", () => {
+    expect(applySixRule(2, 6)).toEqual({ applyMove: false, extraTurn: false, nextConsecutiveSixes: 0, forfeited: true });
+  });
+
+  it("последовательность 6,6,6 в сумме даёт продвижение только на 12", () => {
+    let pos = 1;
+    let streak = 0;
+    for (const roll of [6, 6, 6]) {
+      const rule = applySixRule(streak, roll);
+      streak = rule.nextConsecutiveSixes;
+      if (rule.applyMove) pos = computeNewPosition(pos, roll);
+    }
+    expect(pos).toBe(13); // 1 -> 7 -> 13, третий бросок аннулирован
+    expect(streak).toBe(0);
   });
 });
