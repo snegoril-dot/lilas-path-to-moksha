@@ -179,3 +179,32 @@ export function resolveJump(pos: number): { final: number; jumped: boolean } {
   if (cell && cell.jumpTo) return { final: cell.jumpTo, jumped: true };
   return { final: pos, jumped: false };
 }
+
+/**
+ * Классическое правило шестёрки (Хариш Джохари):
+ * - Бросок 6 даёт дополнительный ход.
+ * - Три шестёрки подряд — карма «перегорает»: последний бросок аннулируется
+ *   (ход не применяется), счётчик сбрасывается, право хода переходит к следующему.
+ *   В одиночной игре это означает: ход просто заканчивается без движения.
+ */
+export interface SixRuleResult {
+  /** Применять ли движение по этому броску. false = бросок аннулирован. */
+  applyMove: boolean;
+  /** Получает ли игрок дополнительный ход после этого броска. */
+  extraTurn: boolean;
+  /** Новое значение счётчика подряд выпавших шестёрок (0..2; на 3 сбрасывается). */
+  nextConsecutiveSixes: number;
+  /** Сработало ли правило «три шестёрки подряд». */
+  forfeited: boolean;
+}
+
+export function applySixRule(consecutiveSixes: number, roll: number): SixRuleResult {
+  if (roll !== 6) {
+    return { applyMove: true, extraTurn: false, nextConsecutiveSixes: 0, forfeited: false };
+  }
+  // Это третья шестёрка подряд — бросок «сгорает».
+  if (consecutiveSixes >= 2) {
+    return { applyMove: false, extraTurn: false, nextConsecutiveSixes: 0, forfeited: true };
+  }
+  return { applyMove: true, extraTurn: true, nextConsecutiveSixes: consecutiveSixes + 1, forfeited: false };
+}
