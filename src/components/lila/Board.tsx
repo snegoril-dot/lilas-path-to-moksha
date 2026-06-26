@@ -3,6 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
 import { type BoardTheme } from "@/lib/board-themes";
+import {
+  COLS,
+  ROWS,
+  idForRowCol,
+  verifyBoardMapping,
+} from "@/lib/board-layout";
 
 interface Props {
   playerPos: number;
@@ -11,8 +17,17 @@ interface Props {
   debug?: boolean;
 }
 
-const COLS = 8;
-const ROWS = 9;
+// Рантайм-проверка: ловим перевёрнутую последнюю строку и любые сбои маппинга
+// сразу при загрузке модуля. Issues пробрасываются в UI ниже.
+const MAPPING_ISSUES: string[] = verifyBoardMapping();
+if (MAPPING_ISSUES.length > 0) {
+  // eslint-disable-next-line no-console
+  console.error("[Lila board] mapping mismatch:", MAPPING_ISSUES);
+} else if (import.meta.env.DEV) {
+  // eslint-disable-next-line no-console
+  console.info("[Lila board] mapping 1→72 OK (бустрофедон, последняя строка 65→72)");
+}
+
 
 const PLANE_TINTS = [
   "bg-stone-900/35",
@@ -44,10 +59,8 @@ function defaultLayout(theme: BoardTheme): Layout {
   const cellH = (innerH - gap * (ROWS - 1)) / ROWS;
   const layout: Layout = {};
   for (let r = 0; r < ROWS; r++) {
-    const reversed = r % 2 === 1;
     for (let c = 0; c < COLS; c++) {
-      const base = r * COLS;
-      const id = reversed ? base + (COLS - c) : base + c + 1;
+      const id = idForRowCol(r, c);
       // r=0 is bottom row visually; top y for row r:
       const visualRow = ROWS - 1 - r;
       const x = left + c * (cellW + gap);
@@ -57,6 +70,7 @@ function defaultLayout(theme: BoardTheme): Layout {
   }
   return layout;
 }
+
 
 function layoutKey(themeId: string) {
   return `lila.layout.${themeId}`;
@@ -180,12 +194,9 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
       if (!ref) return;
       // figure out which visual row this id belongs to (8 ids per row)
       const rowIndex = Math.floor((id - 1) / COLS); // 0..8 from bottom
-      const reversed = rowIndex % 2 === 1;
-      const rowIds: number[] = [];
-      for (let c = 0; c < COLS; c++) {
-        const base = rowIndex * COLS;
-        rowIds.push(reversed ? base + (COLS - c) : base + c + 1);
-      }
+      const rowIds: number[] = Array.from({ length: COLS }, (_, c) =>
+        idForRowCol(rowIndex, c)
+      );
       // use current min x and max x+w in this row as the row span
       const xs = rowIds.map((i) => layout[i].x);
       const rights = rowIds.map((i) => layout[i].x + layout[i].w);
@@ -211,6 +222,15 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
 
   return (
     <div className="relative">
+      {MAPPING_ISSUES.length > 0 && (
+        <div
+          role="alert"
+          className="mb-2 rounded-lg bg-rose-600/90 text-rose-50 px-3 py-2 text-xs font-medium ring-1 ring-rose-300/60"
+        >
+          ⚠️ Сбой маппинга клеток (1→72): {MAPPING_ISSUES[0]}
+          {MAPPING_ISSUES.length > 1 ? ` (+${MAPPING_ISSUES.length - 1})` : ""}
+        </div>
+      )}
       <div
         ref={containerRef}
         className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
