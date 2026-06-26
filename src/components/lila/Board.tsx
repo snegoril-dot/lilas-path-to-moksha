@@ -3,6 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
 import { type BoardTheme } from "@/lib/board-themes";
+import {
+  COLS,
+  ROWS,
+  idForRowCol,
+  verifyBoardMapping,
+} from "@/lib/board-layout";
 
 interface Props {
   playerPos: number;
@@ -11,8 +17,17 @@ interface Props {
   debug?: boolean;
 }
 
-const COLS = 8;
-const ROWS = 9;
+// Рантайм-проверка: ловим перевёрнутую последнюю строку и любые сбои маппинга
+// сразу при загрузке модуля. Issues пробрасываются в UI ниже.
+const MAPPING_ISSUES: string[] = verifyBoardMapping();
+if (MAPPING_ISSUES.length > 0) {
+  // eslint-disable-next-line no-console
+  console.error("[Lila board] mapping mismatch:", MAPPING_ISSUES);
+} else if (import.meta.env.DEV) {
+  // eslint-disable-next-line no-console
+  console.info("[Lila board] mapping 1→72 OK (бустрофедон, последняя строка 65→72)");
+}
+
 
 const PLANE_TINTS = [
   "bg-stone-900/35",
@@ -44,10 +59,8 @@ function defaultLayout(theme: BoardTheme): Layout {
   const cellH = (innerH - gap * (ROWS - 1)) / ROWS;
   const layout: Layout = {};
   for (let r = 0; r < ROWS; r++) {
-    const reversed = r % 2 === 1;
     for (let c = 0; c < COLS; c++) {
-      const base = r * COLS;
-      const id = reversed ? base + (COLS - c) : base + c + 1;
+      const id = idForRowCol(r, c);
       // r=0 is bottom row visually; top y for row r:
       const visualRow = ROWS - 1 - r;
       const x = left + c * (cellW + gap);
@@ -57,6 +70,7 @@ function defaultLayout(theme: BoardTheme): Layout {
   }
   return layout;
 }
+
 
 function layoutKey(themeId: string) {
   return `lila.layout.${themeId}`;
