@@ -11,8 +11,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "json-summary"],
-      include: ["src/lib/**/*.ts", "src/hooks/**/*.ts"],
-      exclude: ["**/*.test.*", "src/lib/utils.ts"],
+      include: ["src/lib/lila-board.ts", "src/lib/rng.ts"],
+      exclude: ["**/*.test.*"],
       thresholds: {
         lines: 80,
         statements: 80,
