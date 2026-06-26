@@ -15,6 +15,10 @@ export interface BoardTheme {
   numberClass: string;
   /** tailwind ring class for the board frame */
   frameRing: string;
+  /** inset (% of board) where the painted 8x9 grid actually lives — top, right, bottom, left */
+  gridInset: { top: number; right: number; bottom: number; left: number };
+  /** gap between cells as % of board width */
+  gridGap: number;
 }
 
 export const BOARD_THEMES: BoardTheme[] = [
