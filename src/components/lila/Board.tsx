@@ -239,7 +239,11 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
             <div
               key={id}
               onPointerDown={(e) => beginDrag(e, id, "move")}
-              onDoubleClick={() => debug && applyToAll(id)}
+              onDoubleClick={(e) => {
+                if (!debug) return;
+                if (e.shiftKey) applyToRow(id);
+                else applyToAll(id);
+              }}
               onClick={() => !debug && onSelectCell?.(id)}
               className={`absolute flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight select-none p-0.5 text-center transition ${
                 debug
