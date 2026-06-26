@@ -64,6 +64,59 @@ export function WinOverlay({
   keyCells?: KeyCell[];
   totalRolls?: number;
 }) {
+  const loadSessions = useServerFn(getMySessions);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [cardBlob, setCardBlob] = useState<Blob | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [newAchIds, setNewAchIds] = useState<string[]>([]);
+
+  // Сразу при открытии — генерим арт-карточку и считаем новые достижения.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const blob = await renderArtCard({ sankalpa, keyCells, totalRolls });
+        if (cancelled) return;
+        setCardBlob(blob);
+        setCardUrl(URL.createObjectURL(blob));
+      } catch {
+        /* ignore */
+      }
+      try {
+        const rows = (await loadSessions()) as unknown as SessionSummary[];
+        const unlocked = computeUnlocked({ sessions: rows });
+        const fresh = diffNewUnlocks(unlocked);
+        if (cancelled) return;
+        if (fresh.length > 0) {
+          setNewAchIds(fresh);
+          const seen = loadSeen();
+          fresh.forEach((id) => seen.add(id));
+          saveSeen(seen);
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (cardUrl) URL.revokeObjectURL(cardUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const onSaveCard = () => {
+    if (!cardBlob) return;
+    setBusy(true);
+    try {
+      downloadBlob(cardBlob, `lila-moksha-${Date.now()}.png`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const newAch = ACHIEVEMENTS.filter((a) => newAchIds.includes(a.id));
+
   return (
     <AnimatePresence>
       {open && (
