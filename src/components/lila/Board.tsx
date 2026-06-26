@@ -155,8 +155,8 @@ export function Board({ playerPos, theme, onSelectCell }: Props) {
   }
   const displayRows = [...grid].reverse();
 
-  const ladderEntries = Object.entries(LADDERS).map(([f, t]) => [Number(f), t] as const);
-  const snakeEntries = Object.entries(SNAKES).map(([f, t]) => [Number(f), t] as const);
+
+
 
   return (
     <div
