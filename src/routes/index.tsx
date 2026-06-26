@@ -33,6 +33,7 @@ function Index() {
   const [won, setWon] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const idRef = useRef(0);
+  const reduceMotion = useReducedMotion();
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
