@@ -142,6 +142,20 @@ function Index() {
     setSankalpa("");
   }, []);
 
+  // Persist the game session when player reaches Moksha.
+  useEffect(() => {
+    if (!won || sessionSavedRef.current) return;
+    sessionSavedRef.current = true;
+    persistSession({
+      data: {
+        sankalpa: sankalpa || undefined,
+        result: "moksha",
+        movesCount: totalRolls,
+        path: pathLog.slice(-200),
+      },
+    }).catch((e) => console.error("[saveSession]", e));
+  }, [won, sankalpa, totalRolls, pathLog, persistSession]);
+
   const animateStep = useCallback(
     (from: number, to: number, onDone: () => void) => {
       if (from === to) {
