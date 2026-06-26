@@ -371,9 +371,21 @@ function Index() {
             🕉
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold">Гуру</div>
+            <div className="text-sm font-semibold flex items-center gap-2">
+              Гуру
+              {currentLoka && (
+                <span
+                  className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r ${currentLoka.color} text-stone-900 font-bold shadow-sm`}
+                  title={currentLoka.hint}
+                >
+                  {currentLoka.name.split("·")[0].trim()}
+                </span>
+              )}
+            </div>
             <div className="text-[11px] opacity-60">
-              {currentCell ? `Клетка ${pos} · ${currentCell.name}` : "Душа ждёт воплощения · нужна 🎲 6"}
+              {currentCell
+                ? `Клетка ${pos} · ${currentCell.name}`
+                : "Душа ждёт воплощения · нужна 🎲 6"}
             </div>
           </div>
         </div>
