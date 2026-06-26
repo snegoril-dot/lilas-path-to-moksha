@@ -6,6 +6,7 @@ interface Props {
   playerPos: number;
   theme: BoardTheme;
   onSelectCell?: (id: number) => void;
+  debug?: boolean;
 }
 
 const COLS = 8;
@@ -23,13 +24,17 @@ const PLANE_TINTS = [
   "bg-amber-700/30",
 ];
 
-export function Board({ playerPos, theme, onSelectCell }: Props) {
+export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
+  // Boustrophedon numbering. The painted top row (row 9) on these maps is
+  // laid out right-to-left (72 на левом краю, 65 на правом), поэтому r=8
+  // нумеруется как «нечётный» ряд.
   const grid: number[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: number[] = [];
+    const reversed = r % 2 === 1 || r === ROWS - 1;
     for (let c = 0; c < COLS; c++) {
       const base = r * COLS;
-      const id = r % 2 === 0 ? base + c + 1 : base + (COLS - c);
+      const id = reversed ? base + (COLS - c) : base + c + 1;
       row.push(id);
     }
     grid.push(row);
@@ -78,15 +83,23 @@ export function Board({ playerPos, theme, onSelectCell }: Props) {
             <button
               key={id}
               onClick={() => onSelectCell?.(id)}
-              className={`relative flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight cursor-pointer select-none p-0.5 text-center transition hover:brightness-125 ${tint} ${typeClass}`}
+              className={`relative flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight cursor-pointer select-none p-0.5 text-center transition hover:brightness-125 ${debug ? "bg-fuchsia-500/25 ring-2 ring-fuchsia-300/90" : `${tint} ${typeClass}`}`}
             >
-              <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
-                {id}
-              </span>
-              {isKailas && <span className="absolute right-1 top-0.5 text-[10px]">🕉</span>}
-              <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
-                {cell.name}
-              </span>
+              {debug ? (
+                <span className="absolute inset-0 flex items-center justify-center text-base font-extrabold text-fuchsia-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+                  {id}
+                </span>
+              ) : (
+                <>
+                  <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
+                    {id}
+                  </span>
+                  {isKailas && <span className="absolute right-1 top-0.5 text-[10px]">🕉</span>}
+                  <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
+                    {cell.name}
+                  </span>
+                </>
+              )}
               {isPlayer && (
                 <motion.div
                   layoutId="player-token"

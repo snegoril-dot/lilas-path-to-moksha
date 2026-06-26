@@ -12,7 +12,7 @@ import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette } from "lucide-react";
+import { Palette, Ruler } from "lucide-react";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
@@ -53,6 +53,10 @@ function Index() {
   }, []);
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
+  const [debug, setDebug] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("debug") === "1";
+  });
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
@@ -208,6 +212,14 @@ function Index() {
             <span className="hidden sm:inline opacity-70">{theme.name}</span>
           </button>
           <button
+            onClick={() => setDebug((d) => !d)}
+            className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
+            aria-label="Отладка сетки"
+            title="Показать номера клеток поверх карты"
+          >
+            <Ruler size={18} />
+          </button>
+          <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
             aria-label="Начать заново"
@@ -219,7 +231,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} />
+        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} />
       </div>
 
       {/* Chat */}
