@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { BOARD, LADDERS, SNAKES, computeNewPosition, resolveJump } from "./lila-board";
 
 describe("dice roll values", () => {
-  it("simulates only values 1..6 (matches 3D dice faces)", () => {
+  it("simulates only values 1..6", () => {
     const seen = new Set<number>();
     for (let i = 0; i < 5000; i++) {
       const v = Math.floor(Math.random() * 6) + 1;
@@ -14,21 +14,21 @@ describe("dice roll values", () => {
   });
 });
 
-describe("computeNewPosition", () => {
-  it("advances when target is within board", () => {
+describe("computeNewPosition (classical Johari rule)", () => {
+  it("advances when target is within 1..68", () => {
     expect(computeNewPosition(1, 6)).toBe(7);
     expect(computeNewPosition(50, 5)).toBe(55);
     expect(computeNewPosition(62, 6)).toBe(68);
   });
 
-  it("requires exact roll for cell 68 — overshoot bounces back", () => {
+  it("stays put if roll overshoots 68 (must hit exactly)", () => {
     expect(computeNewPosition(67, 1)).toBe(68);
-    expect(computeNewPosition(67, 2)).toBe(67); // 69 -> bounce 1
-    expect(computeNewPosition(66, 6)).toBe(64); // 72 -> bounce 4
-    expect(computeNewPosition(68, 3)).toBe(65); // already at end, any roll bounces
+    expect(computeNewPosition(67, 2)).toBe(67); // overshoot — stays
+    expect(computeNewPosition(66, 6)).toBe(66);
+    expect(computeNewPosition(68, 3)).toBe(68); // already at end (defensive)
   });
 
-  it("for any current pos and roll 1..6, result stays in 1..68", () => {
+  it("for any pos in 1..68 and roll 1..6, result stays in 1..68", () => {
     for (let pos = 1; pos <= 68; pos++) {
       for (let roll = 1; roll <= 6; roll++) {
         const r = computeNewPosition(pos, roll);
@@ -62,34 +62,55 @@ describe("resolveJump (snakes & ladders)", () => {
       expect(LADDERS[Number(k)]).toBeUndefined();
     }
   });
+
+  it("all jump destinations are valid 1..72 cells", () => {
+    for (const dest of [...Object.values(LADDERS), ...Object.values(SNAKES)]) {
+      expect(dest).toBeGreaterThanOrEqual(1);
+      expect(dest).toBeLessThanOrEqual(72);
+    }
+  });
 });
 
-describe("full turn pipeline: dice -> move -> jump", () => {
+describe("full turn pipeline: dice -> move -> jump (classical Johari)", () => {
   function turn(pos: number, roll: number) {
     const landed = computeNewPosition(pos, roll);
     return resolveJump(landed);
   }
 
-  it("ladder 52 -> 68 via roll of 1 from 51 reaches Мокшу", () => {
-    // 51 + 1 = 52 (ladder to 68)
-    expect(turn(51, 1)).toEqual({ final: 68, jumped: true });
+  it("ladder 54 -> 68 reaches Мокшу via roll of 4 from 50", () => {
+    // 50 + 4 = 54 (ladder to 68)
+    expect(turn(50, 4)).toEqual({ final: 68, jumped: true });
   });
 
-  it("snake on landing (e.g. 17) is applied after movement, not before", () => {
-    // 11 + 6 = 17 — snake to 4. Ladder at 11 must NOT trigger as a transit cell.
-    expect(turn(11, 6)).toEqual({ final: 4, jumped: true });
+  it("ladder 10 -> 23: rolling 4 from 6 climbs to Свargу", () => {
+    expect(turn(6, 4)).toEqual({ final: 23, jumped: true });
   });
 
-  it("overshoot of 68 bounces back, then re-evaluates jumps at the bounced cell", () => {
-    // 67 + 6 = 73, bounce to 63. 63 is not a snake/ladder source.
-    expect(turn(67, 6)).toEqual({ final: 63, jumped: false });
-    // 67 + 2 = 69, bounce to 67 (snake to 24)
-    expect(turn(67, 2)).toEqual({ final: 24, jumped: true });
+  it("snake 52 -> 35: rolling 2 from 50 falls due to гордыни", () => {
+    expect(turn(50, 2)).toEqual({ final: 35, jumped: true });
   });
 
-  it("BOARD has exactly 72 cells and cell 68 is the end", () => {
+  it("jump is applied AFTER move (transit cells do not trigger)", () => {
+    // 9 + 5 = 14 (neutral). Ladder at 10 must NOT trigger as transit.
+    expect(turn(9, 5)).toEqual({ final: 14, jumped: false });
+  });
+
+  it("overshoot leaves player put (no bounce in Johari Lila)", () => {
+    // 67 + 6 = 73 -> stays at 67, no snake/ladder triggered
+    expect(turn(67, 6)).toEqual({ final: 67, jumped: false });
+    expect(turn(65, 5)).toEqual({ final: 65, jumped: false });
+  });
+
+  it("BOARD has exactly 72 cells; cell 68 is Кайлас (end), cell 1 is start", () => {
     expect(BOARD).toHaveLength(72);
     expect(BOARD[67].type).toBe("end");
     expect(BOARD[0].type).toBe("start");
+  });
+
+  it("every cell has a plane in 0..8", () => {
+    for (const c of BOARD) {
+      expect(c.plane).toBeGreaterThanOrEqual(0);
+      expect(c.plane).toBeLessThanOrEqual(8);
+    }
   });
 });
