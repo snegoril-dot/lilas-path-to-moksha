@@ -46,6 +46,9 @@ function Index() {
   const [sankalpa, setSankalpa] = useState("");
   const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
   const [totalRolls, setTotalRolls] = useState(0);
+  const [cellVisits, setCellVisits] = useState<Record<number, number>>({});
+  const [reflection, setReflection] = useState<ReflectionPayload | null>(null);
+  const pendingResume = useRef<(() => void) | null>(null);
   const [themeId, setThemeId] = useState<BoardThemeId>(() => {
     if (typeof window === "undefined") return "classic";
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
