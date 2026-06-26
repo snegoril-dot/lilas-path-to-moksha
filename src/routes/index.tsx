@@ -94,6 +94,7 @@ function Index() {
       setMessages([]);
       setKeyCells([]);
       setTotalRolls(0);
+      setCellVisits({});
       setSankalpa(userSankalpa);
       setTimeout(() => {
         if (userSankalpa) {
