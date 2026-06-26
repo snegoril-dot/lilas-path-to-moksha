@@ -213,6 +213,49 @@ export function WinOverlay({
             </motion.div>
           )}
 
+          {newAch.length > 0 && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.7, type: "spring", stiffness: 240 }}
+              className="mt-6 w-full max-w-md rounded-2xl bg-amber-300/10 ring-1 ring-amber-300/40 p-4 text-left"
+            >
+              <div className="flex items-center gap-2 text-amber-200 font-semibold text-sm">
+                <Trophy size={16} /> Новые достижения
+              </div>
+              <ul className="mt-2 space-y-1.5">
+                {newAch.map((a) => (
+                  <li key={a.id} className="flex items-start gap-2 text-sm">
+                    <span className="text-xl">{a.emoji}</span>
+                    <div>
+                      <div className="font-medium text-amber-50">{a.title}</div>
+                      <div className="text-xs opacity-70">{a.description}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+
+          {cardUrl && (
+            <motion.div
+              initial={{ y: 14, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.85 }}
+              className="mt-6 w-full max-w-xs rounded-2xl overflow-hidden ring-1 ring-amber-300/30 shadow-2xl"
+            >
+              <img
+                src={cardUrl}
+                alt="Арт-карточка итога"
+                className="w-full h-auto block"
+              />
+              <div className="bg-black/40 text-[10px] uppercase tracking-wider text-amber-200/80 text-center py-1.5 flex items-center justify-center gap-1.5">
+                <ImageIcon size={11} /> Арт-карточка пути
+              </div>
+            </motion.div>
+          )}
+
+
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
