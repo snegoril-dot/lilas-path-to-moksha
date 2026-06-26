@@ -222,6 +222,15 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
 
   return (
     <div className="relative">
+      {MAPPING_ISSUES.length > 0 && (
+        <div
+          role="alert"
+          className="mb-2 rounded-lg bg-rose-600/90 text-rose-50 px-3 py-2 text-xs font-medium ring-1 ring-rose-300/60"
+        >
+          ⚠️ Сбой маппинга клеток (1→72): {MAPPING_ISSUES[0]}
+          {MAPPING_ISSUES.length > 1 ? ` (+${MAPPING_ISSUES.length - 1})` : ""}
+        </div>
+      )}
       <div
         ref={containerRef}
         className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
