@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BOARD, LADDERS, SNAKES, computeNewPosition, resolveJump } from "./lila-board";
+import { BOARD, LADDERS, SNAKES, computeNewPosition, resolveJump, applySixRule } from "./lila-board";
 
 describe("dice roll values", () => {
   it("simulates only values 1..6", () => {
