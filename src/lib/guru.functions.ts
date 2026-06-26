@@ -119,6 +119,20 @@ export const saveSession = createServerFn({ method: "POST" })
     return row;
   });
 
+// --- All sessions of the current user (for achievements) ---
+export const getMySessions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("game_sessions")
+      .select("id, result, moves_count, started_at, finished_at, sankalpa, path")
+      .order("started_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+
 // --- Weekly recommendations ---
 function startOfWeekIso(d = new Date()): string {
   const date = new Date(d);
