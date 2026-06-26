@@ -39,6 +39,8 @@ function Index() {
   const [rolling, setRolling] = useState(false);
   const [won, setWon] = useState(false);
   const [sixStreak, setSixStreak] = useState(0);
+  const [entryMisses, setEntryMisses] = useState(0);
+  const [entryGrace, setEntryGrace] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sankalpa, setSankalpa] = useState("");
   const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
