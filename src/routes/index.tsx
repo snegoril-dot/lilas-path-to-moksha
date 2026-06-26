@@ -491,7 +491,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} />
+        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} />
       </div>
 
       {/* Chat */}
