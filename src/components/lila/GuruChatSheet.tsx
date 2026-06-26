@@ -40,7 +40,9 @@ export function GuruChatSheet({
     [ctx?.cell, ctx?.sankalpa, ctx?.recentPath]
   );
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({ transport });
+  const { messages, sendMessage, status, error, setMessages } = useChat({
+    transport: transport as unknown as Parameters<typeof useChat>[0]["transport"],
+  });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
