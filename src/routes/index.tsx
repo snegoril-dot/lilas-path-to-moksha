@@ -104,6 +104,8 @@ function Index() {
       setKeyCells([]);
       setTotalRolls(0);
       setCellVisits({});
+      setPathLog([]);
+      sessionSavedRef.current = false;
       setSankalpa(userSankalpa);
       setTimeout(() => {
         if (userSankalpa) {
@@ -134,6 +136,8 @@ function Index() {
     setKeyCells([]);
     setTotalRolls(0);
     setCellVisits({});
+    setPathLog([]);
+    sessionSavedRef.current = false;
     setReflection(null);
     setSankalpa("");
   }, []);
