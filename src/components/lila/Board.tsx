@@ -213,8 +213,9 @@ export function Board({ playerPos, theme, onSelectCell }: Props) {
               </button>
             );
           })}
+        </div>
       </div>
-
     </div>
+
   );
 }
