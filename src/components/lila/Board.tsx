@@ -10,12 +10,14 @@ import {
   verifyBoardMapping,
 } from "@/lib/board-layout";
 
+import type { PlayerToken } from "@/lib/player-tokens";
+
 interface Props {
   playerPos: number;
   theme: BoardTheme;
   onSelectCell?: (id: number) => void;
   debug?: boolean;
-  token?: { glyph: string; ring: string; bg: string };
+  token?: PlayerToken;
 }
 
 // Рантайм-проверка: ловим перевёрнутую последнюю строку и любые сбои маппинга
@@ -312,7 +314,12 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
               {isPlayer && (
                 <motion.div
                   layoutId="player-token"
-                  transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: token?.motion.travel.stiffness ?? 260,
+                    damping: token?.motion.travel.damping ?? 24,
+                    mass: token?.motion.travel.mass ?? 0.9,
+                  }}
                   className="absolute inset-1 rounded-md ring-2 backdrop-blur-[2px] flex items-center justify-center z-30"
                   style={{
                     boxShadow: `0 0 0 2px ${token?.ring ?? "#6ee7b7"}, 0 4px 12px -2px ${token?.ring ?? "#6ee7b7"}66`,
@@ -320,7 +327,21 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
                     borderColor: token?.ring ?? "#6ee7b7",
                   }}
                 >
-                  <span className="text-base drop-shadow">{token?.glyph ?? "🪷"}</span>
+                  <motion.span
+                    className="text-base drop-shadow"
+                    animate={{
+                      rotate: token?.motion.idle.rotate,
+                      scale: token?.motion.idle.scale,
+                      y: token?.motion.idle.y,
+                    }}
+                    transition={{
+                      duration: token?.motion.idle.duration ?? 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    {token?.glyph ?? "🪷"}
+                  </motion.span>
                 </motion.div>
               )}
             </div>
