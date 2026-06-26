@@ -35,6 +35,8 @@ export interface KeyCell {
   id: number;
   name: string;
   kind: "ladder" | "snake";
+  note?: string;
+  visitCount?: number;
 }
 
 export function WinOverlay({
