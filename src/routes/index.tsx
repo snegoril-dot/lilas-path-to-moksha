@@ -212,6 +212,14 @@ function Index() {
             <span className="hidden sm:inline opacity-70">{theme.name}</span>
           </button>
           <button
+            onClick={() => setDebug((d) => !d)}
+            className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
+            aria-label="Отладка сетки"
+            title="Показать номера клеток поверх карты"
+          >
+            <Ruler size={18} />
+          </button>
+          <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
             aria-label="Начать заново"
@@ -223,7 +231,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} />
+        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} />
       </div>
 
       {/* Chat */}
