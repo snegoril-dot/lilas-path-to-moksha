@@ -445,6 +445,15 @@ function Index() {
             {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
           <button
+            onClick={toggleNotes}
+            className={`p-2 rounded-full active:scale-95 transition ${notesEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
+            aria-label={notesEnabled ? "Выключить заметки" : "Включить заметки"}
+            aria-pressed={notesEnabled}
+            title={notesEnabled ? "Заметки рефлексии включены" : "Заметки рефлексии выключены"}
+          >
+            {notesEnabled ? <NotebookText size={18} /> : <NotebookPen size={18} />}
+          </button>
+          <button
             onClick={() => setDebug((d) => !d)}
             className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
             aria-label="Отладка сетки"
