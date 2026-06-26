@@ -14,7 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_sessions: {
+        Row: {
+          finished_at: string | null
+          id: string
+          moves_count: number
+          path: Json
+          result: string
+          sankalpa: string | null
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          moves_count?: number
+          path?: Json
+          result?: string
+          sankalpa?: string | null
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          moves_count?: number
+          path?: Json
+          result?: string
+          sankalpa?: string | null
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          ai_reflection: string | null
+          cell: number | null
+          created_at: string
+          id: string
+          kind: string
+          prompt: string | null
+          session_id: string | null
+          user_id: string
+          user_text: string | null
+        }
+        Insert: {
+          ai_reflection?: string | null
+          cell?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          prompt?: string | null
+          session_id?: string | null
+          user_id: string
+          user_text?: string | null
+        }
+        Update: {
+          ai_reflection?: string | null
+          cell?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          prompt?: string | null
+          session_id?: string | null
+          user_id?: string
+          user_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_recommendations: {
+        Row: {
+          created_at: string
+          focus_loka: string | null
+          id: string
+          practices: Json
+          summary: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          focus_loka?: string | null
+          id?: string
+          practices?: Json
+          summary: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          focus_loka?: string | null
+          id?: string
+          practices?: Json
+          summary?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
