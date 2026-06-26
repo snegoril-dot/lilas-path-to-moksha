@@ -75,6 +75,7 @@ function Index() {
     setStarted(true);
     setPos(1);
     setWon(false);
+    setSixStreak(0);
     setMessages([]);
     setTimeout(() => {
       addMsg(
@@ -87,6 +88,7 @@ function Index() {
     setStarted(false);
     setWon(false);
     setPos(1);
+    setSixStreak(0);
     setMessages([]);
   }, []);
 
