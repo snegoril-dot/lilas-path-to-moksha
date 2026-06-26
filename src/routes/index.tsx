@@ -144,6 +144,7 @@ function Index() {
     const value = rollDice(getRuntimeRng());
     setDice(value);
     setTotalRolls((n) => n + 1);
+    play("roll");
     addMsg(`🎲 Бросок: ${value}`, "player");
 
     const diceDelay = reduceMotion ? 280 : 1150;
@@ -219,6 +220,7 @@ function Index() {
         };
 
         if (target === 68) {
+          play("moksha");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setTimeout(() => {
             setWon(true);
@@ -232,11 +234,13 @@ function Index() {
           const kind: KeyCell["kind"] = landed.type === "snake" ? "snake" : "ladder";
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind }]);
           if (kind === "snake") {
+            play("snake");
             addMsg(
               `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
+            play("ladder");
             addMsg(
               `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
