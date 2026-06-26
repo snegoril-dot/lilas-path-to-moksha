@@ -78,6 +78,7 @@ function Index() {
   const reduceMotion = useReducedMotion();
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
+  const { token, cycle: cycleToken } = usePlayerToken();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
