@@ -86,11 +86,11 @@ function Index() {
     if (rolling || won) return;
     setRolling(true);
     const value = Math.floor(Math.random() * 6) + 1;
+    setDice(value);
     addMsg(`🎲 Бросок: ${value}`, "player");
 
-    // Анимация кубика
+    // Дождаться окончания анимации кубика (см. Dice.tsx — 1.1с)
     setTimeout(() => {
-      setDice(value);
       const target = computeNewPosition(pos, value);
       const bounced = pos + value > 68;
 
