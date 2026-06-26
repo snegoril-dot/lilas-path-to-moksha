@@ -60,6 +60,12 @@ export function WelcomeScreen({
         намерение, с которым входишь в игру. Путь души даст на него ответ.
       </motion.div>
 
+      <div className="mt-4 w-full max-w-sm">
+        <DailyCard />
+      </div>
+
+
+
       <motion.div
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -100,6 +106,7 @@ export function WelcomeScreen({
           📜 Правила
         </button>
       </motion.div>
+      <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
     </div>
   );
 }
