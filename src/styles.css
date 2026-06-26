@@ -132,13 +132,26 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+:root {
+  --lila-bg: var(--tg-theme-bg-color, #0f172a);
+  --lila-bg-2: #1e1b4b;
+  --lila-surface: var(--tg-theme-secondary-bg-color, #1e293b);
+  --lila-bubble-bg: rgba(255, 255, 255, 0.06);
+  --lila-bubble-fg: var(--tg-theme-text-color, #f8fafc);
+  --lila-board-bg: rgba(15, 23, 42, 0.6);
+  --lila-board-ring: rgba(255, 255, 255, 0.08);
+  --lila-cell-bg: rgba(255, 255, 255, 0.04);
+  --lila-cell-fg: var(--tg-theme-text-color, #f8fafc);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
   }
 
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+  html, body {
+    background-color: var(--lila-bg);
+    color: var(--tg-theme-text-color, #f8fafc);
+    overscroll-behavior: none;
   }
 }
