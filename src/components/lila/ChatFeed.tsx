@@ -9,19 +9,26 @@ export interface ChatMessage {
 
 export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
   const ref = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    ref.current?.scrollTo({ top: ref.current.scrollHeight, behavior: "smooth" });
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
   }, [messages]);
 
   return (
     <div
       ref={ref}
-      className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3"
+      data-testid="chat-feed"
+      className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 bg-[var(--lila-bg)]"
     >
       <AnimatePresence initial={false}>
         {messages.map((m) => (
           <motion.div
             key={m.id}
+            data-testid="chat-message"
             initial={{ opacity: 0, y: 12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -47,6 +54,7 @@ export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
           </motion.div>
         ))}
       </AnimatePresence>
+      <div ref={bottomRef} aria-hidden />
     </div>
   );
 }

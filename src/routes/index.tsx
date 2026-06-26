@@ -185,7 +185,7 @@ function Index() {
       </div>
 
       {/* Board */}
-      <div className="shrink-0 px-3 pt-3">
+      <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
         <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} />
       </div>
 
