@@ -24,13 +24,17 @@ const PLANE_TINTS = [
   "bg-amber-700/30",
 ];
 
-export function Board({ playerPos, theme, onSelectCell }: Props) {
+export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
+  // Boustrophedon numbering. The painted top row (row 9) on these maps is
+  // laid out right-to-left (72 на левом краю, 65 на правом), поэтому r=8
+  // нумеруется как «нечётный» ряд.
   const grid: number[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: number[] = [];
+    const reversed = r % 2 === 1 || r === ROWS - 1;
     for (let c = 0; c < COLS; c++) {
       const base = r * COLS;
-      const id = r % 2 === 0 ? base + c + 1 : base + (COLS - c);
+      const id = reversed ? base + (COLS - c) : base + c + 1;
       row.push(id);
     }
     grid.push(row);
