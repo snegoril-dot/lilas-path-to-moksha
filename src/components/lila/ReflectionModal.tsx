@@ -140,19 +140,39 @@ export function ReflectionModal({
               </div>
             </label>
 
-            <div className="mt-4 flex gap-2">
+            {aiText && (
+              <div className="mt-3 rounded-2xl bg-amber-300/5 ring-1 ring-amber-300/20 px-3 py-2.5 text-xs leading-relaxed text-amber-100/90 whitespace-pre-wrap">
+                <span className="opacity-60">🕉 Гуру: </span>
+                {aiText}
+              </div>
+            )}
+            {aiErr && (
+              <div className="mt-2 text-xs text-rose-300">Гуру не ответил: {aiErr}</div>
+            )}
+
+            <div className="mt-4 grid grid-cols-1 gap-2">
               <button
-                onClick={onSkip}
-                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition"
+                onClick={askGuru}
+                disabled={aiBusy}
+                className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition disabled:opacity-50"
               >
-                Пропустить
+                <Sparkles size={14} />
+                {aiBusy ? "Гуру слушает…" : aiText ? "Спросить ещё раз" : "Получить отклик Гуру"}
               </button>
-              <button
-                onClick={() => onSubmit(note.trim())}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
-              >
-                Принять урок
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={onSkip}
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition"
+                >
+                  Пропустить
+                </button>
+                <button
+                  onClick={() => onSubmit(note.trim())}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
+                >
+                  Принять урок
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
