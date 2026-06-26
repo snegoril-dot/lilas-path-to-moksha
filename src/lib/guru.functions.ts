@@ -175,7 +175,7 @@ export const generateWeekly = createServerFn({ method: "POST" })
     const { createLovableAiGatewayProvider, GURU_SYSTEM_PROMPT } = await import(
       "@/lib/ai-gateway.server"
     );
-    const { generateText, Output } = await import("ai");
+    const { generateText } = await import("ai");
     const gateway = createLovableAiGatewayProvider(key);
 
     const summary = {
