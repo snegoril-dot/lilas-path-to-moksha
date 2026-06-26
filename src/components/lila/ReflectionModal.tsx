@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { useServerFn } from "@tanstack/react-start";
+import { saveReflection } from "@/lib/guru.functions";
 
 export interface ReflectionPayload {
   fromId: number;
@@ -25,15 +27,44 @@ export function ReflectionModal({
   const open = !!data;
   const { initialRef } = useDialogA11y(open, onSkip);
   const [note, setNote] = useState("");
+  const [aiText, setAiText] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiErr, setAiErr] = useState<string | null>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleId = "reflection-modal-title";
+  const save = useServerFn(saveReflection);
 
   useEffect(() => {
     if (open) {
       setNote("");
+      setAiText(null);
+      setAiErr(null);
       setTimeout(() => taRef.current?.focus(), 50);
     }
   }, [open]);
+
+  const askGuru = async () => {
+    if (!data) return;
+    setAiBusy(true);
+    setAiErr(null);
+    try {
+      const row = await save({
+        data: {
+          sessionId: null,
+          cell: data.fromId,
+          userText: note.trim(),
+          sankalpa,
+          prompt: data.kind === "snake" ? "Урок змеи" : "Дар лестницы",
+          withAi: true,
+        },
+      });
+      setAiText((row as { ai_reflection: string | null }).ai_reflection ?? null);
+    } catch (e) {
+      setAiErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   return (
     <AnimatePresence>
