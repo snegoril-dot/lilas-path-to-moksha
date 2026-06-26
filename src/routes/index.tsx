@@ -446,6 +446,22 @@ function Index() {
           >
             <Ruler size={18} />
           </button>
+          <Link
+            to="/journal"
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Дневник"
+            title="Дневник пути"
+          >
+            <BookOpen size={18} />
+          </Link>
+          <Link
+            to="/insights"
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Недельный план"
+            title="Рекомендации Гуру"
+          >
+            <Sparkles size={18} />
+          </Link>
           <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
@@ -485,6 +501,21 @@ function Index() {
               Клетка
             </button>
           </div>
+          <button
+            onClick={() =>
+              setGuruCtx({
+                cell: pos === 0 ? 1 : pos,
+                cellName: (BOARD[(pos === 0 ? 1 : pos) - 1] ?? BOARD[0]).name,
+                sankalpa,
+                recentPath: pathLog.slice(-8),
+              })
+            }
+            className="shrink-0 inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
+            aria-label="Спросить ИИ-Гуру"
+            title="Спросить ИИ-Гуру"
+          >
+            <MessageCircle size={20} />
+          </button>
         </div>
       </div>
 
