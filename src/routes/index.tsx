@@ -124,6 +124,8 @@ function Index() {
     setMessages([]);
     setKeyCells([]);
     setTotalRolls(0);
+    setCellVisits({});
+    setReflection(null);
     setSankalpa("");
   }, []);
 
