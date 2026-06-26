@@ -6,6 +6,7 @@ interface Props {
   playerPos: number;
   theme: BoardTheme;
   onSelectCell?: (id: number) => void;
+  debug?: boolean;
 }
 
 const COLS = 8;
