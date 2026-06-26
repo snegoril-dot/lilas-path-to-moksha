@@ -456,6 +456,20 @@ function Index() {
             {notesEnabled ? <NotebookText size={18} /> : <NotebookPen size={18} />}
           </button>
           <button
+            onClick={cycleToken}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
+            aria-label={`Фигурка: ${token.name}. Сменить.`}
+            title={`Фигурка: ${token.name}`}
+          >
+            <span
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[13px] leading-none"
+              style={{ background: token.bg, boxShadow: `0 0 0 1.5px ${token.ring}` }}
+              aria-hidden
+            >
+              {token.glyph}
+            </span>
+          </button>
+          <button
             onClick={() => setDebug((d) => !d)}
             className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
             aria-label="Отладка сетки"
