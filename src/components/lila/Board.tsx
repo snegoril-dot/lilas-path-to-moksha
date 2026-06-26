@@ -328,7 +328,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
                   }}
                 >
                   <motion.span
-                    className="text-base drop-shadow"
+                    className="block w-full h-full"
                     animate={{
                       rotate: token?.motion.idle.rotate,
                       scale: token?.motion.idle.scale,
@@ -340,7 +340,16 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
                       ease: "easeInOut",
                     }}
                   >
-                    {token?.glyph ?? "🪷"}
+                    {token?.image ? (
+                      <img
+                        src={token.image}
+                        alt={token.glyph}
+                        className="w-full h-full object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
+                        draggable={false}
+                      />
+                    ) : (
+                      <span className="text-base drop-shadow">{token?.glyph ?? "🪷"}</span>
+                    )}
                   </motion.span>
                 </motion.div>
               )}
