@@ -85,6 +85,8 @@ function Index() {
       setPos(0);
       setWon(false);
       setSixStreak(0);
+      setEntryMisses(0);
+      setEntryGrace(false);
       setMessages([]);
       setKeyCells([]);
       setTotalRolls(0);
@@ -112,6 +114,8 @@ function Index() {
     setWon(false);
     setPos(0);
     setSixStreak(0);
+    setEntryMisses(0);
+    setEntryGrace(false);
     setMessages([]);
     setKeyCells([]);
     setTotalRolls(0);
