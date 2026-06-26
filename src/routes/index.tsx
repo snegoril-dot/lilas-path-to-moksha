@@ -53,6 +53,10 @@ function Index() {
   }, []);
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
+  const [debug, setDebug] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("debug") === "1";
+  });
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
