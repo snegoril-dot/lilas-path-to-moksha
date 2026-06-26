@@ -533,6 +533,7 @@ function Index() {
         keyCells={keyCells}
         totalRolls={totalRolls}
       />
+      <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
     </div>
   );
 }
