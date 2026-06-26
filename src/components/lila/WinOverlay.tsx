@@ -1,5 +1,17 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2 } from "lucide-react";
+import { Download, Image as ImageIcon, Share2, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { renderArtCard, downloadBlob } from "@/lib/art-card";
+import { getMySessions } from "@/lib/guru.functions";
+import {
+  ACHIEVEMENTS,
+  computeUnlocked,
+  diffNewUnlocks,
+  loadSeen,
+  saveSeen,
+  type SessionSummary,
+} from "@/lib/achievements";
 
 function shareResult(text: string) {
   const tg = (window as unknown as {
