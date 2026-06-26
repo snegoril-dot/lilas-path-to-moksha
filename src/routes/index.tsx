@@ -9,6 +9,7 @@ import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay } from "@/components/lila/WinOverlay";
 import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,6 +33,7 @@ function Index() {
   const [won, setWon] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const idRef = useRef(0);
+  const reduceMotion = useReducedMotion();
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
@@ -75,11 +77,11 @@ function Index() {
         }
         cur += step;
         setPos(cur);
-        setTimeout(tick, 180);
+        setTimeout(tick, reduceMotion ? 70 : 180);
       };
       tick();
     },
-    []
+    [reduceMotion]
   );
 
   const handleRoll = useCallback(() => {
@@ -143,8 +145,8 @@ function Index() {
           setRolling(false);
         }
       });
-    }, 1150);
-  }, [pos, rolling, won, addMsg, animateStep]);
+    }, reduceMotion ? 280 : 1150);
+  }, [pos, rolling, won, addMsg, animateStep, reduceMotion]);
 
   const currentCell = useMemo(() => BOARD[pos - 1], [pos]);
 
