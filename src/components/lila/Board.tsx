@@ -306,7 +306,7 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
             Сбросить
           </button>
           <span className="opacity-60 self-center">
-            Перетащи клетку, угол — размер. Двойной клик — применить размер ко всем.
+            Тяни клетку • уголок — размер • двойной клик — размер всем • Shift+двойной клик — выровнять весь ряд по этой клетке
           </span>
         </div>
       )}
