@@ -282,7 +282,7 @@ function Index() {
                 finishTurn();
               }
             });
-          }, 700);
+          }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
           finishTurn();
