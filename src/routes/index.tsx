@@ -143,7 +143,7 @@ function Index() {
           setRolling(false);
         }
       });
-    }, 900);
+    }, 1150);
   }, [pos, rolling, won, addMsg, animateStep]);
 
   const currentCell = useMemo(() => BOARD[pos - 1], [pos]);
