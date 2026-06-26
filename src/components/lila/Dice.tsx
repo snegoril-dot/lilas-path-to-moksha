@@ -62,18 +62,29 @@ function Face({
 export function Dice({ value, rolling }: { value: number; rolling: boolean }) {
   const controls = useAnimation();
   const spinRef = useRef(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const target = FACE_ROTATION[value] ?? { x: 0, y: 0 };
+
+    if (reduceMotion) {
+      // Минимальная анимация: лёгкий фейд к нужной грани, без вращения и отскока.
+      controls.start({
+        rotateX: target.x,
+        rotateY: target.y,
+        y: 0,
+        transition: { duration: rolling ? 0.25 : 0.15, ease: "easeOut" },
+      });
+      return;
+    }
+
     if (rolling) {
       spinRef.current += 1;
-      // Vary spin axis a bit each throw so it feels alive
       const turnsX = 2 + (spinRef.current % 2);
       const turnsY = 3 + ((spinRef.current + 1) % 2);
       const endX = 360 * turnsX + target.x;
       const endY = 360 * turnsY + target.y;
       controls.start({
-        // Overshoot then settle — physical landing
         rotateX: [0, endX * 0.55, endX + 14, endX - 6, endX],
         rotateY: [0, endY * 0.55, endY - 12, endY + 5, endY],
         y: [0, -28, -10, -2, 0],
@@ -91,7 +102,7 @@ export function Dice({ value, rolling }: { value: number; rolling: boolean }) {
         transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
       });
     }
-  }, [value, rolling, controls]);
+  }, [value, rolling, controls, reduceMotion]);
 
   return (
     <div
