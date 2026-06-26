@@ -1,9 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { BOARD } from "@/lib/lila-board";
+import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 
 export function CellModal({ cellId, onClose }: { cellId: number | null; onClose: () => void }) {
   const cell = cellId ? BOARD[cellId - 1] : null;
+  const { initialRef } = useDialogA11y(!!cell, onClose);
+  const titleId = "cell-modal-title";
   return (
     <AnimatePresence>
       {cell && (
@@ -15,6 +18,9 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
           onClick={onClose}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
@@ -24,9 +30,14 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
             <div className="flex items-start justify-between mb-2">
               <div>
                 <div className="text-xs opacity-60">Клетка {cell.id}</div>
-                <h3 className="text-lg font-semibold">{cell.name}</h3>
+                <h3 id={titleId} className="text-lg font-semibold">{cell.name}</h3>
               </div>
-              <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10">
+              <button
+                ref={initialRef}
+                onClick={onClose}
+                aria-label="Закрыть"
+                className="p-1 rounded-full hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-300 focus:outline-none"
+              >
                 <X size={20} />
               </button>
             </div>

@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 
 export function RulesModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { initialRef } = useDialogA11y(open, onClose);
+  const titleId = "rules-modal-title";
   return (
     <AnimatePresence>
       {open && (
@@ -13,6 +16,9 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
           onClick={onClose}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
@@ -21,8 +27,13 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
             className="w-full max-w-md rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] p-6 shadow-2xl ring-1 ring-white/10 max-h-[80vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-semibold">📜 Правила Лилы</h2>
-              <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10">
+              <h2 id={titleId} className="text-xl font-semibold">📜 Правила Лилы</h2>
+              <button
+                ref={initialRef}
+                onClick={onClose}
+                aria-label="Закрыть"
+                className="p-1 rounded-full hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-300 focus:outline-none"
+              >
                 <X size={20} />
               </button>
             </div>
