@@ -353,6 +353,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
           return (
             <div
               key={id}
+              data-cell-id={id}
               onPointerDown={(e) => beginDrag(e, id, "move")}
               onDoubleClick={(e) => {
                 if (!debug) return;
