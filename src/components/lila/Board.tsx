@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
+import { BOARD } from "@/lib/lila-board";
 import { type BoardTheme } from "@/lib/board-themes";
 
 interface Props {
@@ -23,124 +23,6 @@ const PLANE_TINTS = [
   "bg-amber-700/45",
 ];
 
-function cellCenter(id: number): { x: number; y: number } {
-  const row = Math.floor((id - 1) / COLS);
-  const colInRow = (id - 1) % COLS;
-  const col = row % 2 === 0 ? colInRow : COLS - 1 - colInRow;
-  const displayRow = ROWS - 1 - row;
-  return {
-    x: ((col + 0.5) / COLS) * 100,
-    y: ((displayRow + 0.5) / ROWS) * 100,
-  };
-}
-
-/** Священная стрела (лестница) в стиле раджпутской миниатюры. */
-function SacredArrow({ from, to }: { from: number; to: number }) {
-  const a = cellCenter(from);
-  const b = cellCenter(to);
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const len = Math.hypot(dx, dy);
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-  // оставляем зазор у клеток
-  const pad = 3.2;
-  const usable = Math.max(len - pad * 2, 1);
-  return (
-    <g transform={`translate(${a.x} ${a.y}) rotate(${angle})`} filter="url(#soft-shadow)">
-      <g transform={`translate(${pad} 0)`}>
-        {/* древко стрелы — двойной золотой стержень */}
-        <line x1="0" y1="0" x2={usable} y2="0" stroke="url(#gold-shaft)" strokeWidth="1.1" strokeLinecap="round" />
-        <line x1="0" y1="0" x2={usable} y2="0" stroke="#fffbeb" strokeWidth="0.25" strokeLinecap="round" opacity="0.7" />
-        {/* орнаментальные кольца вдоль древка */}
-        {Array.from({ length: Math.max(2, Math.floor(usable / 5)) }).map((_, i, arr) => {
-          const t = ((i + 1) / (arr.length + 1)) * usable;
-          return <circle key={i} cx={t} cy="0" r="0.45" fill="#fde68a" stroke="#92400e" strokeWidth="0.12" />;
-        })}
-        {/* оперение (3 пера) */}
-        <g>
-          <path d="M 0 0 L -2.2 -1.4 L -1.6 0 L -2.2 1.4 Z" fill="url(#gold-shaft)" stroke="#78350f" strokeWidth="0.12" />
-          <path d="M -0.6 0 L -2.6 -1.0 L -2.0 0 L -2.6 1.0 Z" fill="#fcd34d" opacity="0.85" />
-        </g>
-        {/* наконечник стрелы — ромб */}
-        <g transform={`translate(${usable} 0)`}>
-          <path d="M 0 0 L -2.4 -1.4 L -1.2 0 L -2.4 1.4 Z" fill="url(#gold-tip)" stroke="#78350f" strokeWidth="0.18" />
-          <circle cx="-1.2" cy="0" r="0.35" fill="#fffbeb" />
-        </g>
-      </g>
-      {/* подпись назначения у середины */}
-      <g transform={`translate(${pad + usable / 2} 0) rotate(${-angle})`}>
-        <rect x="-2.6" y="-1.3" width="5.2" height="2.6" rx="1.3" fill="#1c1408" stroke="#fcd34d" strokeWidth="0.18" opacity="0.92" />
-        <text x="0" y="0.05" fontSize="1.6" fontWeight="700" fill="#fde68a" textAnchor="middle" dominantBaseline="middle" fontFamily="ui-serif, Georgia, serif">
-          ↑ {to}
-        </text>
-      </g>
-    </g>
-  );
-}
-
-/** Священный змей (нага) с чешуёй и головой. */
-function SacredSnake({ from, to }: { from: number; to: number }) {
-  const a = cellCenter(from);
-  const b = cellCenter(to);
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = -dy / len;
-  const ny = dx / len;
-  const amp = Math.min(7, len * 0.28);
-  // двойная S-кривая через 3 контрольных смещения
-  const p1x = a.x + dx * 0.25 + nx * amp;
-  const p1y = a.y + dy * 0.25 + ny * amp;
-  const p2x = a.x + dx * 0.75 - nx * amp;
-  const p2y = a.y + dy * 0.75 - ny * amp;
-  const path = `M ${a.x} ${a.y} C ${p1x} ${p1y}, ${p2x} ${p2y}, ${b.x} ${b.y}`;
-  const angleAtHead = (Math.atan2(b.y - p2y, b.x - p2x) * 180) / Math.PI;
-
-  const midx = (a.x + b.x) / 2;
-  const midy = (a.y + b.y) / 2;
-
-  return (
-    <g filter="url(#soft-shadow)">
-      {/* тёмная подложка туловища */}
-      <path d={path} fill="none" stroke="#3b0a14" strokeWidth="1.9" strokeLinecap="round" opacity="0.85" />
-      {/* основное туловище — изумрудно-малиновый градиент */}
-      <path d={path} fill="none" stroke="url(#snake-body)" strokeWidth="1.5" strokeLinecap="round" />
-      {/* чешуйчатый паттерн поверх */}
-      <path d={path} fill="none" stroke="url(#scales)" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-      {/* блик вдоль спины */}
-      <path d={path} fill="none" stroke="#fda4af" strokeWidth="0.25" strokeDasharray="0.6 1.4" opacity="0.7" />
-
-      {/* хвост (точка-завиток у source) */}
-      <circle cx={a.x} cy={a.y} r="0.5" fill="#7f1d1d" />
-      <circle cx={a.x} cy={a.y} r="0.25" fill="#fecdd3" />
-
-      {/* голова змеи у destination */}
-      <g transform={`translate(${b.x} ${b.y}) rotate(${angleAtHead})`}>
-        {/* капюшон-нимб */}
-        <ellipse cx="-0.6" cy="0" rx="2.4" ry="1.7" fill="url(#hood)" stroke="#7f1d1d" strokeWidth="0.18" />
-        {/* голова */}
-        <ellipse cx="0.3" cy="0" rx="1.6" ry="1.1" fill="url(#snake-head)" stroke="#450a0a" strokeWidth="0.18" />
-        {/* глаза */}
-        <circle cx="0.6" cy="-0.45" r="0.28" fill="#fef3c7" />
-        <circle cx="0.6" cy="0.45" r="0.28" fill="#fef3c7" />
-        <ellipse cx="0.7" cy="-0.45" rx="0.1" ry="0.18" fill="#1c1917" />
-        <ellipse cx="0.7" cy="0.45" rx="0.1" ry="0.18" fill="#1c1917" />
-        {/* раздвоенный язык */}
-        <path d="M 1.7 0 L 2.9 -0.35 M 1.7 0 L 2.9 0.35 M 1.7 0 L 2.6 0" stroke="#dc2626" strokeWidth="0.18" strokeLinecap="round" fill="none" />
-        {/* золотая тилака на лбу */}
-        <circle cx="0.1" cy="0" r="0.18" fill="#fde68a" stroke="#78350f" strokeWidth="0.08" />
-      </g>
-
-      {/* подпись «куда падаем» */}
-      <g transform={`translate(${midx} ${midy})`}>
-        <rect x="-2.8" y="-1.3" width="5.6" height="2.6" rx="1.3" fill="#1a0508" stroke="#fb7185" strokeWidth="0.18" opacity="0.92" />
-        <text x="0" y="0.05" fontSize="1.6" fontWeight="700" fill="#fecdd3" textAnchor="middle" dominantBaseline="middle" fontFamily="ui-serif, Georgia, serif">
-          ↓ {to}
-        </text>
-      </g>
-    </g>
-  );
-}
 
 export function Board({ playerPos, theme, onSelectCell }: Props) {
   const grid: number[][] = [];
@@ -155,8 +37,8 @@ export function Board({ playerPos, theme, onSelectCell }: Props) {
   }
   const displayRows = [...grid].reverse();
 
-  const ladderEntries = Object.entries(LADDERS).map(([f, t]) => [Number(f), t] as const);
-  const snakeEntries = Object.entries(SNAKES).map(([f, t]) => [Number(f), t] as const);
+
+
 
   return (
     <div
@@ -214,58 +96,8 @@ export function Board({ playerPos, theme, onSelectCell }: Props) {
             );
           })}
         </div>
-
-        {/* Священные стрелы и наги поверх сетки */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-10"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="gold-shaft" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#78350f" />
-              <stop offset="35%" stopColor="#f59e0b" />
-              <stop offset="55%" stopColor="#fef3c7" />
-              <stop offset="75%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#78350f" />
-            </linearGradient>
-            <linearGradient id="gold-tip" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#fef3c7" />
-              <stop offset="50%" stopColor="#fbbf24" />
-              <stop offset="100%" stopColor="#92400e" />
-            </linearGradient>
-            <linearGradient id="snake-body" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#065f46" />
-              <stop offset="45%" stopColor="#10b981" />
-              <stop offset="75%" stopColor="#be123c" />
-              <stop offset="100%" stopColor="#7f1d1d" />
-            </linearGradient>
-            <radialGradient id="snake-head" cx="30%" cy="30%" r="80%">
-              <stop offset="0%" stopColor="#fecdd3" />
-              <stop offset="55%" stopColor="#e11d48" />
-              <stop offset="100%" stopColor="#4c0519" />
-            </radialGradient>
-            <radialGradient id="hood" cx="50%" cy="50%" r="60%">
-              <stop offset="0%" stopColor="#7f1d1d" />
-              <stop offset="100%" stopColor="#1a0508" />
-            </radialGradient>
-            <pattern id="scales" patternUnits="userSpaceOnUse" width="1.4" height="1.4" patternTransform="rotate(45)">
-              <rect width="1.4" height="1.4" fill="transparent" />
-              <path d="M 0 0.7 L 0.7 0 L 1.4 0.7 L 0.7 1.4 Z" fill="none" stroke="#fde68a" strokeWidth="0.08" opacity="0.7" />
-            </pattern>
-            <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="0.25" stdDeviation="0.35" floodColor="#000" floodOpacity="0.55" />
-            </filter>
-          </defs>
-
-          {ladderEntries.map(([from, to]) => (
-            <SacredArrow key={`L-${from}`} from={from} to={to} />
-          ))}
-          {snakeEntries.map(([from, to]) => (
-            <SacredSnake key={`S-${from}`} from={from} to={to} />
-          ))}
-        </svg>
       </div>
     </div>
+
   );
 }
