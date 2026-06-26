@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
+import { Trophy } from "lucide-react";
 import { useState } from "react";
+import { DailyCard } from "./DailyCard";
+import { AchievementsModal } from "./AchievementsModal";
 
 export function WelcomeScreen({
   onStart,
@@ -10,8 +13,18 @@ export function WelcomeScreen({
 }) {
   const [sankalpa, setSankalpa] = useState("");
 
+  const [achOpen, setAchOpen] = useState(false);
+
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[var(--lila-bg)] via-[var(--lila-bg)] to-[var(--lila-bg-2)]">
+      <button
+        onClick={() => setAchOpen(true)}
+        aria-label="Достижения"
+        className="absolute top-4 right-4 p-2.5 rounded-full bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-200 transition"
+        title="Достижения"
+      >
+        <Trophy size={18} />
+      </button>
       <motion.div
         initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
