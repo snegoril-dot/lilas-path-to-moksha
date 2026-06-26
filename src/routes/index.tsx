@@ -39,6 +39,8 @@ function Index() {
   const [rolling, setRolling] = useState(false);
   const [won, setWon] = useState(false);
   const [sixStreak, setSixStreak] = useState(0);
+  const [entryMisses, setEntryMisses] = useState(0);
+  const [entryGrace, setEntryGrace] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sankalpa, setSankalpa] = useState("");
   const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
@@ -83,6 +85,8 @@ function Index() {
       setPos(0);
       setWon(false);
       setSixStreak(0);
+      setEntryMisses(0);
+      setEntryGrace(false);
       setMessages([]);
       setKeyCells([]);
       setTotalRolls(0);
@@ -110,6 +114,8 @@ function Index() {
     setWon(false);
     setPos(0);
     setSixStreak(0);
+    setEntryMisses(0);
+    setEntryGrace(false);
     setMessages([]);
     setKeyCells([]);
     setTotalRolls(0);
@@ -141,11 +147,13 @@ function Index() {
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
     setRolling(true);
-    const value = rollDice(getRuntimeRng());
+    // Правило милости: после 3 неудачных попыток входа — гарантированная шестёрка.
+    const raw = rollDice(getRuntimeRng());
+    const value = pos === 0 && entryGrace ? 6 : raw;
     setDice(value);
     setTotalRolls((n) => n + 1);
     play("roll");
-    addMsg(`🎲 Бросок: ${value}`, "player");
+    addMsg(`🎲 Бросок: ${value}${value !== raw ? " (милость)" : ""}`, "player");
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
@@ -153,18 +161,32 @@ function Index() {
     if (pos === 0) {
       setTimeout(() => {
         if (value !== 6) {
-          addMsg(
-            "Душа ещё ждёт воплощения. Только шестёрка открывает врата рождения.",
-            "system"
-          );
+          const next = entryMisses + 1;
+          setEntryMisses(next);
+          const ATTEMPTS = 3;
+          if (next >= ATTEMPTS) {
+            addMsg(
+              `🌙 Душа устала ждать (${next}/${ATTEMPTS}). Она отдыхает один круг — следующий бросок принесёт шестёрку как дар милости.`,
+              "system"
+            );
+            setEntryGrace(true);
+            setEntryMisses(0);
+          } else {
+            addMsg(
+              `Душа ещё ждёт воплощения (${next}/${ATTEMPTS}). Только шестёрка открывает врата рождения.`,
+              "system"
+            );
+          }
           setRolling(false);
           return;
         }
+        // успех
+        setEntryMisses(0);
+        setEntryGrace(false);
         addMsg(
           "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
           "guru"
         );
-        // Войти на клетку 1 и сразу получить право бросить ещё раз (правило 6).
         animateStep(0, 1, () => {
           addMsg(BOARD[0].wisdom, "guru");
           setSixStreak(1);
@@ -260,14 +282,14 @@ function Index() {
                 finishTurn();
               }
             });
-          }, 700);
+          }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
           finishTurn();
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion, play]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, addMsg, animateStep, reduceMotion, play]);
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
 
