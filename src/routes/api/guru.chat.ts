@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/guru/chat")({
           const result = streamText({
             model: gateway("google/gemini-3-flash-preview"),
             system: context,
-            messages: convertToModelMessages(body.messages ?? []),
+            messages: await convertToModelMessages(body.messages ?? []),
           });
           return result.toUIMessageStreamResponse();
         } catch (e) {

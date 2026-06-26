@@ -193,23 +193,24 @@ export const generateWeekly = createServerFn({ method: "POST" })
     try {
       const res = await generateText({
         model: gateway("google/gemini-3-flash-preview"),
-        system: GURU_SYSTEM_PROMPT,
+        system:
+          GURU_SYSTEM_PROMPT +
+          "\n\nВ этом ответе верни ТОЛЬКО валидный JSON без markdown, по схеме: " +
+          '{"summary": string, "focus_loka": string, "practices": [{"title": string, "description": string, "daily_minutes": number}]}',
         prompt:
           "На основе истории игр (JSON ниже) дай еженедельный план духовной практики на 7 дней. " +
           "Определи доминирующий план сознания (loka), на котором игрок задерживается, " +
-          "и предложи 3–4 практики (медитация, самонаблюдение, действия в миру). " +
-          "Поле focus_loka — короткое название плана (например, «Земной план» или «План очищения»). " +
-          "Поле summary — 2–3 предложения мягкого наставления.\n\nИстория:\n" +
+          "и предложи 3–4 практики. summary — 2–3 предложения наставления. " +
+          "focus_loka — короткое название плана.\n\nИстория:\n" +
           JSON.stringify(summary, null, 2),
-        experimental_output: Output.object({
-          schema: z.object({
-            summary: z.string(),
-            focus_loka: z.string(),
-            practices: z.array(PracticeSchema).min(2).max(5),
-          }),
-        }),
       });
-      parsed = res.experimental_output;
+      const raw = res.text.trim().replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
+      const obj = JSON.parse(raw);
+      parsed = {
+        summary: String(obj.summary ?? ""),
+        focus_loka: String(obj.focus_loka ?? ""),
+        practices: z.array(PracticeSchema).parse(obj.practices ?? []),
+      };
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : "AI generation failed");
     }
