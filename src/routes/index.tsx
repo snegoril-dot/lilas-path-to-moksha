@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dice as DiceIcon, Map as MapIcon, RotateCcw } from "lucide-react";
+import { Dice5 as DiceIcon, Map as MapIcon, RotateCcw } from "lucide-react";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
 import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
