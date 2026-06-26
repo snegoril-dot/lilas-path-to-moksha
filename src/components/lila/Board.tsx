@@ -194,12 +194,9 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
       if (!ref) return;
       // figure out which visual row this id belongs to (8 ids per row)
       const rowIndex = Math.floor((id - 1) / COLS); // 0..8 from bottom
-      const reversed = rowIndex % 2 === 1;
-      const rowIds: number[] = [];
-      for (let c = 0; c < COLS; c++) {
-        const base = rowIndex * COLS;
-        rowIds.push(reversed ? base + (COLS - c) : base + c + 1);
-      }
+      const rowIds: number[] = Array.from({ length: COLS }, (_, c) =>
+        idForRowCol(rowIndex, c)
+      );
       // use current min x and max x+w in this row as the row span
       const xs = rowIds.map((i) => layout[i].x);
       const rights = rowIds.map((i) => layout[i].x + layout[i].w);
