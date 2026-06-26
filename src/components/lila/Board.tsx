@@ -44,7 +44,7 @@ function defaultLayout(theme: BoardTheme): Layout {
   const cellH = (innerH - gap * (ROWS - 1)) / ROWS;
   const layout: Layout = {};
   for (let r = 0; r < ROWS; r++) {
-    const reversed = r % 2 === 1 || r === ROWS - 1;
+    const reversed = r % 2 === 1;
     for (let c = 0; c < COLS; c++) {
       const base = r * COLS;
       const id = reversed ? base + (COLS - c) : base + c + 1;
@@ -180,7 +180,7 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
       if (!ref) return;
       // figure out which visual row this id belongs to (8 ids per row)
       const rowIndex = Math.floor((id - 1) / COLS); // 0..8 from bottom
-      const reversed = rowIndex % 2 === 1 || rowIndex === ROWS - 1;
+      const reversed = rowIndex % 2 === 1;
       const rowIds: number[] = [];
       for (let c = 0; c < COLS; c++) {
         const base = rowIndex * COLS;
