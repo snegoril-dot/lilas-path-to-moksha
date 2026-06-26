@@ -213,59 +213,8 @@ export function Board({ playerPos, theme, onSelectCell }: Props) {
               </button>
             );
           })}
-        </div>
-
-        {/* Священные стрелы и наги поверх сетки */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-10"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="gold-shaft" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#78350f" />
-              <stop offset="35%" stopColor="#f59e0b" />
-              <stop offset="55%" stopColor="#fef3c7" />
-              <stop offset="75%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#78350f" />
-            </linearGradient>
-            <linearGradient id="gold-tip" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#fef3c7" />
-              <stop offset="50%" stopColor="#fbbf24" />
-              <stop offset="100%" stopColor="#92400e" />
-            </linearGradient>
-            <linearGradient id="snake-body" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#065f46" />
-              <stop offset="45%" stopColor="#10b981" />
-              <stop offset="75%" stopColor="#be123c" />
-              <stop offset="100%" stopColor="#7f1d1d" />
-            </linearGradient>
-            <radialGradient id="snake-head" cx="30%" cy="30%" r="80%">
-              <stop offset="0%" stopColor="#fecdd3" />
-              <stop offset="55%" stopColor="#e11d48" />
-              <stop offset="100%" stopColor="#4c0519" />
-            </radialGradient>
-            <radialGradient id="hood" cx="50%" cy="50%" r="60%">
-              <stop offset="0%" stopColor="#7f1d1d" />
-              <stop offset="100%" stopColor="#1a0508" />
-            </radialGradient>
-            <pattern id="scales" patternUnits="userSpaceOnUse" width="1.4" height="1.4" patternTransform="rotate(45)">
-              <rect width="1.4" height="1.4" fill="transparent" />
-              <path d="M 0 0.7 L 0.7 0 L 1.4 0.7 L 0.7 1.4 Z" fill="none" stroke="#fde68a" strokeWidth="0.08" opacity="0.7" />
-            </pattern>
-            <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="0.25" stdDeviation="0.35" floodColor="#000" floodOpacity="0.55" />
-            </filter>
-          </defs>
-
-          {ladderEntries.map(([from, to]) => (
-            <SacredArrow key={`L-${from}`} from={from} to={to} />
-          ))}
-          {snakeEntries.map(([from, to]) => (
-            <SacredSnake key={`S-${from}`} from={from} to={to} />
-          ))}
-        </svg>
       </div>
+
     </div>
   );
 }
