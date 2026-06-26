@@ -8,7 +8,7 @@ import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay } from "@/components/lila/WinOverlay";
-import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
+import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
