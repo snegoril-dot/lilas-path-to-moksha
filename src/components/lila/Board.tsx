@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
+import { BOARD } from "@/lib/lila-board";
 import { type BoardTheme } from "@/lib/board-themes";
 
 interface Props {
