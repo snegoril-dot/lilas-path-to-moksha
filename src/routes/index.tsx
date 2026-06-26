@@ -77,7 +77,7 @@ function Index() {
         }
         cur += step;
         setPos(cur);
-        setTimeout(tick, 180);
+        setTimeout(tick, reduceMotion ? 70 : 180);
       };
       tick();
     },
