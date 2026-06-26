@@ -117,8 +117,25 @@ function Index() {
     setDice(value);
     addMsg(`🎲 Бросок: ${value}`, "player");
 
+    const rule = applySixRule(sixStreak, value);
+    setSixStreak(rule.nextConsecutiveSixes);
+
     // Дождаться окончания анимации кубика (см. Dice.tsx — 1.1с)
     setTimeout(() => {
+      if (rule.forfeited) {
+        addMsg(
+          "🔥 Три шестёрки подряд. Карма перегорела — этот бросок не считается. Фишка остаётся на месте.",
+          "system"
+        );
+        setRolling(false);
+        return;
+      }
+
+      if (!rule.applyMove) {
+        setRolling(false);
+        return;
+      }
+
       const target = computeNewPosition(pos, value);
       const overshoot = pos + value > 68;
 
@@ -127,6 +144,9 @@ function Index() {
           `Чтобы войти в Кайлас, нужно ровно ${68 - pos}. Карма ещё не готова — фишка остаётся на «${BOARD[pos - 1].name}».`,
           "system"
         );
+        if (rule.extraTurn) {
+          addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+        }
         setRolling(false);
         return;
       }
@@ -134,6 +154,13 @@ function Index() {
       animateStep(pos, target, () => {
         const { final, jumped } = resolveJump(target);
         const landed = BOARD[target - 1];
+
+        const finishTurn = () => {
+          if (rule.extraTurn && final !== 68) {
+            addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+          }
+          setRolling(false);
+        };
 
         if (target === 68) {
           addMsg(`✨ Ты достиг Кайласа. ${landed.wisdom}`, "guru");
@@ -166,17 +193,17 @@ function Index() {
                   setRolling(false);
                 }, 600);
               } else {
-                setRolling(false);
+                finishTurn();
               }
             });
           }, 700);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
-          setRolling(false);
+          finishTurn();
         }
       });
     }, reduceMotion ? 280 : 1150);
-  }, [pos, rolling, won, addMsg, animateStep, reduceMotion]);
+  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion]);
 
   const currentCell = useMemo(() => BOARD[pos - 1], [pos]);
 
