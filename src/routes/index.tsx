@@ -18,6 +18,7 @@ import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
 import { Palette, Ruler, Volume2, VolumeX, NotebookPen, NotebookText } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
+import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
 import { saveSession } from "@/lib/guru.functions";
 
