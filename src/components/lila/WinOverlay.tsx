@@ -283,6 +283,14 @@ export function WinOverlay({
               <Share2 size={18} />
               Поделиться
             </button>
+            <button
+              onClick={onSaveCard}
+              disabled={!cardBlob || busy}
+              className="px-6 py-3 rounded-2xl bg-white/10 ring-1 ring-amber-200/30 text-amber-100 font-semibold hover:bg-white/15 active:scale-95 transition flex items-center gap-2 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-amber-200 focus:outline-none"
+            >
+              <Download size={18} />
+              Сохранить карту
+            </button>
           </motion.div>
         </motion.div>
       )}
