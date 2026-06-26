@@ -1,12 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { BOARD } from "@/lib/lila-board";
+import { BOARD, getLoka } from "@/lib/lila-board";
+import { getCellMeta, getTattvaForCell } from "@/lib/lila-wisdom-full";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 
 export function CellModal({ cellId, onClose }: { cellId: number | null; onClose: () => void }) {
   const cell = cellId ? BOARD[cellId - 1] : null;
   const { initialRef } = useDialogA11y(!!cell, onClose);
   const titleId = "cell-modal-title";
+  const meta = cell ? getCellMeta(cell.id) : null;
+  const tattva = cell ? getTattvaForCell(cell.id) : null;
+  const loka = cell ? getLoka(cell.id) : null;
+
   return (
     <AnimatePresence>
       {cell && (
@@ -27,21 +32,52 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] p-6 shadow-2xl ring-1 ring-white/10"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="text-xs opacity-60">Клетка {cell.id}</div>
-                <h3 id={titleId} className="text-lg font-semibold">{cell.name}</h3>
+            <div className="flex items-start justify-between mb-2 gap-3">
+              <div className="flex items-start gap-3 min-w-0">
+                {tattva && (
+                  <div
+                    className="shrink-0 h-11 w-11 rounded-xl bg-white/5 ring-1 ring-white/10 flex items-center justify-center text-xl"
+                    title={`${tattva.name} — ${tattva.hint}`}
+                    aria-hidden
+                  >
+                    {tattva.glyph}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-wider opacity-50">
+                    Клетка {cell.id}
+                    {loka ? ` · ${loka.name}` : ""}
+                  </div>
+                  <h3 id={titleId} className="text-lg font-semibold leading-tight">
+                    {cell.name}
+                  </h3>
+                  {tattva && (
+                    <div className="text-[11px] opacity-60 mt-0.5">
+                      {tattva.glyph} {tattva.name}
+                    </div>
+                  )}
+                </div>
               </div>
               <button
                 ref={initialRef}
                 onClick={onClose}
                 aria-label="Закрыть"
-                className="p-1 rounded-full hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-300 focus:outline-none"
+                className="p-1 rounded-full hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-300 focus:outline-none shrink-0"
               >
                 <X size={20} />
               </button>
             </div>
-            <p className="text-sm opacity-85 leading-relaxed mt-2">{cell.wisdom}</p>
+
+            <p className="text-sm opacity-90 leading-relaxed mt-3 whitespace-pre-line">
+              {meta?.full ?? cell.wisdom}
+            </p>
+
+            {meta?.source && (
+              <div className="mt-3 pt-3 border-t border-white/10 text-[11px] opacity-55 italic">
+                — {meta.source}
+              </div>
+            )}
+
             {cell.jumpTo && (
               <div className="mt-3 text-xs">
                 {cell.type === "snake" ? (
@@ -57,3 +93,4 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
     </AnimatePresence>
   );
 }
+
