@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
+import { getTattvaForCell } from "@/lib/lila-wisdom-full";
 import { type BoardTheme } from "@/lib/board-themes";
 
 interface Props {
@@ -272,8 +273,15 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
                   <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
                     {id}
                   </span>
-                  {isKailas && <span className="absolute right-1 top-0.5 text-[10px]">🕉</span>}
+                  <span
+                    className="absolute right-1 top-0.5 text-[9px] opacity-70 drop-shadow"
+                    aria-hidden
+                    title={getTattvaForCell(id).name}
+                  >
+                    {isKailas ? "🕉" : getTattvaForCell(id).glyph}
+                  </span>
                   <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
+
                     {cell.name}
                   </span>
                 </>
