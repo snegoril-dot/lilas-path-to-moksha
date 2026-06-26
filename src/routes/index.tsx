@@ -18,6 +18,7 @@ import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
 import { Palette, Ruler, Volume2, VolumeX, NotebookPen, NotebookText } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
+import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
 import { saveSession } from "@/lib/guru.functions";
 
@@ -77,6 +78,7 @@ function Index() {
   const reduceMotion = useReducedMotion();
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
+  const { token, cycle: cycleToken } = usePlayerToken();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
@@ -454,6 +456,20 @@ function Index() {
             {notesEnabled ? <NotebookText size={18} /> : <NotebookPen size={18} />}
           </button>
           <button
+            onClick={cycleToken}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
+            aria-label={`Фигурка: ${token.name}. Сменить.`}
+            title={`Фигурка: ${token.name}`}
+          >
+            <span
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[13px] leading-none"
+              style={{ background: token.bg, boxShadow: `0 0 0 1.5px ${token.ring}` }}
+              aria-hidden
+            >
+              {token.glyph}
+            </span>
+          </button>
+          <button
             onClick={() => setDebug((d) => !d)}
             className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
             aria-label="Отладка сетки"
@@ -489,7 +505,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} />
+        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} />
       </div>
 
       {/* Chat */}

@@ -15,6 +15,7 @@ interface Props {
   theme: BoardTheme;
   onSelectCell?: (id: number) => void;
   debug?: boolean;
+  token?: { glyph: string; ring: string; bg: string };
 }
 
 // Рантайм-проверка: ловим перевёрнутую последнюю строку и любые сбои маппинга
@@ -91,7 +92,7 @@ function loadLayout(theme: BoardTheme): Layout {
   }
 }
 
-export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
+export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>(() => loadLayout(theme));
 
@@ -310,9 +311,14 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
                 <motion.div
                   layoutId="player-token"
                   transition={{ type: "spring", stiffness: 260, damping: 24 }}
-                  className="absolute inset-1 rounded-md ring-2 ring-emerald-300 bg-emerald-400/30 backdrop-blur-[2px] flex items-center justify-center z-30"
+                  className="absolute inset-1 rounded-md ring-2 backdrop-blur-[2px] flex items-center justify-center z-30"
+                  style={{
+                    boxShadow: `0 0 0 2px ${token?.ring ?? "#6ee7b7"}, 0 4px 12px -2px ${token?.ring ?? "#6ee7b7"}66`,
+                    background: token?.bg ?? "rgba(52,211,153,0.30)",
+                    borderColor: token?.ring ?? "#6ee7b7",
+                  }}
                 >
-                  <span className="text-base drop-shadow">🪷</span>
+                  <span className="text-base drop-shadow">{token?.glyph ?? "🪷"}</span>
                 </motion.div>
               )}
             </div>
