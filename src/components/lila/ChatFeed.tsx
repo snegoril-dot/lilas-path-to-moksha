@@ -22,6 +22,10 @@ export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
     <div
       ref={ref}
       data-testid="chat-feed"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+      aria-label="Сообщения Гуру"
       className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 bg-[var(--lila-bg)]"
     >
       <AnimatePresence initial={false}>

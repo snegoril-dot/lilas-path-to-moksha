@@ -12,7 +12,8 @@ import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette, Ruler } from "lucide-react";
+import { Palette, Ruler, Volume2, VolumeX } from "lucide-react";
+import { useSound } from "@/hooks/use-sound";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
@@ -58,6 +59,7 @@ function Index() {
   }, []);
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
+  const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
@@ -142,6 +144,7 @@ function Index() {
     const value = rollDice(getRuntimeRng());
     setDice(value);
     setTotalRolls((n) => n + 1);
+    play("roll");
     addMsg(`🎲 Бросок: ${value}`, "player");
 
     const diceDelay = reduceMotion ? 280 : 1150;
@@ -217,6 +220,7 @@ function Index() {
         };
 
         if (target === 68) {
+          play("moksha");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setTimeout(() => {
             setWon(true);
@@ -230,11 +234,13 @@ function Index() {
           const kind: KeyCell["kind"] = landed.type === "snake" ? "snake" : "ladder";
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind }]);
           if (kind === "snake") {
+            play("snake");
             addMsg(
               `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
+            play("ladder");
             addMsg(
               `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
@@ -243,6 +249,7 @@ function Index() {
           setTimeout(() => {
             animateStep(target, final, () => {
               if (final === 68) {
+                play("moksha");
                 addMsg(`✨ ${BOARD[67].wisdom}`, "guru");
                 setTimeout(() => {
                   setWon(true);
@@ -260,7 +267,7 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion]);
+  }, [pos, rolling, won, sixStreak, addMsg, animateStep, reduceMotion, play]);
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
 
@@ -297,6 +304,15 @@ function Index() {
           >
             <Palette size={18} />
             <span className="hidden sm:inline opacity-70">{theme.name}</span>
+          </button>
+          <button
+            onClick={toggleSound}
+            className={`p-2 rounded-full active:scale-95 transition ${soundEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
+            aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
+            aria-pressed={soundEnabled}
+            title={soundEnabled ? "Звук включён" : "Звук выключен"}
+          >
+            {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
           <button
             onClick={() => setDebug((d) => !d)}

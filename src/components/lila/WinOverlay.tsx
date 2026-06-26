@@ -1,4 +1,35 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { Share2 } from "lucide-react";
+
+function shareResult(text: string) {
+  const tg = (window as unknown as {
+    Telegram?: {
+      WebApp?: {
+        shareMessage?: (id: string) => void;
+        switchInlineQuery?: (q: string, types?: string[]) => void;
+        openTelegramLink?: (url: string) => void;
+      };
+    };
+  }).Telegram?.WebApp;
+  // 1) современный API (требует prepared message) — пробуем switchInlineQuery
+  if (tg?.switchInlineQuery) {
+    try {
+      tg.switchInlineQuery(text, ["users", "groups"]);
+      return;
+    } catch {
+      /* fallthrough */
+    }
+  }
+  // 2) универсальный share через t.me/share/url
+  const url = `https://t.me/share/url?url=${encodeURIComponent(
+    typeof window !== "undefined" ? window.location.href : "https://t.me"
+  )}&text=${encodeURIComponent(text)}`;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(url);
+  } else if (typeof window !== "undefined") {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
 
 export interface KeyCell {
   id: number;
@@ -101,15 +132,34 @@ export function WinOverlay({
             </motion.div>
           )}
 
-          <motion.button
+          <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.9 }}
-            onClick={onRestart}
-            className="my-8 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-xl hover:brightness-110 active:scale-95 transition"
+            className="my-8 flex flex-col sm:flex-row items-center gap-3"
           >
-            🪷 Играть снова
-          </motion.button>
+            <button
+              onClick={onRestart}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-xl hover:brightness-110 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-amber-200 focus:outline-none"
+            >
+              🪷 Играть снова
+            </button>
+            <button
+              onClick={() => {
+                const path = keyCells.length
+                  ? ` Путь: ${keyCells.map((c) => c.name).join(" → ")}.`
+                  : "";
+                const intent = sankalpa ? ` Санкальпа: «${sankalpa}».` : "";
+                shareResult(
+                  `🕉 Я достиг Мокши в игре Лила за ${totalRolls ?? "?"} бросков.${intent}${path}`
+                );
+              }}
+              className="px-6 py-3 rounded-2xl bg-white/10 ring-1 ring-amber-200/30 text-amber-100 font-semibold hover:bg-white/15 active:scale-95 transition flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-amber-200 focus:outline-none"
+            >
+              <Share2 size={18} />
+              Поделиться
+            </button>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
