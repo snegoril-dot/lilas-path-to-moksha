@@ -306,6 +306,15 @@ function Index() {
             <span className="hidden sm:inline opacity-70">{theme.name}</span>
           </button>
           <button
+            onClick={toggleSound}
+            className={`p-2 rounded-full active:scale-95 transition ${soundEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
+            aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
+            aria-pressed={soundEnabled}
+            title={soundEnabled ? "Звук включён" : "Звук выключен"}
+          >
+            {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
+          <button
             onClick={() => setDebug((d) => !d)}
             className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
             aria-label="Отладка сетки"
