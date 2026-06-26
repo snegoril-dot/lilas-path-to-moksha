@@ -9,6 +9,7 @@ import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay } from "@/components/lila/WinOverlay";
 import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
