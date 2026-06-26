@@ -269,7 +269,10 @@ function Index() {
         if (jumped) {
           const dest = BOARD[final - 1];
           const kind: KeyCell["kind"] = landed.type === "snake" ? "snake" : "ladder";
-          setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind }]);
+          const prevVisits = cellVisits[landed.id] ?? 0;
+          const visitCount = prevVisits + 1;
+          setCellVisits((m) => ({ ...m, [landed.id]: visitCount }));
+          setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
           if (kind === "snake") {
             play("snake");
             addMsg(
@@ -283,7 +286,17 @@ function Index() {
               "guru"
             );
           }
-          setTimeout(() => {
+          // Кармический счётчик: повтор того же узла.
+          if (visitCount > 1) {
+            addMsg(
+              kind === "snake"
+                ? `⚠️ Ты возвращаешься сюда уже ${visitCount}-й раз. Урок не усвоен — карма повторяет до тех пор, пока не услышишь.`
+                : `🌟 Снова эта добродетель (${visitCount}-й раз). Гуру улыбается: ты узнал свой путь.`,
+              "system"
+            );
+          }
+
+          const doJump = () => {
             animateStep(target, final, () => {
               if (final === 68) {
                 play("moksha");
@@ -297,6 +310,18 @@ function Index() {
                 finishTurn();
               }
             });
+          };
+
+          setTimeout(() => {
+            // Рефлексия: пауза с заметкой о связи с Санкальпой.
+            pendingResume.current = doJump;
+            setReflection({
+              fromId: landed.id,
+              fromName: landed.name,
+              toId: final,
+              toName: dest.name,
+              kind,
+            });
           }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
@@ -304,9 +329,29 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, addMsg, animateStep, reduceMotion, play]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play]);
+
+  const closeReflection = useCallback(
+    (note: string | null) => {
+      if (note && note.length > 0) {
+        // Прикрепляем заметку к последнему добавленному ключевому узлу.
+        setKeyCells((arr) => {
+          if (arr.length === 0) return arr;
+          const copy = [...arr];
+          copy[copy.length - 1] = { ...copy[copy.length - 1], note };
+          return copy;
+        });
+      }
+      setReflection(null);
+      const resume = pendingResume.current;
+      pendingResume.current = null;
+      resume?.();
+    },
+    []
+  );
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
+  const currentLoka = useMemo(() => getLoka(pos), [pos]);
 
   if (!started) {
     return (
