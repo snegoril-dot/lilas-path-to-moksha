@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { useServerFn } from "@tanstack/react-start";
+import { saveReflection } from "@/lib/guru.functions";
 
 export interface ReflectionPayload {
   fromId: number;
@@ -25,15 +27,44 @@ export function ReflectionModal({
   const open = !!data;
   const { initialRef } = useDialogA11y(open, onSkip);
   const [note, setNote] = useState("");
+  const [aiText, setAiText] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiErr, setAiErr] = useState<string | null>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleId = "reflection-modal-title";
+  const save = useServerFn(saveReflection);
 
   useEffect(() => {
     if (open) {
       setNote("");
+      setAiText(null);
+      setAiErr(null);
       setTimeout(() => taRef.current?.focus(), 50);
     }
   }, [open]);
+
+  const askGuru = async () => {
+    if (!data) return;
+    setAiBusy(true);
+    setAiErr(null);
+    try {
+      const row = await save({
+        data: {
+          sessionId: null,
+          cell: data.fromId,
+          userText: note.trim(),
+          sankalpa,
+          prompt: data.kind === "snake" ? "Урок змеи" : "Дар лестницы",
+          withAi: true,
+        },
+      });
+      setAiText((row as { ai_reflection: string | null }).ai_reflection ?? null);
+    } catch (e) {
+      setAiErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -109,19 +140,39 @@ export function ReflectionModal({
               </div>
             </label>
 
-            <div className="mt-4 flex gap-2">
+            {aiText && (
+              <div className="mt-3 rounded-2xl bg-amber-300/5 ring-1 ring-amber-300/20 px-3 py-2.5 text-xs leading-relaxed text-amber-100/90 whitespace-pre-wrap">
+                <span className="opacity-60">🕉 Гуру: </span>
+                {aiText}
+              </div>
+            )}
+            {aiErr && (
+              <div className="mt-2 text-xs text-rose-300">Гуру не ответил: {aiErr}</div>
+            )}
+
+            <div className="mt-4 grid grid-cols-1 gap-2">
               <button
-                onClick={onSkip}
-                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition"
+                onClick={askGuru}
+                disabled={aiBusy}
+                className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition disabled:opacity-50"
               >
-                Пропустить
+                <Sparkles size={14} />
+                {aiBusy ? "Гуру слушает…" : aiText ? "Спросить ещё раз" : "Получить отклик Гуру"}
               </button>
-              <button
-                onClick={() => onSubmit(note.trim())}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
-              >
-                Принять урок
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={onSkip}
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition"
+                >
+                  Пропустить
+                </button>
+                <button
+                  onClick={() => onSubmit(note.trim())}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
+                >
+                  Принять урок
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

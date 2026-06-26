@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dice5 as DiceIcon, Map as MapIcon, RotateCcw } from "lucide-react";
+import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
 import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
@@ -8,6 +9,7 @@ import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
+import { GuruChatSheet, type GuruChatContext } from "@/components/lila/GuruChatSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -15,6 +17,8 @@ import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
 import { Palette, Ruler, Volume2, VolumeX } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
+import { useAuth } from "@/hooks/use-auth";
+import { saveSession } from "@/lib/guru.functions";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
@@ -48,7 +52,12 @@ function Index() {
   const [totalRolls, setTotalRolls] = useState(0);
   const [cellVisits, setCellVisits] = useState<Record<number, number>>({});
   const [reflection, setReflection] = useState<ReflectionPayload | null>(null);
+  const [guruCtx, setGuruCtx] = useState<GuruChatContext | null>(null);
+  const [pathLog, setPathLog] = useState<Array<{ cell: number; kind: string; to?: number }>>([]);
+  const sessionSavedRef = useRef(false);
   const pendingResume = useRef<(() => void) | null>(null);
+  useAuth(); // ensures anonymous session
+  const persistSession = useServerFn(saveSession);
   const [themeId, setThemeId] = useState<BoardThemeId>(() => {
     if (typeof window === "undefined") return "classic";
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
@@ -95,6 +104,8 @@ function Index() {
       setKeyCells([]);
       setTotalRolls(0);
       setCellVisits({});
+      setPathLog([]);
+      sessionSavedRef.current = false;
       setSankalpa(userSankalpa);
       setTimeout(() => {
         if (userSankalpa) {
@@ -125,9 +136,25 @@ function Index() {
     setKeyCells([]);
     setTotalRolls(0);
     setCellVisits({});
+    setPathLog([]);
+    sessionSavedRef.current = false;
     setReflection(null);
     setSankalpa("");
   }, []);
+
+  // Persist the game session when player reaches Moksha.
+  useEffect(() => {
+    if (!won || sessionSavedRef.current) return;
+    sessionSavedRef.current = true;
+    persistSession({
+      data: {
+        sankalpa: sankalpa || undefined,
+        result: "moksha",
+        movesCount: totalRolls,
+        path: pathLog.slice(-200),
+      },
+    }).catch((e) => console.error("[saveSession]", e));
+  }, [won, sankalpa, totalRolls, pathLog, persistSession]);
 
   const animateStep = useCallback(
     (from: number, to: number, onDone: () => void) => {
@@ -259,6 +286,7 @@ function Index() {
         if (target === 68) {
           play("moksha");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
+          setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
           setTimeout(() => {
             setWon(true);
             setRolling(false);
@@ -273,6 +301,7 @@ function Index() {
           const visitCount = prevVisits + 1;
           setCellVisits((m) => ({ ...m, [landed.id]: visitCount }));
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
+          setPathLog((p) => [...p, { cell: landed.id, kind, to: final }]);
           if (kind === "snake") {
             play("snake");
             addMsg(
@@ -325,6 +354,7 @@ function Index() {
           }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
+          setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
           finishTurn();
         }
       });
@@ -416,6 +446,22 @@ function Index() {
           >
             <Ruler size={18} />
           </button>
+          <Link
+            to="/journal"
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Дневник"
+            title="Дневник пути"
+          >
+            <BookOpen size={18} />
+          </Link>
+          <Link
+            to="/insights"
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Недельный план"
+            title="Рекомендации Гуру"
+          >
+            <Sparkles size={18} />
+          </Link>
           <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
@@ -455,6 +501,21 @@ function Index() {
               Клетка
             </button>
           </div>
+          <button
+            onClick={() =>
+              setGuruCtx({
+                cell: pos === 0 ? 1 : pos,
+                cellName: (BOARD[(pos === 0 ? 1 : pos) - 1] ?? BOARD[0]).name,
+                sankalpa,
+                recentPath: pathLog.slice(-8),
+              })
+            }
+            className="shrink-0 inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
+            aria-label="Спросить ИИ-Гуру"
+            title="Спросить ИИ-Гуру"
+          >
+            <MessageCircle size={20} />
+          </button>
         </div>
       </div>
 
@@ -472,6 +533,7 @@ function Index() {
         keyCells={keyCells}
         totalRolls={totalRolls}
       />
+      <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
     </div>
   );
 }
