@@ -163,7 +163,7 @@ function Index() {
   return (
     <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--lila-surface)]/80 backdrop-blur-md border-b border-white/5">
+      <div className="shrink-0 flex items-center justify-between px-4 py-2.5 bg-[var(--lila-surface)]/80 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-lg shadow">
             🕉
@@ -185,7 +185,7 @@ function Index() {
       </div>
 
       {/* Board */}
-      <div className="px-3 pt-3">
+      <div className="shrink-0 px-3 pt-3">
         <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} />
       </div>
 
@@ -193,7 +193,7 @@ function Index() {
       <ChatFeed messages={messages} />
 
       {/* Action bar */}
-      <div className="px-3 pb-3 pt-2 bg-[var(--lila-surface)]/80 backdrop-blur-md border-t border-white/5">
+      <div className="shrink-0 px-3 pb-3 pt-2 bg-[var(--lila-surface)]/80 backdrop-blur-md border-t border-white/5">
         <div className="flex items-center gap-3">
           <Dice value={dice} rolling={rolling} />
           <div className="flex-1 grid grid-cols-2 gap-2">
