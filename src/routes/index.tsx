@@ -365,7 +365,7 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
