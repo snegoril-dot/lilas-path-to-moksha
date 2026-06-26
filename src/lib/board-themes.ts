@@ -15,7 +15,13 @@ export interface BoardTheme {
   numberClass: string;
   /** tailwind ring class for the board frame */
   frameRing: string;
+  /** inset (% of board) where the painted 8x9 grid actually lives — top, right, bottom, left */
+  gridInset: { top: number; right: number; bottom: number; left: number };
+  /** gap between cells as % of board width */
+  gridGap: number;
 }
+
+export const DEFAULT_INSET = { top: 6, right: 6, bottom: 6, left: 6 };
 
 export const BOARD_THEMES: BoardTheme[] = [
   {
@@ -26,6 +32,8 @@ export const BOARD_THEMES: BoardTheme[] = [
     labelClass: "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]",
     numberClass: "text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]",
     frameRing: "ring-amber-200/30",
+    gridInset: { top: 6, right: 6, bottom: 6, left: 6 },
+    gridGap: 0.4,
   },
   {
     id: "cosmic",
@@ -35,6 +43,8 @@ export const BOARD_THEMES: BoardTheme[] = [
     labelClass: "text-fuchsia-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]",
     numberClass: "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]",
     frameRing: "ring-fuchsia-300/30",
+    gridInset: { top: 6, right: 6, bottom: 6, left: 6 },
+    gridGap: 0.4,
   },
   {
     id: "aqua",
@@ -44,6 +54,8 @@ export const BOARD_THEMES: BoardTheme[] = [
     labelClass: "text-sky-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)]",
     numberClass: "text-amber-700 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
     frameRing: "ring-sky-300/40",
+    gridInset: { top: 6, right: 6, bottom: 6, left: 6 },
+    gridGap: 0.4,
   },
 ];
 
