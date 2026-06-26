@@ -83,15 +83,23 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
             <button
               key={id}
               onClick={() => onSelectCell?.(id)}
-              className={`relative flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight cursor-pointer select-none p-0.5 text-center transition hover:brightness-125 ${tint} ${typeClass}`}
+              className={`relative flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight cursor-pointer select-none p-0.5 text-center transition hover:brightness-125 ${debug ? "bg-fuchsia-500/25 ring-2 ring-fuchsia-300/90" : `${tint} ${typeClass}`}`}
             >
-              <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
-                {id}
-              </span>
-              {isKailas && <span className="absolute right-1 top-0.5 text-[10px]">🕉</span>}
-              <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
-                {cell.name}
-              </span>
+              {debug ? (
+                <span className="absolute inset-0 flex items-center justify-center text-base font-extrabold text-fuchsia-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+                  {id}
+                </span>
+              ) : (
+                <>
+                  <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
+                    {id}
+                  </span>
+                  {isKailas && <span className="absolute right-1 top-0.5 text-[10px]">🕉</span>}
+                  <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
+                    {cell.name}
+                  </span>
+                </>
+              )}
               {isPlayer && (
                 <motion.div
                   layoutId="player-token"
