@@ -12,7 +12,8 @@ import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette, Ruler } from "lucide-react";
+import { Palette, Ruler, Volume2, VolumeX } from "lucide-react";
+import { useSound } from "@/hooks/use-sound";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
@@ -58,6 +59,7 @@ function Index() {
   }, []);
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
+  const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
