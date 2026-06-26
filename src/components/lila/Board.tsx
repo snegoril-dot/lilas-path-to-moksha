@@ -7,6 +7,7 @@ import {
   COLS,
   ROWS,
   idForRowCol,
+  verifyLayoutGeometry,
   verifyBoardMapping,
 } from "@/lib/board-layout";
 
@@ -53,6 +54,37 @@ export interface CellRect {
 
 export type Layout = Record<number, CellRect>;
 
+function cellCenter(rect: CellRect) {
+  return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
+}
+
+function validateJumpConnections(layout: Layout): string[] {
+  const issues: string[] = [];
+  const jumpCells = BOARD.filter((cell) => cell.jumpTo !== undefined);
+  const ladders = jumpCells.filter((cell) => cell.type === "ladder");
+  const snakes = jumpCells.filter((cell) => cell.type === "snake");
+  if (ladders.length !== 8) issues.push(`expected 8 arrows/ladders, got ${ladders.length}`);
+  if (snakes.length !== 9) issues.push(`expected 9 snakes, got ${snakes.length}`);
+
+  for (const cell of jumpCells) {
+    const from = layout[cell.id];
+    const to = cell.jumpTo ? layout[cell.jumpTo] : undefined;
+    if (!from || !to || !cell.jumpTo) {
+      issues.push(`jump ${cell.id}→${cell.jumpTo ?? "?"}: missing visual endpoint`);
+      continue;
+    }
+    const fromCenter = cellCenter(from);
+    const toCenter = cellCenter(to);
+    if (cell.type === "ladder" && toCenter.y >= fromCenter.y) {
+      issues.push(`arrow ${cell.id}→${cell.jumpTo}: target must be visually above source`);
+    }
+    if (cell.type === "snake" && toCenter.y <= fromCenter.y) {
+      issues.push(`snake ${cell.id}→${cell.jumpTo}: target must be visually below source`);
+    }
+  }
+  return issues;
+}
+
 function defaultLayout(theme: BoardTheme): Layout {
   const { top, right, bottom, left } = theme.gridInset;
   const gap = theme.gridGap;
@@ -75,21 +107,36 @@ function defaultLayout(theme: BoardTheme): Layout {
 }
 
 
-// v2: bump инвалидирует старые сохранённые раскладки, где последняя строка
-// (65→72) могла попасть в localStorage из ранее сломанного дефолта.
+// v4: инвалидирует старые сохранённые раскладки, где верхняя строка
+// могла быть записана как 72→65 и перекрывать правильный дефолт.
 function layoutKey(themeId: string) {
-  return `lila.layout.v3.${themeId}`;
+  return `lila.layout.v4.${themeId}`;
+}
+
+function purgeLegacyLayoutKeys(themeId: string) {
+  if (typeof window === "undefined") return;
+  for (const version of ["v1", "v2", "v3"]) {
+    window.localStorage.removeItem(`lila.layout.${version}.${themeId}`);
+  }
 }
 
 function loadLayout(theme: BoardTheme): Layout {
   if (typeof window === "undefined") return defaultLayout(theme);
   try {
+    purgeLegacyLayoutKeys(theme.id);
     const raw = window.localStorage.getItem(layoutKey(theme.id));
     if (!raw) return defaultLayout(theme);
     const parsed = JSON.parse(raw) as Layout;
     // fill missing ids
     const def = defaultLayout(theme);
     for (let i = 1; i <= 72; i++) if (!parsed[i]) parsed[i] = def[i];
+    const layoutIssues = verifyLayoutGeometry(parsed);
+    if (layoutIssues.length > 0) {
+      // eslint-disable-next-line no-console
+      console.error("[Lila board] saved layout invalid, resetting to v4 default:", layoutIssues);
+      window.localStorage.removeItem(layoutKey(theme.id));
+      return def;
+    }
     return parsed;
   } catch {
     return defaultLayout(theme);
@@ -103,6 +150,18 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
   useEffect(() => {
     setLayout(loadLayout(theme));
   }, [theme]);
+
+  const layoutIssues = useMemo(
+    () => [...MAPPING_ISSUES, ...verifyLayoutGeometry(layout), ...validateJumpConnections(layout)],
+    [layout]
+  );
+
+  useEffect(() => {
+    if (layoutIssues.length > 0) {
+      // eslint-disable-next-line no-console
+      console.error("[Lila board] runtime layout validation failed:", layoutIssues);
+    }
+  }, [layoutIssues]);
 
   const persist = useCallback(
     (next: Layout) => {
@@ -227,13 +286,13 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
 
   return (
     <div className="relative">
-      {MAPPING_ISSUES.length > 0 && (
+      {layoutIssues.length > 0 && (
         <div
           role="alert"
           className="mb-2 rounded-lg bg-rose-600/90 text-rose-50 px-3 py-2 text-xs font-medium ring-1 ring-rose-300/60"
         >
-          ⚠️ Сбой маппинга клеток (1→72): {MAPPING_ISSUES[0]}
-          {MAPPING_ISSUES.length > 1 ? ` (+${MAPPING_ISSUES.length - 1})` : ""}
+          ⚠️ Сбой маппинга клеток (1→72): {layoutIssues[0]}
+          {layoutIssues.length > 1 ? ` (+${layoutIssues.length - 1})` : ""}
         </div>
       )}
       <div
@@ -246,6 +305,36 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
           backgroundPosition: "center",
         }}
       >
+        <svg className="absolute inset-0 z-10 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+          <defs>
+            <marker id="lila-arrow-head" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+              <path d="M0,0 L4,2 L0,4 Z" fill="rgba(251, 191, 36, 0.9)" />
+            </marker>
+          </defs>
+          {BOARD.filter((cell) => cell.jumpTo !== undefined).map((cell) => {
+            const from = layout[cell.id];
+            const to = cell.jumpTo ? layout[cell.jumpTo] : undefined;
+            if (!from || !to) return null;
+            const a = cellCenter(from);
+            const b = cellCenter(to);
+            const isSnake = cell.type === "snake";
+            return (
+              <line
+                key={`${cell.id}-${cell.jumpTo}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke={isSnake ? "rgba(244, 63, 94, 0.82)" : "rgba(251, 191, 36, 0.9)"}
+                strokeWidth={isSnake ? 0.38 : 0.46}
+                strokeLinecap="round"
+                strokeDasharray={isSnake ? "1.1 0.8" : undefined}
+                markerEnd={isSnake ? undefined : "url(#lila-arrow-head)"}
+                vectorEffect="non-scaling-stroke"
+              />
+            );
+          })}
+        </svg>
         {ids.map((id) => {
           const cell = BOARD[id - 1];
           const rect = layout[id];
