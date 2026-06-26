@@ -170,6 +170,42 @@ export function Board({ playerPos, theme, onSelectCell, debug }: Props) {
     [layout, persist]
   );
 
+  /** Apply size + vertical y of `id` to every cell in the same visual row,
+   *  and re-distribute them evenly across the board width keeping the row's
+   *  current left/right insets. Shift+double-click. */
+  const applyToRow = useCallback(
+    (id: number) => {
+      const ref = layout[id];
+      if (!ref) return;
+      // figure out which visual row this id belongs to (8 ids per row)
+      const rowIndex = Math.floor((id - 1) / COLS); // 0..8 from bottom
+      const reversed = rowIndex % 2 === 1 || rowIndex === ROWS - 1;
+      const rowIds: number[] = [];
+      for (let c = 0; c < COLS; c++) {
+        const base = rowIndex * COLS;
+        rowIds.push(reversed ? base + (COLS - c) : base + c + 1);
+      }
+      // use current min x and max x+w in this row as the row span
+      const xs = rowIds.map((i) => layout[i].x);
+      const rights = rowIds.map((i) => layout[i].x + layout[i].w);
+      const minX = Math.min(...xs);
+      const maxR = Math.max(...rights);
+      const span = maxR - minX;
+      const gap = (span - ref.w * COLS) / (COLS - 1);
+      const next: Layout = { ...layout };
+      rowIds.forEach((cid, idx) => {
+        next[cid] = {
+          x: minX + idx * (ref.w + gap),
+          y: ref.y,
+          w: ref.w,
+          h: ref.h,
+        };
+      });
+      persist(next);
+    },
+    [layout, persist]
+  );
+
   const ids = useMemo(() => Array.from({ length: 72 }, (_, i) => i + 1), []);
 
   return (
