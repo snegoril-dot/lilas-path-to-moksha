@@ -381,7 +381,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
               onClick={() => !debug && onSelectCell?.(id)}
               className={`absolute flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight select-none p-0.5 text-center transition ${
                 debug
-                  ? "bg-fuchsia-500/25 ring-2 ring-fuchsia-300/90 cursor-move touch-none"
+                  ? `bg-fuchsia-500/25 ring-2 ${brokenIds.has(id) ? "ring-red-500 bg-red-500/40" : "ring-fuchsia-300/90"} cursor-move touch-none`
                   : `${tint} ${typeClass} cursor-pointer hover:brightness-125`
               }`}
               style={{
