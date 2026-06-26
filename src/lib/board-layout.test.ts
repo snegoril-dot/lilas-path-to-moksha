@@ -5,6 +5,7 @@ import {
   TOTAL,
   expectedRowIds,
   idForRowCol,
+  rowColForId,
   rowIds,
   verifyBoardMapping,
 } from "./board-layout";
@@ -49,11 +50,31 @@ describe("board-layout / бустрофедон", () => {
     }
   });
 
+  it("rowColForId является обратной функцией к idForRowCol", () => {
+    for (let id = 1; id <= TOTAL; id++) {
+      const { row, col } = rowColForId(id);
+      expect(idForRowCol(row, col)).toBe(id);
+    }
+  });
+
   it("каждое число 1..72 встречается ровно один раз", () => {
     const all = Array.from({ length: ROWS }, (_, r) => rowIds(r)).flat();
     expect(all).toHaveLength(TOTAL);
     expect(new Set(all).size).toBe(TOTAL);
     for (let i = 1; i <= TOTAL; i++) expect(all).toContain(i);
+  });
+
+  it("соседние ID физически соседствуют на сетке, включая стыки рядов", () => {
+    for (let id = 1; id < TOTAL; id++) {
+      const a = rowColForId(id);
+      const b = rowColForId(id + 1);
+      expect(Math.abs(a.col - b.col) + Math.abs(a.row - b.row)).toBe(1);
+    }
+  });
+
+  it("стык 64↔65 расположен строго друг над другом", () => {
+    expect(rowColForId(64)).toEqual({ row: 7, col: 0 });
+    expect(rowColForId(65)).toEqual({ row: 8, col: 0 });
   });
 
   it("verifyBoardMapping возвращает пустой список проблем", () => {
