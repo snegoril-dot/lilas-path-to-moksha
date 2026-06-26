@@ -10,6 +10,7 @@ import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay } from "@/components/lila/WinOverlay";
 import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { getRuntimeRng, rollDice } from "@/lib/rng";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,7 +88,7 @@ function Index() {
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
     setRolling(true);
-    const value = Math.floor(Math.random() * 6) + 1;
+    const value = rollDice(getRuntimeRng());
     setDice(value);
     addMsg(`🎲 Бросок: ${value}`, "player");
 
