@@ -15,8 +15,9 @@ import { ReflectionModal, type ReflectionPayload } from "@/components/lila/Refle
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette, Ruler, Volume2, VolumeX } from "lucide-react";
+import { Palette, Ruler, Volume2, VolumeX, NotebookPen, NotebookText } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
+import { useNotes } from "@/hooks/use-notes";
 import { useAuth } from "@/hooks/use-auth";
 import { saveSession } from "@/lib/guru.functions";
 
