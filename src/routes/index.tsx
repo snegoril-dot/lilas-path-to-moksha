@@ -12,7 +12,7 @@ import { BOARD, computeNewPosition, resolveJump } from "@/lib/lila-board";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette } from "lucide-react";
+import { Palette, Ruler } from "lucide-react";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
