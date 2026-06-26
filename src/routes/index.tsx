@@ -226,14 +226,22 @@ function Index() {
       const overshoot = pos + value > 68;
 
       if (overshoot) {
-        addMsg(
-          `Чтобы войти в Кайлас, нужно ровно ${68 - pos}. Карма ещё не готова — фишка остаётся на «${BOARD[pos - 1].name}».`,
-          "system"
-        );
-        if (rule.extraTurn) {
-          addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
-        }
-        setRolling(false);
+        const need = 68 - pos;
+        // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
+        animateStep(pos, 68, () => {
+          addMsg(
+            `Нужно ровно ${need}, а выпало ${value}. Карма ещё не готова — фишка отскакивает.`,
+            "system"
+          );
+          setTimeout(() => {
+            animateStep(68, pos, () => {
+              if (rule.extraTurn) {
+                addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+              }
+              setRolling(false);
+            });
+          }, reduceMotion ? 250 : 600);
+        });
         return;
       }
 
