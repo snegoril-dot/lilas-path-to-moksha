@@ -107,15 +107,15 @@ function defaultLayout(theme: BoardTheme): Layout {
 }
 
 
-// v4: инвалидирует старые сохранённые раскладки, где верхняя строка
-// могла быть записана как 72→65 и перекрывать правильный дефолт.
+// v5: переход на ориентацию 9×8 (Мокша=68 в верхнем ряду, центр).
+// Инвалидирует все сохранённые раскладки 8×9.
 function layoutKey(themeId: string) {
-  return `lila.layout.v4.${themeId}`;
+  return `lila.layout.v5.${themeId}`;
 }
 
 function purgeLegacyLayoutKeys(themeId: string) {
   if (typeof window === "undefined") return;
-  for (const version of ["v1", "v2", "v3"]) {
+  for (const version of ["v1", "v2", "v3", "v4"]) {
     window.localStorage.removeItem(`lila.layout.${version}.${themeId}`);
   }
 }
