@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Palette, Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { BoardTheme } from "@/lib/board-themes";
-import type { PlayerToken } from "@/hooks/use-player-token";
+import type { PlayerToken } from "@/lib/player-tokens";
 
 interface Props {
   open: boolean;
