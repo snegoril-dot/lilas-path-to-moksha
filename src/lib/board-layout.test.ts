@@ -10,24 +10,23 @@ import {
   verifyBoardMapping,
 } from "./board-layout";
 
-describe("board-layout / бустрофедон", () => {
-  it("ROWS=9, COLS=8, TOTAL=72", () => {
-    expect(ROWS).toBe(9);
-    expect(COLS).toBe(8);
+describe("board-layout / бустрофедон 9×8", () => {
+  it("ROWS=8, COLS=9, TOTAL=72", () => {
+    expect(ROWS).toBe(8);
+    expect(COLS).toBe(9);
     expect(TOTAL).toBe(72);
   });
 
-  it("первая строка (r=0) идёт 1→8 слева-направо", () => {
-    expect(rowIds(0)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  it("первая строка (r=0) идёт 1→9 слева-направо", () => {
+    expect(rowIds(0)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 
-  it("вторая строка (r=1) реверсирована: 16→9", () => {
-    expect(rowIds(1)).toEqual([16, 15, 14, 13, 12, 11, 10, 9]);
+  it("вторая строка (r=1) реверсирована: 18→10", () => {
+    expect(rowIds(1)).toEqual([18, 17, 16, 15, 14, 13, 12, 11, 10]);
   });
 
-  it("последняя строка (r=8) НЕ перевёрнута: 65→72", () => {
-    // Регрессия: раньше код принудительно реверсировал последнюю строку.
-    expect(rowIds(ROWS - 1)).toEqual([65, 66, 67, 68, 69, 70, 71, 72]);
+  it("последняя строка (r=7) реверсирована: 72→64 (Мокша=68 в центре)", () => {
+    expect(rowIds(ROWS - 1)).toEqual([72, 71, 70, 69, 68, 67, 66, 65, 64]);
   });
 
   it("любая чётная строка идёт слева-направо, нечётная — справа-налево", () => {
@@ -72,9 +71,9 @@ describe("board-layout / бустрофедон", () => {
     }
   });
 
-  it("стык 64↔65 расположен строго друг над другом", () => {
-    expect(rowColForId(64)).toEqual({ row: 7, col: 0 });
-    expect(rowColForId(65)).toEqual({ row: 8, col: 0 });
+  it("стык 63↔64 расположен строго друг над другом (правая колонка)", () => {
+    expect(rowColForId(63)).toEqual({ row: 6, col: 8 });
+    expect(rowColForId(64)).toEqual({ row: 7, col: 8 });
   });
 
   it("verifyBoardMapping возвращает пустой список проблем", () => {
