@@ -17,7 +17,7 @@ export const DEFAULT_INSET = { top: 4, right: 4, bottom: 4, left: 4 };
 
 import boardBg from "@/assets/lila-board-bg.jpg";
 
-const CLASSIC_BG = `url(${boardBg}) center/100% 100% no-repeat`;
+const CLASSIC_BG = `#2a1810 url("${boardBg}") center center / 100% 100% no-repeat`;
 const COSMIC_BG =
   "radial-gradient(ellipse at 50% 30%, #1e1b4b 0%, #0f0a2e 50%, #000010 100%)";
 const AQUA_BG =
