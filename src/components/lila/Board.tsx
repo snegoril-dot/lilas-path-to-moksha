@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
+import boardBg from "@/assets/lila-board-cosmos.jpg";
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
 import {
   COLS,
