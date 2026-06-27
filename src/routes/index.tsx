@@ -519,6 +519,20 @@ function Index() {
         totalRolls={totalRolls}
       />
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
+      <SettingsSheet
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        themeName={theme.name}
+        onCycleTheme={cycleTheme}
+        soundEnabled={soundEnabled}
+        onToggleSound={toggleSound}
+        notesEnabled={notesEnabled}
+        onToggleNotes={toggleNotes}
+        token={token}
+        onCycleToken={cycleToken}
+        debug={debug}
+        onToggleDebug={() => setDebug((d) => !d)}
+      />
     </div>
   );
 }
