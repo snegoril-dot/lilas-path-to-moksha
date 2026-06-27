@@ -318,9 +318,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
         className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
         style={{
           aspectRatio: "1 / 1",
-          backgroundImage: `url(${theme.bg})`,
-          backgroundSize: "100% 100%",
-          backgroundPosition: "center",
+          background: theme.bg,
         }}
       >
         <svg className="absolute inset-0 z-10 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
