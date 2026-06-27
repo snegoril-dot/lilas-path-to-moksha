@@ -426,78 +426,30 @@ function Index() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={cycleTheme}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
-            aria-label="Сменить тему доски"
-            title={`Тема: ${theme.name}`}
-          >
-            <Palette size={18} />
-            <span className="hidden sm:inline opacity-70">{theme.name}</span>
-          </button>
-          <button
-            onClick={toggleSound}
-            className={`p-2 rounded-full active:scale-95 transition ${soundEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
-            aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
-            aria-pressed={soundEnabled}
-            title={soundEnabled ? "Звук включён" : "Звук выключен"}
-          >
-            {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </button>
-          <button
-            onClick={toggleNotes}
-            className={`p-2 rounded-full active:scale-95 transition ${notesEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
-            aria-label={notesEnabled ? "Выключить заметки" : "Включить заметки"}
-            aria-pressed={notesEnabled}
-            title={notesEnabled ? "Заметки рефлексии включены" : "Заметки рефлексии выключены"}
-          >
-            {notesEnabled ? <NotebookText size={18} /> : <NotebookPen size={18} />}
-          </button>
-          <button
-            onClick={cycleToken}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
-            aria-label={`Фигурка: ${token.name}. Сменить.`}
-            title={`Фигурка: ${token.name}`}
-          >
-            <span
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[13px] leading-none"
-              style={{ background: token.bg, boxShadow: `0 0 0 1.5px ${token.ring}` }}
-              aria-hidden
-            >
-              {token.glyph}
-            </span>
-          </button>
-          <button
-            onClick={() => setDebug((d) => !d)}
-            className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
-            aria-label="Отладка сетки"
-            title="Показать номера клеток поверх карты"
-          >
-            <Ruler size={18} />
-          </button>
+        <div className="flex items-center gap-1 shrink-0">
           <Link
             to="/journal"
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
             aria-label="Дневник"
             title="Дневник пути"
           >
             <BookOpen size={18} />
           </Link>
-          <Link
-            to="/insights"
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Недельный план"
-            title="Рекомендации Гуру"
-          >
-            <Sparkles size={18} />
-          </Link>
           <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
             aria-label="Начать заново"
+            title="Начать заново"
           >
             <RotateCcw size={18} />
+          </button>
+          <button
+            onClick={() => { haptic("light"); setSettingsOpen(true); }}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Открыть меню"
+            title="Меню"
+          >
+            <Menu size={20} />
           </button>
         </div>
       </div>
