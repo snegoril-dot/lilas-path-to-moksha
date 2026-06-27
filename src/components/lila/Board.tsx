@@ -319,9 +319,22 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
         className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
         style={{
           aspectRatio: "9 / 8",
-          background: theme.bg,
+          backgroundColor: theme.bg,
         }}
       >
+        <img
+          src={theme.imageUrl}
+          alt="Карта Лилы 9 на 8"
+          className="absolute inset-0 h-full w-full object-fill select-none pointer-events-none"
+          draggable={false}
+          loading="eager"
+          decoding="async"
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: theme.imageOverlay }}
+          aria-hidden
+        />
         <svg className="absolute inset-0 z-10 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
           <defs>
             <marker id="lila-arrow-head" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
