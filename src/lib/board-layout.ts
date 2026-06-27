@@ -68,7 +68,8 @@ export function verifyBoardMapping(): string[] {
   const seen = new Set<number>();
 
   const topRow = rowIds(ROWS - 1);
-  const expectedTopRow = [65, 66, 67, 68, 69, 70, 71, 72];
+  // 9×8: верхний ряд (r=7, нечётный) визуально L→R: 72,71,...,64
+  const expectedTopRow = [72, 71, 70, 69, 68, 67, 66, 65, 64];
   if (topRow.join(",") !== expectedTopRow.join(",")) {
     issues.push(
       `top row mismatch: got [${topRow.join(",")}], expected [${expectedTopRow.join(",")}]`
