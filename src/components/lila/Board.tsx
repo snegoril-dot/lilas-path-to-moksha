@@ -319,7 +319,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
         className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
         style={{
           aspectRatio: "9 / 8",
-          backgroundColor: theme.bg,
+          background: theme.bg,
         }}
       >
         {theme.imageUrl && (
