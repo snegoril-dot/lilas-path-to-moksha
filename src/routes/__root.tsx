@@ -76,7 +76,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" },
+      { name: "theme-color", content: "#0b0a14" },
       { title: "Lovable App" },
       { name: "description", content: "A Telegram Mini App for the spiritual game \"Leela\" (Jnana Leela), guiding players through karma and liberation." },
       { name: "author", content: "Lovable" },

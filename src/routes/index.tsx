@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Sparkles } from "lucide-react";
+import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Menu } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
@@ -10,17 +10,18 @@ import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
 import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
 import { GuruChatSheet, type GuruChatContext } from "@/components/lila/GuruChatSheet";
+import { SettingsSheet } from "@/components/lila/SettingsSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
-import { Palette, Ruler, Volume2, VolumeX, NotebookPen, NotebookText } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
 import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
 import { saveSession } from "@/lib/guru.functions";
+import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 
 const THEME_STORAGE_KEY = "lila.boardTheme";
 
@@ -89,12 +90,10 @@ function Index() {
     setMessages((m) => [...m, { id: `${Date.now()}-${idRef.current}`, text, kind }]);
   }, []);
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   // Init Telegram SDK
-  useEffect(() => {
-    const tg = (window as unknown as { Telegram?: { WebApp?: { ready: () => void; expand: () => void } } }).Telegram?.WebApp;
-    tg?.ready();
-    tg?.expand();
-  }, []);
+  useTelegramInit();
 
   const startGame = useCallback(
     (userSankalpa: string) => {
@@ -288,7 +287,7 @@ function Index() {
         };
 
         if (target === 68) {
-          play("moksha");
+          play("moksha"); hapticNotify("success");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
           setTimeout(() => {
@@ -307,13 +306,13 @@ function Index() {
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
           setPathLog((p) => [...p, { cell: landed.id, kind, to: final }]);
           if (kind === "snake") {
-            play("snake");
+            play("snake"); hapticNotify("warning");
             addMsg(
               `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
-            play("ladder");
+            play("ladder"); hapticNotify("success");
             addMsg(
               `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
@@ -332,7 +331,7 @@ function Index() {
           const doJump = () => {
             animateStep(target, final, () => {
               if (final === 68) {
-                play("moksha");
+                play("moksha"); hapticNotify("success");
                 addMsg(`✨ ${BOARD[67].wisdom}`, "guru");
                 setTimeout(() => {
                   setWon(true);
@@ -427,78 +426,30 @@ function Index() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={cycleTheme}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
-            aria-label="Сменить тему доски"
-            title={`Тема: ${theme.name}`}
-          >
-            <Palette size={18} />
-            <span className="hidden sm:inline opacity-70">{theme.name}</span>
-          </button>
-          <button
-            onClick={toggleSound}
-            className={`p-2 rounded-full active:scale-95 transition ${soundEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
-            aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
-            aria-pressed={soundEnabled}
-            title={soundEnabled ? "Звук включён" : "Звук выключен"}
-          >
-            {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </button>
-          <button
-            onClick={toggleNotes}
-            className={`p-2 rounded-full active:scale-95 transition ${notesEnabled ? "hover:bg-white/10" : "bg-white/5 text-white/50"}`}
-            aria-label={notesEnabled ? "Выключить заметки" : "Включить заметки"}
-            aria-pressed={notesEnabled}
-            title={notesEnabled ? "Заметки рефлексии включены" : "Заметки рефлексии выключены"}
-          >
-            {notesEnabled ? <NotebookText size={18} /> : <NotebookPen size={18} />}
-          </button>
-          <button
-            onClick={cycleToken}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center gap-1 text-xs"
-            aria-label={`Фигурка: ${token.name}. Сменить.`}
-            title={`Фигурка: ${token.name}`}
-          >
-            <span
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[13px] leading-none"
-              style={{ background: token.bg, boxShadow: `0 0 0 1.5px ${token.ring}` }}
-              aria-hidden
-            >
-              {token.glyph}
-            </span>
-          </button>
-          <button
-            onClick={() => setDebug((d) => !d)}
-            className={`p-2 rounded-full active:scale-95 transition ${debug ? "bg-fuchsia-500/30 text-fuchsia-100" : "hover:bg-white/10"}`}
-            aria-label="Отладка сетки"
-            title="Показать номера клеток поверх карты"
-          >
-            <Ruler size={18} />
-          </button>
+        <div className="flex items-center gap-1 shrink-0">
           <Link
             to="/journal"
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
             aria-label="Дневник"
             title="Дневник пути"
           >
             <BookOpen size={18} />
           </Link>
-          <Link
-            to="/insights"
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Недельный план"
-            title="Рекомендации Гуру"
-          >
-            <Sparkles size={18} />
-          </Link>
           <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
             aria-label="Начать заново"
+            title="Начать заново"
           >
             <RotateCcw size={18} />
+          </button>
+          <button
+            onClick={() => { haptic("light"); setSettingsOpen(true); }}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Открыть меню"
+            title="Меню"
+          >
+            <Menu size={20} />
           </button>
         </div>
       </div>
@@ -512,40 +463,43 @@ function Index() {
       <ChatFeed messages={messages} />
 
       {/* Action bar */}
-      <div className="shrink-0 px-3 pb-3 pt-2 bg-[var(--lila-surface)]/80 backdrop-blur-md border-t border-white/5">
-        <div className="flex items-center gap-3">
+      <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[var(--lila-surface)]/90 backdrop-blur-md border-t border-white/10">
+        <div className="flex items-center gap-2">
           <Dice value={dice} rolling={rolling} />
-          <div className="flex-1 grid grid-cols-2 gap-2">
-            <button
-              onClick={handleRoll}
-              disabled={rolling || won}
-              className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-lg hover:brightness-110 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <DiceIcon size={18} />
-              Бросить
-            </button>
-            <button
-              onClick={() => setCellOpen(pos === 0 ? 1 : pos)}
-              className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] font-semibold shadow-md hover:brightness-110 active:scale-[0.97] transition"
-            >
-              <MapIcon size={18} />
-              Клетка
-            </button>
-          </div>
           <button
-            onClick={() =>
+            onClick={() => { haptic("medium"); handleRoll(); }}
+            disabled={rolling || won}
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Бросить кубик"
+          >
+            <DiceIcon size={20} />
+            Бросить
+          </button>
+          <button
+            onClick={() => { haptic("light"); setCellOpen(pos === 0 ? 1 : pos); }}
+            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
+            aria-label="О текущей клетке"
+            title="Клетка"
+          >
+            <MapIcon size={20} />
+            <span className="text-[10px] mt-0.5 opacity-70">Клетка</span>
+          </button>
+          <button
+            onClick={() => {
+              haptic("light");
               setGuruCtx({
                 cell: pos === 0 ? 1 : pos,
                 cellName: (BOARD[(pos === 0 ? 1 : pos) - 1] ?? BOARD[0]).name,
                 sankalpa,
                 recentPath: pathLog.slice(-8),
-              })
-            }
-            className="shrink-0 inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
+              });
+            }}
+            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
             aria-label="Спросить ИИ-Гуру"
-            title="Спросить ИИ-Гуру"
+            title="Гуру"
           >
             <MessageCircle size={20} />
+            <span className="text-[10px] mt-0.5 opacity-80">Гуру</span>
           </button>
         </div>
       </div>
@@ -565,6 +519,20 @@ function Index() {
         totalRolls={totalRolls}
       />
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
+      <SettingsSheet
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        themeName={theme.name}
+        onCycleTheme={cycleTheme}
+        soundEnabled={soundEnabled}
+        onToggleSound={toggleSound}
+        notesEnabled={notesEnabled}
+        onToggleNotes={toggleNotes}
+        token={token}
+        onCycleToken={cycleToken}
+        debug={debug}
+        onToggleDebug={() => setDebug((d) => !d)}
+      />
     </div>
   );
 }
