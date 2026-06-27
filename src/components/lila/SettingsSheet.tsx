@@ -63,7 +63,7 @@ export function SettingsSheet(props: Props) {
         </SheetHeader>
 
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <Row icon={<Palette size={18} />} label="Тема доски" hint={themeName} onClick={onCycleTheme} />
+          {/* Theme selector removed — single Лила theme */}
           <Row
             icon={soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             label="Звук"
