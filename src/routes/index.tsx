@@ -287,7 +287,7 @@ function Index() {
         };
 
         if (target === 68) {
-          play("moksha");
+          play("moksha"); hapticNotify("success");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
           setTimeout(() => {
@@ -306,13 +306,13 @@ function Index() {
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
           setPathLog((p) => [...p, { cell: landed.id, kind, to: final }]);
           if (kind === "snake") {
-            play("snake");
+            play("snake"); hapticNotify("warning");
             addMsg(
               `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
-            play("ladder");
+            play("ladder"); hapticNotify("success");
             addMsg(
               `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
               "guru"
@@ -331,7 +331,7 @@ function Index() {
           const doJump = () => {
             animateStep(target, final, () => {
               if (final === 68) {
-                play("moksha");
+                play("moksha"); hapticNotify("success");
                 addMsg(`✨ ${BOARD[67].wisdom}`, "guru");
                 setTimeout(() => {
                   setWon(true);
