@@ -328,9 +328,16 @@ export function Board({ playerPos, onSelectCell, debug, token }: Props) {
           background: BOARD_BG,
         }}
       >
+        <img
+          src={boardBg}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-fill pointer-events-none select-none"
+          draggable={false}
+        />
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(rgba(255,255,255,0.04), rgba(0,0,0,0.10))" }}
+          style={{ background: "linear-gradient(rgba(255,255,255,0.03), rgba(0,0,0,0.18))" }}
           aria-hidden
         />
         <svg className="absolute inset-0 z-10 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
