@@ -61,20 +61,10 @@ function Index() {
   const pendingResume = useRef<(() => void) | null>(null);
   useAuth(); // ensures anonymous session
   const persistSession = useServerFn(saveSession);
-  const [themeId, setThemeId] = useState<BoardThemeId>(() => {
-    if (typeof window === "undefined") return "classic";
-    const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as BoardThemeId | null;
-    return saved && BOARD_THEMES.some((t) => t.id === saved) ? saved : "classic";
-  });
+  const [themeId] = useState<BoardThemeId>("cosmic");
   const theme = useMemo(() => getTheme(themeId), [themeId]);
-  const cycleTheme = useCallback(() => {
-    setThemeId((cur) => {
-      const idx = BOARD_THEMES.findIndex((t) => t.id === cur);
-      const next = BOARD_THEMES[(idx + 1) % BOARD_THEMES.length].id;
-      if (typeof window !== "undefined") window.localStorage.setItem(THEME_STORAGE_KEY, next);
-      return next;
-    });
-  }, []);
+  const cycleTheme = useCallback(() => {}, []);
+
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
