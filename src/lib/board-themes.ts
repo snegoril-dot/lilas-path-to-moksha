@@ -15,10 +15,9 @@ export interface BoardTheme {
 
 export const DEFAULT_INSET = { top: 4, right: 4, bottom: 4, left: 4 };
 
-// Все живописные фоны удалены — используем чистые CSS-градиенты,
-// пока не будет финального арта.
-const CLASSIC_BG =
-  "linear-gradient(180deg, #2a1810 0%, #4a2818 40%, #6b3a1f 70%, #2a1810 100%)";
+import boardBg from "@/assets/lila-board-bg.jpg";
+
+const CLASSIC_BG = `url(${boardBg}) center/100% 100% no-repeat`;
 const COSMIC_BG =
   "radial-gradient(ellipse at 50% 30%, #1e1b4b 0%, #0f0a2e 50%, #000010 100%)";
 const AQUA_BG =
