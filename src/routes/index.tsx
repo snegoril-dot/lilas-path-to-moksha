@@ -463,40 +463,43 @@ function Index() {
       <ChatFeed messages={messages} />
 
       {/* Action bar */}
-      <div className="shrink-0 px-3 pb-3 pt-2 bg-[var(--lila-surface)]/80 backdrop-blur-md border-t border-white/5">
-        <div className="flex items-center gap-3">
+      <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[var(--lila-surface)]/90 backdrop-blur-md border-t border-white/10">
+        <div className="flex items-center gap-2">
           <Dice value={dice} rolling={rolling} />
-          <div className="flex-1 grid grid-cols-2 gap-2">
-            <button
-              onClick={handleRoll}
-              disabled={rolling || won}
-              className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-lg hover:brightness-110 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <DiceIcon size={18} />
-              Бросить
-            </button>
-            <button
-              onClick={() => setCellOpen(pos === 0 ? 1 : pos)}
-              className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] font-semibold shadow-md hover:brightness-110 active:scale-[0.97] transition"
-            >
-              <MapIcon size={18} />
-              Клетка
-            </button>
-          </div>
           <button
-            onClick={() =>
+            onClick={() => { haptic("medium"); handleRoll(); }}
+            disabled={rolling || won}
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Бросить кубик"
+          >
+            <DiceIcon size={20} />
+            Бросить
+          </button>
+          <button
+            onClick={() => { haptic("light"); setCellOpen(pos === 0 ? 1 : pos); }}
+            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
+            aria-label="О текущей клетке"
+            title="Клетка"
+          >
+            <MapIcon size={20} />
+            <span className="text-[10px] mt-0.5 opacity-70">Клетка</span>
+          </button>
+          <button
+            onClick={() => {
+              haptic("light");
               setGuruCtx({
                 cell: pos === 0 ? 1 : pos,
                 cellName: (BOARD[(pos === 0 ? 1 : pos) - 1] ?? BOARD[0]).name,
                 sankalpa,
                 recentPath: pathLog.slice(-8),
-              })
-            }
-            className="shrink-0 inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
+              });
+            }}
+            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
             aria-label="Спросить ИИ-Гуру"
-            title="Спросить ИИ-Гуру"
+            title="Гуру"
           >
             <MessageCircle size={20} />
+            <span className="text-[10px] mt-0.5 opacity-80">Гуру</span>
           </button>
         </div>
       </div>
