@@ -1,3 +1,5 @@
+import boardBg from "@/assets/lila-board-bg.jpg";
+
 export type BoardThemeId = "classic" | "cosmic" | "aqua";
 
 export interface BoardTheme {
@@ -15,13 +17,12 @@ export interface BoardTheme {
 
 export const DEFAULT_INSET = { top: 4, right: 4, bottom: 4, left: 4 };
 
-import boardBg from "@/assets/lila-board-bg.jpg";
-
-const CLASSIC_BG = `#2a1810 url("${boardBg}") center center / 100% 100% no-repeat`;
+const BOARD_IMAGE_BG = `url("${boardBg}")`;
+const CLASSIC_BG = `#2a1810 ${BOARD_IMAGE_BG} center center / 100% 100% no-repeat`;
 const COSMIC_BG =
-  "radial-gradient(ellipse at 50% 30%, #1e1b4b 0%, #0f0a2e 50%, #000010 100%)";
+  `linear-gradient(rgba(15, 10, 46, 0.08), rgba(0, 0, 16, 0.12)), ${BOARD_IMAGE_BG} center center / 100% 100% no-repeat`;
 const AQUA_BG =
-  "linear-gradient(180deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%)";
+  `linear-gradient(rgba(224, 242, 254, 0.1), rgba(125, 211, 252, 0.12)), ${BOARD_IMAGE_BG} center center / 100% 100% no-repeat`;
 
 export const BOARD_THEMES: BoardTheme[] = [
   {
