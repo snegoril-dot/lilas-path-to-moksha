@@ -8,9 +8,9 @@
  * Последний ряд (r=8) — снова слева-направо (65→72), как и любая чётная строка.
  */
 
-export const COLS = 8;
-export const ROWS = 9;
-export const TOTAL = COLS * ROWS; // 72
+export const COLS = 9;
+export const ROWS = 8;
+export const TOTAL = COLS * ROWS; // 72 (9×8 ориентация — Мокша в верхнем ряду)
 
 export interface BoardCoord {
   /** row=0 — нижний ряд, row=8 — верхний */
