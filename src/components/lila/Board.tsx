@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
-import { type BoardTheme } from "@/lib/board-themes";
 import {
   COLS,
   ROWS,
@@ -15,11 +14,18 @@ import type { PlayerToken } from "@/lib/player-tokens";
 
 interface Props {
   playerPos: number;
-  theme: BoardTheme;
   onSelectCell?: (id: number) => void;
   debug?: boolean;
   token?: PlayerToken;
 }
+
+const GRID_INSET = { top: 4, right: 4, bottom: 4, left: 4 };
+const GRID_GAP = 0.4;
+const BOARD_BG = "linear-gradient(180deg, var(--lila-board-bg, rgba(15,23,42,0.65)), rgba(15,23,42,0.35))";
+const FRAME_RING = "ring-white/10";
+const NUMBER_CLASS = "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
+const LABEL_CLASS = "text-[var(--lila-cell-fg,#f8fafc)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]";
+const LAYOUT_STORAGE_KEY = "lila.layout.v6.base";
 
 // Рантайм-проверка: ловим перевёрнутую последнюю строку и любые сбои маппинга
 // сразу при загрузке модуля. Issues пробрасываются в UI ниже.
@@ -85,9 +91,9 @@ function validateJumpConnections(layout: Layout): string[] {
   return issues;
 }
 
-function defaultLayout(theme: BoardTheme): Layout {
-  const { top, right, bottom, left } = theme.gridInset;
-  const gap = theme.gridGap;
+function defaultLayout(): Layout {
+  const { top, right, bottom, left } = GRID_INSET;
+  const gap = GRID_GAP;
   const innerW = 100 - left - right;
   const innerH = 100 - top - bottom;
   const cellW = (innerW - gap * (COLS - 1)) / COLS;
@@ -107,49 +113,47 @@ function defaultLayout(theme: BoardTheme): Layout {
 }
 
 
-// v5: переход на ориентацию 9×8 (Мокша=68 в верхнем ряду, центр).
-// Инвалидирует все сохранённые раскладки 8×9.
-function layoutKey(themeId: string) {
-  return `lila.layout.v5.${themeId}`;
-}
-
-function purgeLegacyLayoutKeys(themeId: string) {
+// v6: полностью удалены темы/нарисованные карты; раскладка одна, 9×8.
+function purgeLegacyLayoutKeys() {
   if (typeof window === "undefined") return;
-  for (const version of ["v1", "v2", "v3", "v4"]) {
-    window.localStorage.removeItem(`lila.layout.${version}.${themeId}`);
+  window.localStorage.removeItem("lila.boardTheme");
+  for (const themeId of ["classic", "cosmic", "aqua", "base"]) {
+    for (const version of ["v1", "v2", "v3", "v4", "v5"]) {
+      window.localStorage.removeItem(`lila.layout.${version}.${themeId}`);
+    }
   }
 }
 
-function loadLayout(theme: BoardTheme): Layout {
-  if (typeof window === "undefined") return defaultLayout(theme);
+function loadLayout(): Layout {
+  if (typeof window === "undefined") return defaultLayout();
   try {
-    purgeLegacyLayoutKeys(theme.id);
-    const raw = window.localStorage.getItem(layoutKey(theme.id));
-    if (!raw) return defaultLayout(theme);
+    purgeLegacyLayoutKeys();
+    const raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
+    if (!raw) return defaultLayout();
     const parsed = JSON.parse(raw) as Layout;
     // fill missing ids
-    const def = defaultLayout(theme);
+    const def = defaultLayout();
     for (let i = 1; i <= 72; i++) if (!parsed[i]) parsed[i] = def[i];
     const layoutIssues = verifyLayoutGeometry(parsed);
     if (layoutIssues.length > 0) {
       // eslint-disable-next-line no-console
-      console.error("[Lila board] saved layout invalid, resetting to v4 default:", layoutIssues);
-      window.localStorage.removeItem(layoutKey(theme.id));
+      console.error("[Lila board] saved layout invalid, resetting to v6 default:", layoutIssues);
+      window.localStorage.removeItem(LAYOUT_STORAGE_KEY);
       return def;
     }
     return parsed;
   } catch {
-    return defaultLayout(theme);
+    return defaultLayout();
   }
 }
 
-export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
+export function Board({ playerPos, onSelectCell, debug, token }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [layout, setLayout] = useState<Layout>(() => loadLayout(theme));
+  const [layout, setLayout] = useState<Layout>(() => loadLayout());
 
   useEffect(() => {
-    setLayout(loadLayout(theme));
-  }, [theme]);
+    setLayout(loadLayout());
+  }, []);
 
   const layoutIssues = useMemo(
     () => [...MAPPING_ISSUES, ...verifyLayoutGeometry(layout), ...validateJumpConnections(layout)],
@@ -185,10 +189,10 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
     (next: Layout) => {
       setLayout(next);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(layoutKey(theme.id), JSON.stringify(next));
+        window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(next));
       }
     },
-    [theme.id]
+    []
   );
 
   const updateRect = useCallback(
@@ -196,12 +200,12 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
       setLayout((prev) => {
         const next = { ...prev, [id]: { ...prev[id], ...patch } };
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(layoutKey(theme.id), JSON.stringify(next));
+          window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(next));
         }
         return next;
       });
     },
-    [theme.id]
+    []
   );
 
   const beginDrag = useCallback(
@@ -244,15 +248,15 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
 
   const exportLayout = useCallback(() => {
     const json = JSON.stringify(layout, null, 2);
-    console.log(`[Lila layout: ${theme.id}]`, json);
+    console.log("[Lila layout]", json);
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(json).catch(() => {});
     }
-  }, [layout, theme.id]);
+  }, [layout]);
 
   const resetLayout = useCallback(() => {
-    persist(defaultLayout(theme));
-  }, [persist, theme]);
+    persist(defaultLayout());
+  }, [persist]);
 
   const applyToAll = useCallback(
     (id: number) => {
@@ -316,25 +320,15 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
       <div
         data-lila-board
         ref={containerRef}
-        className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
+        className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING}`}
         style={{
           aspectRatio: "9 / 8",
-          background: theme.bg,
+          background: BOARD_BG,
         }}
       >
-        {theme.imageUrl && (
-          <img
-            src={theme.imageUrl}
-            alt="Карта Лилы 9 на 8"
-            className="absolute inset-0 h-full w-full object-fill select-none pointer-events-none"
-            draggable={false}
-            loading="eager"
-            decoding="async"
-          />
-        )}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: theme.imageOverlay }}
+          style={{ background: "linear-gradient(rgba(255,255,255,0.04), rgba(0,0,0,0.10))" }}
           aria-hidden
         />
         <svg className="absolute inset-0 z-10 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
@@ -417,7 +411,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
                 </>
               ) : (
                 <>
-                  <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${theme.numberClass}`}>
+                  <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${NUMBER_CLASS}`}>
                     {id}
                   </span>
                   <span
@@ -427,7 +421,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
                   >
                     {isKailas ? "🕉" : getTattvaForCell(id).glyph}
                   </span>
-                  <span className={`relative line-clamp-2 px-0.5 ${theme.labelClass}`}>
+                  <span className={`relative line-clamp-2 px-0.5 ${LABEL_CLASS}`}>
 
                     {cell.name}
                   </span>
@@ -485,7 +479,7 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
             onClick={exportLayout}
             className="px-3 py-1.5 rounded-lg bg-fuchsia-500/30 ring-1 ring-fuchsia-300/60 text-fuchsia-50 hover:bg-fuchsia-500/40"
           >
-            Экспорт layout ({theme.name})
+            Экспорт layout
           </button>
           <button
             onClick={resetLayout}
