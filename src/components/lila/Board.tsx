@@ -117,11 +117,12 @@ function defaultLayout(): Layout {
 function purgeLegacyLayoutKeys() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("lila.boardTheme");
-  for (const themeId of ["classic", "cosmic", "aqua", "base"]) {
-    for (const version of ["v1", "v2", "v3", "v4", "v5"]) {
-      window.localStorage.removeItem(`lila.layout.${version}.${themeId}`);
-    }
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (key?.startsWith("lila.layout.")) keysToRemove.push(key);
   }
+  keysToRemove.forEach((key) => window.localStorage.removeItem(key));
 }
 
 function loadLayout(): Layout {
