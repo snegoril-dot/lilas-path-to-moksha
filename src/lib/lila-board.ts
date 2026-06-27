@@ -236,7 +236,7 @@ export const LOKAS: Loka[] = [
   { id: 5, name: "Тапа-лока · План аскезы", range: [41, 48], hint: "Земля, бхакти, вивека, карма-йога", color: "from-indigo-300 to-blue-400" },
   { id: 6, name: "Сатья-лока · План Истины", range: [49, 56], hint: "Совесть, Брахма, Сат-Карма", color: "from-violet-300 to-indigo-400" },
   { id: 7, name: "Высшие планы", range: [57, 64], hint: "Звук, энергия, знание, ментал", color: "from-fuchsia-300 to-violet-400" },
-  { id: 8, name: "Космос · Кайлас", range: [65, 68], hint: "Реальность, блаженство, Мокша", color: "from-amber-200 to-amber-400" },
+  { id: 8, name: "Кайлас · Мокша", range: [65, 68], hint: "Реальность, блаженство, освобождение", color: "from-amber-200 to-amber-400" },
 ];
 
 export function getLoka(pos: number): Loka | null {
