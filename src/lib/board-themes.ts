@@ -1,3 +1,5 @@
+import boardCosmos from "@/assets/lila-board-cosmos.jpg";
+
 export type BoardThemeId = "classic" | "cosmic" | "aqua";
 
 export interface BoardTheme {
