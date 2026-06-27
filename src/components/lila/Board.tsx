@@ -322,14 +322,16 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
           backgroundColor: theme.bg,
         }}
       >
-        <img
-          src={theme.imageUrl}
-          alt="Карта Лилы 9 на 8"
-          className="absolute inset-0 h-full w-full object-fill select-none pointer-events-none"
-          draggable={false}
-          loading="eager"
-          decoding="async"
-        />
+        {theme.imageUrl && (
+          <img
+            src={theme.imageUrl}
+            alt="Карта Лилы 9 на 8"
+            className="absolute inset-0 h-full w-full object-fill select-none pointer-events-none"
+            draggable={false}
+            loading="eager"
+            decoding="async"
+          />
+        )}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: theme.imageOverlay }}
