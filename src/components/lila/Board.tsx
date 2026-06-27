@@ -314,10 +314,11 @@ export function Board({ playerPos, theme, onSelectCell, debug, token }: Props) {
         </div>
       )}
       <div
+        data-lila-board
         ref={containerRef}
         className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${theme.frameRing}`}
         style={{
-          aspectRatio: "1 / 1",
+          aspectRatio: "9 / 8",
           background: theme.bg,
         }}
       >
