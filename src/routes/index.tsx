@@ -90,12 +90,10 @@ function Index() {
     setMessages((m) => [...m, { id: `${Date.now()}-${idRef.current}`, text, kind }]);
   }, []);
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   // Init Telegram SDK
-  useEffect(() => {
-    const tg = (window as unknown as { Telegram?: { WebApp?: { ready: () => void; expand: () => void } } }).Telegram?.WebApp;
-    tg?.ready();
-    tg?.expand();
-  }, []);
+  useTelegramInit();
 
   const startGame = useCallback(
     (userSankalpa: string) => {
