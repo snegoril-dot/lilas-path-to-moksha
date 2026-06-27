@@ -1,14 +1,11 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Palette, Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles } from "lucide-react";
+import { Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import type { BoardTheme } from "@/lib/board-themes";
 import type { PlayerToken } from "@/lib/player-tokens";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  themeName: BoardTheme["name"];
-  onCycleTheme: () => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
   notesEnabled: boolean;
@@ -46,7 +43,7 @@ function Row({
 
 export function SettingsSheet(props: Props) {
   const {
-    open, onClose, themeName, onCycleTheme,
+    open, onClose,
     soundEnabled, onToggleSound, notesEnabled, onToggleNotes,
     token, onCycleToken, debug, onToggleDebug,
   } = props;
@@ -63,7 +60,6 @@ export function SettingsSheet(props: Props) {
         </SheetHeader>
 
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {/* Theme selector removed — single Лила theme */}
           <Row
             icon={soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             label="Звук"

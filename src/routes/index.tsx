@@ -15,15 +15,12 @@ import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
-import { BOARD_THEMES, getTheme, type BoardThemeId } from "@/lib/board-themes";
 import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
 import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
 import { saveSession } from "@/lib/guru.functions";
 import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
-
-const THEME_STORAGE_KEY = "lila.boardTheme";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,9 +58,6 @@ function Index() {
   const pendingResume = useRef<(() => void) | null>(null);
   useAuth(); // ensures anonymous session
   const persistSession = useServerFn(saveSession);
-  const [themeId] = useState<BoardThemeId>("cosmic");
-  const theme = useMemo(() => getTheme(themeId), [themeId]);
-  const cycleTheme = useCallback(() => {}, []);
 
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
@@ -446,7 +440,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} theme={theme} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} />
+        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} />
       </div>
 
       {/* Chat */}
@@ -512,8 +506,6 @@ function Index() {
       <SettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        themeName={theme.name}
-        onCycleTheme={cycleTheme}
         soundEnabled={soundEnabled}
         onToggleSound={toggleSound}
         notesEnabled={notesEnabled}
