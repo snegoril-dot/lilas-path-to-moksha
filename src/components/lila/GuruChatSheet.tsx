@@ -134,14 +134,17 @@ export function GuruChatSheet({
     const text = input.trim();
     if (!text || busy) return;
     setInput("");
+    trackEvent("guru_message_sent", { cell: ctx?.cell ?? null, sessionId: ctx?.sessionId ?? null, extra: { length: text.length, quick: false } });
     sendMessage({ text });
   };
 
   const sendQuick = (text: string) => {
     if (busy) return;
     haptic("light");
+    trackEvent("guru_message_sent", { cell: ctx?.cell ?? null, sessionId: ctx?.sessionId ?? null, extra: { length: text.length, quick: true } });
     sendMessage({ text });
   };
+
 
   const saveAnswerToJournal = async (msgId: string, text: string) => {
     if (!ctx || savedMsgIds.has(msgId) || !text.trim()) return;
