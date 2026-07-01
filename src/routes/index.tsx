@@ -55,6 +55,11 @@ const SettingsSheet = lazy(() => import("@/components/lila/SettingsSheet").then(
 const PauseSheet = lazy(() => import("@/components/lila/PauseSheet").then(m => ({ default: m.PauseSheet })));
 const PathTimelineSheet = lazy(() => import("@/components/lila/PathTimelineSheet").then(m => ({ default: m.PathTimelineSheet })));
 const PathAnalysisSheet = lazy(() => import("@/components/lila/PathAnalysisSheet").then(m => ({ default: m.PathAnalysisSheet })));
+const PracticeChooserSheet = lazy(() => import("@/components/lila/PracticeChooserSheet").then(m => ({ default: m.PracticeChooserSheet })));
+const PracticeReturnSheet = lazy(() => import("@/components/lila/PracticeReturnSheet").then(m => ({ default: m.PracticeReturnSheet })));
+const PracticeJournalSheet = lazy(() => import("@/components/lila/PracticeJournalSheet").then(m => ({ default: m.PracticeJournalSheet })));
+import { ActivePracticeBanner } from "@/components/lila/ActivePracticeBanner";
+import { useActivePractice } from "@/hooks/useActivePractice";
 
 
 
@@ -103,6 +108,11 @@ function Index() {
   // "Landed" experience — focused card shown after each successful move.
   const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
   const [landedOpen, setLandedOpen] = useState(false);
+  // Практики: активная сессия + открытые sheets
+  const activePractice = useActivePractice();
+  const [practiceChooserCell, setPracticeChooserCell] = useState<number | null>(null);
+  const [practiceReturnOpen, setPracticeReturnOpen] = useState(false);
+  const [practiceJournalOpen, setPracticeJournalOpen] = useState(false);
   const [winOpen, setWinOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [birthIntroOpen, setBirthIntroOpen] = useState(false);
@@ -495,6 +505,12 @@ function Index() {
 
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
+    if (activePractice.session) {
+      // Мягкая блокировка: пока активна практика, кубик не бросается.
+      hapticNotify("warning");
+      setPracticeReturnOpen(true);
+      return;
+    }
     // New roll → hide any previous landed sheet.
     setLandedOpen(false);
     setLanded(null);
@@ -729,7 +745,7 @@ function Index() {
       });
 
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded, showHint, totalRolls]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded, showHint, totalRolls, activePractice.session]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
@@ -939,6 +955,10 @@ function Index() {
             : undefined
         }
         onContinue={() => setLandedOpen(false)}
+        onTakeAsPractice={(id) => {
+          setLandedOpen(false);
+          setPracticeChooserCell(id);
+        }}
         onAskGuru={(cellId, opts) => {
           setLandedOpen(false);
           const landedCell = BOARD[cellId - 1] ?? BOARD[0];
@@ -1045,6 +1065,48 @@ function Index() {
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-rose-500/90 text-white text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
           Не удалось подтвердить вход через Telegram. Попробуй открыть игру из бота ещё раз.
         </div>
+      )}
+      {activePractice.session && (
+        <ActivePracticeBanner
+          session={activePractice.session}
+          onOpenReturn={() => setPracticeReturnOpen(true)}
+          onOpenJournal={() => setPracticeJournalOpen(true)}
+        />
+      )}
+      {practiceChooserCell !== null && (
+        <Suspense fallback={null}>
+          <PracticeChooserSheet
+            cellId={practiceChooserCell}
+            sankalpa={sankalpa}
+            onClose={() => setPracticeChooserCell(null)}
+            onStarted={() => {
+              setPracticeChooserCell(null);
+              void activePractice.refresh();
+            }}
+          />
+        </Suspense>
+      )}
+      {practiceReturnOpen && activePractice.session && (
+        <Suspense fallback={null}>
+          <PracticeReturnSheet
+            session={activePractice.session}
+            onClose={() => setPracticeReturnOpen(false)}
+            onCompleted={() => {
+              setPracticeReturnOpen(false);
+              void activePractice.refresh();
+            }}
+          />
+        </Suspense>
+      )}
+      {practiceJournalOpen && (
+        <Suspense fallback={null}>
+          <PracticeJournalSheet
+            open={practiceJournalOpen}
+            onClose={() => setPracticeJournalOpen(false)}
+            sessionId={activePractice.session?.id ?? null}
+            cellId={activePractice.session?.cell_id ?? pos}
+          />
+        </Suspense>
       )}
     </div>
   );

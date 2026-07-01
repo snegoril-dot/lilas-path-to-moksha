@@ -226,6 +226,140 @@ export type Database = {
           },
         ]
       }
+      practice_journal_entries: {
+        Row: {
+          cell_id: number | null
+          created_at: string
+          id: string
+          session_id: string | null
+          tags: string[]
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cell_id?: number | null
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          tags?: string[]
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cell_id?: number | null
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          tags?: string[]
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_journal_entries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practice_reminders: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          morning_sankalpa_enabled: boolean
+          quiet_until: string | null
+          time_of_day: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          morning_sankalpa_enabled?: boolean
+          quiet_until?: string | null
+          time_of_day?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          morning_sankalpa_enabled?: boolean
+          quiet_until?: string | null
+          time_of_day?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      practice_sessions: {
+        Row: {
+          abandoned_at: string | null
+          cell_id: number
+          completed_at: string | null
+          created_at: string
+          due_at: string | null
+          duration: string
+          emotions: string[]
+          id: string
+          practice_id: string
+          reflection: string | null
+          resonance: number | null
+          sankalpa_bridge: string | null
+          started_at: string
+          status: string
+          steps_checked: number[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          abandoned_at?: string | null
+          cell_id: number
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          duration: string
+          emotions?: string[]
+          id?: string
+          practice_id: string
+          reflection?: string | null
+          resonance?: number | null
+          sankalpa_bridge?: string | null
+          started_at?: string
+          status?: string
+          steps_checked?: number[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          abandoned_at?: string | null
+          cell_id?: number
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          duration?: string
+          emotions?: string[]
+          id?: string
+          practice_id?: string
+          reflection?: string | null
+          resonance?: number | null
+          sankalpa_bridge?: string | null
+          started_at?: string
+          status?: string
+          steps_checked?: number[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -262,6 +396,30 @@ export type Database = {
           telegram_id?: number | null
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      sankalpa_history: {
+        Row: {
+          created_at: string
+          id: string
+          source: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source?: string
+          text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source?: string
+          text?: string
+          user_id?: string
         }
         Relationships: []
       }
