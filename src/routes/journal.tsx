@@ -78,6 +78,9 @@ function JournalPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Kind>("all");
 
+  useEffect(() => { trackEvent("journal_opened"); }, []);
+
+
   useEffect(() => {
     if (!ready || !userId) return;
     setLoading(true);
