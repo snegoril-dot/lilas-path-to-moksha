@@ -1075,7 +1075,7 @@ function Index() {
             ? pathLog.filter((p) => p.cell === landed.cell).length
             : undefined
         }
-        onContinue={() => setLandedOpen(false)}
+        onContinue={() => { setLandedOpen(false); setLanded(null); }}
         onTakeAsPractice={(id) => {
           setLandedOpen(false);
           setPracticeChooserCell(id);
