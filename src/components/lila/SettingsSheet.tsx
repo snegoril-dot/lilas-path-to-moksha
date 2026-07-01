@@ -111,6 +111,7 @@ export function SettingsSheet(props: Props) {
   const [weeklyOpen, setWeeklyOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [purchasesOpen, setPurchasesOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => onPaywallOpen(() => setPaywallOpen(true)), []);
