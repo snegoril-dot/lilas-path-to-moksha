@@ -465,10 +465,15 @@ function Index() {
     });
     trackEvent("dice_rolled", { dice: value, cell: pos, sessionId: sessionIdRef.current });
     play("roll");
-    addMsg(`🎲 Бросок: ${value}`, "player");
+    addMsg("🎲 Кубик катится…", "system");
 
 
     const diceDelay = reduceMotion ? 280 : 1150;
+    // Раскрываем результат чуть раньше, чем начнётся движение — небольшая пауза-«вдох».
+    setTimeout(() => {
+      addMsg(`🎲 Выпало: ${value}`, "player");
+    }, Math.max(180, diceDelay - 220));
+
 
     // Фаза входа в игру: pos = 0, нужна 6 (в мягком режиме — милость после 3-х промахов).
     if (pos === 0) {
