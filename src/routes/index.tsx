@@ -897,6 +897,7 @@ function Index() {
       />
 
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
+      <PathAnalysisSheet ctx={pathAnalysisCtx} onClose={() => setPathAnalysisCtx(null)} />
       <PathTimelineSheet
         open={timelineOpen}
         onClose={() => setTimelineOpen(false)}
