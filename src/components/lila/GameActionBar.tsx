@@ -64,9 +64,10 @@ export function GameActionBar({
         ) : (
           <button
             onClick={() => {
-              haptic("medium");
+              haptic("light");
               onRoll();
             }}
+
             disabled={rolling}
             aria-busy={rolling}
             className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-70 disabled:cursor-not-allowed"
