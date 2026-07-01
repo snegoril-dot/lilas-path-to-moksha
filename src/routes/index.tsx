@@ -628,6 +628,14 @@ function Index() {
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
   const currentLoka = useMemo(() => getLoka(pos), [pos]);
+  const visitedCells = useMemo(() => {
+    const s = new Set<number>();
+    for (const p of pathLog) {
+      s.add(p.cell);
+      if (p.to !== undefined) s.add(p.to);
+    }
+    return s;
+  }, [pathLog]);
 
   if (!started) {
     return (
