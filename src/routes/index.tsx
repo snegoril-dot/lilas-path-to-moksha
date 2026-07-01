@@ -136,6 +136,15 @@ function Index() {
   }, []);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hint, setHint] = useState<{ id: HintId; text: string } | null>(null);
+  const showHint = useCallback((id: HintId, text: string) => {
+    if (hasSeenHint(id)) return;
+    markHintSeen(id);
+    setHint({ id, text });
+    setTimeout(() => {
+      setHint((h) => (h && h.id === id ? null : h));
+    }, 8000);
+  }, []);
 
   // Init Telegram SDK
   useTelegramInit();
