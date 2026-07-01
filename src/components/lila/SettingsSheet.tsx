@@ -1,4 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight,

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { SANKALPA_INTRO_LONG } from "@/content/narration";
 import { MessageSquarePlus, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";

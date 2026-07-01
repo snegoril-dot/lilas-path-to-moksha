@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { SANKALPA_INTRO_LONG } from "@/content/narration";
 import { Trophy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
