@@ -93,14 +93,27 @@ async function handle(request: Request) {
     const copy = pickReminderCopy(kind, s.cell_id, cell.name);
     const text = `<b>${copy.title}</b>\n\n${copy.body}`;
 
+    // Резервируем «слот» напоминания заранее (защита от двойной отправки при перекрытии cron'ов).
+    const { data: reserved, error: reserveErr } = await supabase
+      .from("practice_sessions")
+      .update({ reminder_sent_at: new Date().toISOString() })
+      .eq("id", s.id)
+      .is("reminder_sent_at", null)
+      .select("id")
+      .maybeSingle();
+    if (reserveErr || !reserved) continue;
+
     const okSend = await sendTelegramMessage(token, chatId, text);
     if (okSend) {
       sent += 1;
+    } else {
+      // Откатить, чтобы повторить в следующем цикле.
       await supabase
         .from("practice_sessions")
-        .update({ reminder_sent_at: new Date().toISOString() })
+        .update({ reminder_sent_at: null })
         .eq("id", s.id);
     }
+
   }
 
   return Response.json({ ok: true, sent, checked: sessions.length });

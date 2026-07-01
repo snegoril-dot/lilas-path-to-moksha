@@ -18,13 +18,41 @@
  *     -d "secret_token=<your-secret>"
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { findProductById } from "@/lib/entitlements";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
 interface TgChat { id: number; type: string }
 interface TgUser { id: number; first_name?: string; language_code?: string }
-interface TgMessage { message_id: number; chat: TgChat; from?: TgUser; text?: string }
-interface TgUpdate { update_id: number; message?: TgMessage; edited_message?: TgMessage }
+interface TgSuccessfulPayment {
+  currency: string;
+  total_amount: number;
+  invoice_payload: string;
+  telegram_payment_charge_id: string;
+  provider_payment_charge_id?: string;
+}
+interface TgMessage {
+  message_id: number;
+  chat: TgChat;
+  from?: TgUser;
+  text?: string;
+  successful_payment?: TgSuccessfulPayment;
+}
+interface TgPreCheckoutQuery {
+  id: string;
+  from: TgUser;
+  currency: string;
+  total_amount: number;
+  invoice_payload: string;
+}
+interface TgUpdate {
+  update_id: number;
+  message?: TgMessage;
+  edited_message?: TgMessage;
+  pre_checkout_query?: TgPreCheckoutQuery;
+}
+
 
 function ok(extra: Record<string, unknown> = {}) {
   return Response.json({ ok: true, ...extra });
@@ -133,6 +161,67 @@ async function handleCommand(
   }
 }
 
+async function handleSuccessfulPayment(token: string, msg: TgMessage): Promise<void> {
+  const pay = msg.successful_payment;
+  if (!pay) return;
+  const [productId, userId] = (pay.invoice_payload ?? "").split(":");
+  const product = findProductById(productId ?? "");
+  if (!product || !userId) {
+    console.error("stars payment: unknown product or userId", pay.invoice_payload);
+    return;
+  }
+
+  // Идемпотентность: telegram_payment_charge_id уникален.
+  const { data: existing } = await supabaseAdmin
+    .from("stars_payments")
+    .select("id")
+    .eq("telegram_payment_charge_id", pay.telegram_payment_charge_id)
+    .maybeSingle();
+  if (existing) return;
+
+  const { error: payErr } = await supabaseAdmin.from("stars_payments").insert({
+    user_id: userId,
+    telegram_user_id: msg.from?.id ?? null,
+    product_id: product.id,
+    stars_amount: pay.total_amount,
+    telegram_payment_charge_id: pay.telegram_payment_charge_id,
+    provider_payment_charge_id: pay.provider_payment_charge_id ?? null,
+    invoice_payload: pay.invoice_payload,
+    raw_payload: JSON.parse(JSON.stringify(pay)),
+  });
+  if (payErr) {
+    console.error("stars payment insert failed", payErr);
+    return;
+  }
+
+  const rows = product.features.map((feature) => ({
+    user_id: userId,
+    feature,
+    status: "active",
+    source: "stars",
+    product_id: product.id,
+    stars_charge_id: pay.telegram_payment_charge_id,
+  }));
+  const { error: entErr } = await supabaseAdmin
+    .from("user_entitlements")
+    .upsert(rows, { onConflict: "user_id,feature" });
+  if (entErr) {
+    console.error("entitlements upsert failed", entErr);
+    return;
+  }
+
+  await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: msg.chat.id,
+      text: `🕉 Спасибо! «${product.title}» открыт. Возвращайся в путь — новые возможности уже доступны.`,
+      parse_mode: "HTML",
+    }),
+  });
+}
+
+
 export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
     handlers: {
@@ -164,8 +253,37 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           return new Response("Bad Request", { status: 400 });
         }
 
+        // --- Telegram Stars: pre_checkout_query ---
+        if (update.pre_checkout_query) {
+          const q = update.pre_checkout_query;
+          const [productId] = (q.invoice_payload ?? "").split(":");
+          const product = findProductById(productId ?? "");
+          const okay =
+            !!product && q.currency === "XTR" && q.total_amount === product.stars;
+          await fetch(`${TELEGRAM_API}/bot${token}/answerPreCheckoutQuery`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pre_checkout_query_id: q.id,
+              ok: okay,
+              error_message: okay ? undefined : "Продукт недоступен, попробуй позже.",
+            }),
+          });
+          return ok();
+        }
+
         const msg = update.message ?? update.edited_message;
         if (!msg?.chat?.id) return ok({ ignored: true });
+
+        // --- Telegram Stars: successful_payment ---
+        if (msg.successful_payment) {
+          try {
+            await handleSuccessfulPayment(token, msg);
+          } catch (err) {
+            console.error("telegram successful_payment error", err);
+          }
+          return ok();
+        }
 
         try {
           await handleCommand(token, miniAppUrl, msg);
@@ -173,6 +291,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           console.error("telegram handleCommand error", err);
         }
         return ok();
+
       },
     },
   },

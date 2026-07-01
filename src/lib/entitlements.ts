@@ -154,17 +154,39 @@ export function getComingSoonLabel(feature: FeatureId): string | null {
  * (успешный `pre_checkout_query` + `successful_payment` в webhook),
  * запись в user_entitlements — через service role.
  */
-export const STARS_PRODUCTS = {
+export interface StarsProduct {
+  id: string;
+  title: string;
+  description: string;
+  /** Стоимость в звёздах Telegram (XTR). */
+  stars: number;
+  features: FeatureId[];
+}
+
+export const STARS_PRODUCTS: Record<
+  "DEEP_GURU_PACK" | "PATH_ANALYSIS" | "PREMIUM_ALL",
+  StarsProduct
+> = {
   DEEP_GURU_PACK: {
     id: "lila.deep_guru.pack",
-    features: [FEATURE_IDS.DEEP_GURU, FEATURE_IDS.EXTENDED_CELL] as FeatureId[],
+    title: "Глубокий разговор с Гуру",
+    description: "Расширенные ответы Гуру и подробная трактовка каждой клетки.",
+    stars: 149,
+    features: [FEATURE_IDS.DEEP_GURU, FEATURE_IDS.EXTENDED_CELL],
   },
   PATH_ANALYSIS: {
     id: "lila.path_analysis",
-    features: [FEATURE_IDS.FINAL_AI_ANALYSIS, FEATURE_IDS.BEAUTIFUL_SHARE_CARD] as FeatureId[],
+    title: "Итоговый разбор пути",
+    description: "AI-разбор всего твоего пути и красивая карточка, чтобы поделиться.",
+    stars: 99,
+    features: [FEATURE_IDS.FINAL_AI_ANALYSIS, FEATURE_IDS.BEAUTIFUL_SHARE_CARD],
   },
   PREMIUM_ALL: {
     id: "lila.premium.all",
+    title: "Полный доступ",
+    description:
+      "Все премиум-возможности: глубокий Гуру, аудио-проводник, дневник без границ, еженедельные подсказки.",
+    stars: 349,
     features: [
       FEATURE_IDS.DEEP_GURU,
       FEATURE_IDS.EXTENDED_CELL,
@@ -173,14 +195,30 @@ export const STARS_PRODUCTS = {
       FEATURE_IDS.BEAUTIFUL_SHARE_CARD,
       FEATURE_IDS.AUDIO_GUIDANCE,
       FEATURE_IDS.WEEKLY_RECOMMENDATIONS,
-    ] as FeatureId[],
+    ],
   },
-} as const;
+};
 
-/** Заглушка серверной верификации. Реальная реализация — в webhook Stars. */
-export async function verifyStarsTransactionPlaceholder(_payload: unknown): Promise<{
-  ok: false;
-  reason: "not_implemented";
-}> {
-  return { ok: false, reason: "not_implemented" };
+export function findProductById(id: string): StarsProduct | undefined {
+  return Object.values(STARS_PRODUCTS).find((p) => p.id === id);
 }
+
+/**
+ * Собирает UserEntitlements из плоского списка активных фич,
+ * прочитанных из public.user_entitlements.
+ */
+export function buildEntitlements(
+  userId: string,
+  rows: { feature: string; status: string; expires_at: string | null }[],
+): UserEntitlements {
+  const now = Date.now();
+  const features: NonNullable<UserEntitlements["features"]> = {};
+  for (const r of rows) {
+    if (r.status !== "active") continue;
+    if (r.expires_at && new Date(r.expires_at).getTime() < now) continue;
+    features[r.feature as FeatureId] = { active: true, expiresAt: r.expires_at };
+  }
+  const isPremium = STARS_PRODUCTS.PREMIUM_ALL.features.every((f) => features[f]?.active);
+  return { userId, isPremium, features };
+}
+
