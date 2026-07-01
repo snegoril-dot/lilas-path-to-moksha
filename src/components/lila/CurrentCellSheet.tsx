@@ -178,15 +178,23 @@ export function CurrentCellSheet({
               )}
               {jumpKind && fromExp && (
                 <div
-                  className={`text-xs px-3 py-2 rounded-xl ring-1 ${
+                  className={`text-xs px-3 py-2 rounded-xl ring-1 space-y-1 ${
                     jumpKind === "snake"
                       ? "bg-rose-500/10 ring-rose-400/30 text-rose-100"
                       : "bg-emerald-500/10 ring-emerald-400/30 text-emerald-100"
                   }`}
                 >
-                  {jumpKind === "snake" ? "🐍" : "🪜"} «{fromExp.cell.name}» → «{cell.name}»
+                  <div>
+                    {jumpKind === "snake" ? "🐍" : "🪜"} «{fromExp.cell.name}» → «{cell.name}»
+                  </div>
+                  <div className="opacity-80">
+                    {jumpKind === "snake"
+                      ? "Змея мягко возвращает внимание к теме, которую стоит заметить, — без осуждения."
+                      : "Стрела показывает качество, которое сейчас поднимает — попробуй заметить, откуда оно приходит в тебе."}
+                  </div>
                 </div>
               )}
+
 
               <p className="text-amber-100/95 font-medium">{shortMeaning}</p>
 
