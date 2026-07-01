@@ -1,7 +1,7 @@
 import { BOARD } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
 import type { Practice, PracticeDuration } from "./types";
-import { PRACTICE_OVERRIDES } from "./overrides";
+import { PRACTICE_OVERRIDES, DEFAULT_SAFETY } from "./overrides";
 
 export * from "./types";
 export { PRACTICE_OVERRIDES } from "./overrides";
@@ -12,6 +12,10 @@ export { PRACTICE_OVERRIDES } from "./overrides";
  * - Иначе — строим «мягкую» практику из cell-experience:
  *   мудрость → намерение, вопрос клетки → рефлексия, dailyPractice → шаг.
  * Итог: каждая из 72 клеток имеет минимум 1 практику.
+ *
+ * Даже default-практика заполняет расширенные поля
+ * (invitation, noticePrompts, journalPrompts, safety, closingReflection),
+ * чтобы UI был единым до момента, пока клетка не получит авторский контент.
  */
 
 const DEFAULT_DURATIONS: PracticeDuration[] = ["1h", "1d", "3d"];
@@ -29,7 +33,10 @@ function buildDefault(cellId: number): Practice {
     cellId,
     title: `Наблюдение: ${name}`,
     intention: shortMeaning,
+    invitation:
+      "Мягкая практика-наблюдение. Ничего не нужно делать сильно — только замечать, как тема клетки живёт в твоём дне.",
     durations: DEFAULT_DURATIONS,
+    recommendedDuration: "1d",
     steps: [
       { title: "Замечай в течение дня", hint: daily },
       {
@@ -41,14 +48,27 @@ function buildDefault(cellId: number): Practice {
         hint: "Одна строка в дневнике — то, что показалось важным.",
       },
     ],
+    noticePrompts: [
+      "Где эта тема встретила меня сегодня?",
+      "Что во мне на это отзывается?",
+      "Что я обычно делаю с этим — и что мог бы иначе?",
+    ],
     reflectionPrompts: [
       question,
       "Где сегодня эта тема встретила тебя ярче всего?",
       "Что бы ты сказал себе завтрашнему об этом дне?",
       "Что просит остаться, а что — уйти?",
     ],
+    journalPrompts: [
+      "Одна фраза дня.",
+      "Что берёшь с собой в завтра.",
+    ],
+    completionCriteria:
+      "Ты хотя бы раз за день остановился и вспомнил про эту тему. Этого достаточно.",
+    safety: DEFAULT_SAFETY,
     closingRitual:
       "Мягко закрой глаза, сделай один длинный выдох и поблагодари эту паузу.",
+    closingReflection: "Что ты уносишь с этой клетки?",
   };
 }
 
@@ -73,3 +93,8 @@ export function getPracticesForCell(cellId: number): Practice[] {
 export function findPractice(cellId: number, practiceId: string): Practice | null {
   return getPracticesForCell(cellId).find((p) => p.id === practiceId) ?? null;
 }
+
+/** Клетки с авторским (не сгенерированным) контентом. */
+export const AUTHORED_PRACTICE_CELLS: number[] = Object.keys(PRACTICE_OVERRIDES)
+  .map((k) => Number(k))
+  .sort((a, b) => a - b);
