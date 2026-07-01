@@ -426,8 +426,18 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
               className="w-16" />
             <span className="tabular-nums w-8 text-right">{padPct.toFixed(1)}%</span>
           </label>
+          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <span className="opacity-70">size</span>
+            <input type="range" min={40} max={200} step={1} value={sizePct}
+              onChange={(e) => setSizePct(parseFloat(e.target.value))}
+              className="w-24" />
+            <span className="tabular-nums w-10 text-right">{sizePct}%</span>
+          </label>
+          <span className="px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20 opacity-70">
+            drag: {offset.x | 0},{offset.y | 0}
+          </span>
           <button
-            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); }}
+            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
           >
             Сброс
