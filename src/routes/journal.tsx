@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { getCellExperience } from "@/lib/cell-experience";
+import { trackEvent } from "@/lib/analytics";
+
 
 export const Route = createFileRoute("/journal")({
   component: JournalPage,
