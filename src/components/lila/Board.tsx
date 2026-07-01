@@ -993,6 +993,131 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
         </div>
       )}
 
+      {debug && selectedCell !== null && (() => {
+        const id = selectedCell;
+        const rect = cellRects[id] ?? baseCellRectPct(id, padPct, gapPct);
+        const step = nudgeStep;
+        const patch = (dx: number, dy: number, dw: number, dh: number) => {
+          setCellRects((prev) => {
+            const cur = prev[id] ?? baseCellRectPct(id, padPct, gapPct);
+            return {
+              ...prev,
+              [id]: {
+                xPct: +(cur.xPct + dx).toFixed(3),
+                yPct: +(cur.yPct + dy).toFixed(3),
+                wPct: Math.max(1, +(cur.wPct + dw).toFixed(3)),
+                hPct: Math.max(1, +(cur.hPct + dh).toFixed(3)),
+              },
+            };
+          });
+        };
+        const btn = "h-11 min-w-11 px-3 rounded-lg bg-white/15 ring-1 ring-white/25 active:bg-white/30 text-base font-semibold tabular-nums touch-manipulation";
+        return (
+          <div
+            className="fixed left-2 right-2 bottom-2 z-50 rounded-2xl bg-slate-900/95 backdrop-blur ring-1 ring-white/20 shadow-2xl p-3 text-white sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-md"
+            style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            role="dialog"
+            aria-label={`Настройка клетки ${id}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-semibold">
+                Клетка <span className="text-fuchsia-300">#{id}</span>
+                <span className="ml-2 opacity-60 text-xs tabular-nums">
+                  x{rect.xPct.toFixed(1)} y{rect.yPct.toFixed(1)} · {rect.wPct.toFixed(1)}×{rect.hPct.toFixed(1)}
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedCell(null)}
+                className="h-8 w-8 rounded-lg bg-white/10 ring-1 ring-white/20 active:bg-white/20"
+                aria-label="Закрыть"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1 mb-2 text-xs">
+              <span className="opacity-70 mr-1">шаг</span>
+              {[0.1, 0.2, 0.5, 1].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setNudgeStep(s)}
+                  className={`h-8 px-2 rounded-lg ring-1 ring-white/20 tabular-nums ${
+                    nudgeStep === s ? "bg-fuchsia-500/40 ring-fuchsia-300" : "bg-white/10"
+                  }`}
+                >
+                  {s}%
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-[11px] opacity-70 mb-1">Позиция</div>
+                <div className="grid grid-cols-3 gap-1">
+                  <div />
+                  <button className={btn} onClick={() => patch(0, -step, 0, 0)} aria-label="Вверх">↑</button>
+                  <div />
+                  <button className={btn} onClick={() => patch(-step, 0, 0, 0)} aria-label="Влево">←</button>
+                  <button className={btn + " opacity-60"} disabled aria-hidden>·</button>
+                  <button className={btn} onClick={() => patch(step, 0, 0, 0)} aria-label="Вправо">→</button>
+                  <div />
+                  <button className={btn} onClick={() => patch(0, step, 0, 0)} aria-label="Вниз">↓</button>
+                  <div />
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] opacity-70 mb-1">Размер</div>
+                <div className="grid grid-cols-2 gap-1">
+                  <button className={btn} onClick={() => patch(0, 0, -step, 0)} aria-label="Уже">W −</button>
+                  <button className={btn} onClick={() => patch(0, 0, step, 0)} aria-label="Шире">W +</button>
+                  <button className={btn} onClick={() => patch(0, 0, 0, -step)} aria-label="Ниже">H −</button>
+                  <button className={btn} onClick={() => patch(0, 0, 0, step)} aria-label="Выше">H +</button>
+                </div>
+                <button
+                  className="mt-1 w-full h-9 rounded-lg bg-white/10 ring-1 ring-white/20 active:bg-white/20 text-xs"
+                  onClick={() => {
+                    const base = baseCellRectPct(id, padPct, gapPct);
+                    setCellRects((prev) => ({ ...prev, [id]: base }));
+                  }}
+                >
+                  Сброс клетки
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-2 flex gap-1">
+              <button
+                className="flex-1 h-9 rounded-lg bg-sky-500/25 ring-1 ring-sky-400/40 active:bg-sky-500/40 text-xs font-medium"
+                onClick={() => alignRowTo(id)}
+                title="Выровнять весь ряд по этой клетке"
+              >
+                Выровнять ряд
+              </button>
+              <button
+                className="h-9 px-3 rounded-lg bg-white/10 ring-1 ring-white/20 active:bg-white/20 text-xs"
+                onClick={() => {
+                  const prev = id > 1 ? id - 1 : 72;
+                  setSelectedCell(prev);
+                }}
+                aria-label="Предыдущая"
+              >
+                ◀ {id > 1 ? id - 1 : 72}
+              </button>
+              <button
+                className="h-9 px-3 rounded-lg bg-white/10 ring-1 ring-white/20 active:bg-white/20 text-xs"
+                onClick={() => {
+                  const nxt = id < 72 ? id + 1 : 1;
+                  setSelectedCell(nxt);
+                }}
+                aria-label="Следующая"
+              >
+                {id < 72 ? id + 1 : 1} ▶
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 }
