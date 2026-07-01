@@ -109,7 +109,7 @@ function Index() {
   useTelegramInit();
 
   const startGame = useCallback(
-    (userSankalpa: string) => {
+    (userSankalpa: string, chosenMode: GameMode = "classic") => {
       setStarted(true);
       setPos(0);
       setWon(false);
@@ -125,6 +125,7 @@ function Index() {
       sessionSavedRef.current = false;
       sessionIdRef.current = null;
       setSankalpa(userSankalpa);
+      setMode(chosenMode);
       setTimeout(() => {
         if (userSankalpa) {
           addMsg(
@@ -135,8 +136,18 @@ function Index() {
         }
         setTimeout(() => {
           addMsg(
-            "Душа ещё не воплощена. Чтобы войти в игру, выброси 🎲 шестёрку.\n\nПочему именно 6? В традиции Лилы это священное число рождения: шесть чакр пробуждаются, шесть направлений пространства раскрываются, и душа получает право войти в тело. Пока не выпала 6 — ты стоишь у врат воплощения."
+            `Ты выбрал путь: «${MODE_LABEL[chosenMode]}».`,
+            "system"
           );
+          if (chosenMode === "soft") {
+            addMsg(
+              "🌿 Мягкий путь: если после трёх бросков шестёрка не пришла — врата откроются на четвёртом. Это бережное начало для первого знакомства с игрой."
+            );
+          } else {
+            addMsg(
+              "Душа ещё не воплощена. Чтобы войти в игру, выброси 🎲 шестёрку.\n\nПочему именно 6? В традиции Лилы это священное число рождения: шесть чакр пробуждаются, шесть направлений пространства раскрываются, и душа получает право войти в тело. Пока не выпала 6 — ты стоишь у врат воплощения."
+            );
+          }
         }, 800);
       }, 250);
     },
