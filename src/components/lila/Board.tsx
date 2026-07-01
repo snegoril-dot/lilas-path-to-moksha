@@ -11,7 +11,7 @@ import {
   rowColForId,
   verifyBoardMapping,
 } from "@/lib/board-layout";
-import { safeKeys, safeRemove } from "@/lib/safe-storage";
+import { safeGet, safeKeys, safeRemove, safeSet } from "@/lib/safe-storage";
 
 import type { PlayerToken } from "@/lib/player-tokens";
 
@@ -29,16 +29,106 @@ const BOARD_BG =
 const FRAME_RING = "ring-white/10";
 const NUMBER_CLASS =
   "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
+const BOARD_LAYOUT_KEY = "lila:debug:board";
+const CELL_OFFSETS_KEY = "lila:debug:cell-offsets";
+const CELL_SIZES_KEY = "lila:debug:cell-sizes";
+const CELL_RECTS_KEY = "lila:debug:cell-layout-v2";
+const DEFAULT_GAP_PCT = 0;
+const DEFAULT_PAD_PCT = 0;
 
-// Единовременная миграция: убираем все старые сохранённые layout'ы (v1..v7),
-// т.к. теперь позиции клеток жёстко задаются CSS Grid и никогда не читаются
-// из localStorage. Оставленные ключи только запутывали пользователя.
+type CellOffsetPct = { xPct: number; yPct: number; _legacyPx?: boolean };
+type CellSizePct = { wPct: number; hPct: number; _legacyPx?: boolean };
+type CellRectPct = { xPct: number; yPct: number; wPct: number; hPct: number };
+
+// Единовременная миграция: убираем самые старые сохранённые layout'ы (v1..v7),
+// чтобы они не конфликтовали с актуальной процентной разметкой клеток.
 function purgeLegacyLayoutStorage() {
   if (typeof window === "undefined") return;
   safeRemove("lila.boardTheme");
   safeKeys("lila.layout.").forEach((key) => safeRemove(key));
   safeRemove("lila:debug-zoom");
   safeRemove("lila:debug-pan");
+}
+
+function baseCellRectPct(id: number, padPct: number, gapPct: number): CellRectPct {
+  const { row, col } = rowColForId(id);
+  const visualRow = ROWS - 1 - row;
+  const safePad = Number.isFinite(padPct) ? padPct : DEFAULT_PAD_PCT;
+  const safeGap = Number.isFinite(gapPct) ? gapPct : DEFAULT_GAP_PCT;
+  const cellW = (100 - safePad * 2 - safeGap * (COLS - 1)) / COLS;
+  const cellH = (100 - safePad * 2 - safeGap * (ROWS - 1)) / ROWS;
+  return {
+    xPct: safePad + col * (cellW + safeGap),
+    yPct: safePad + visualRow * (cellH + safeGap),
+    wPct: cellW,
+    hPct: cellH,
+  };
+}
+
+function createBaseCellRects(padPct: number, gapPct: number): Record<number, CellRectPct> {
+  const base: Record<number, CellRectPct> = {};
+  for (let id = 1; id <= 72; id += 1) base[id] = baseCellRectPct(id, padPct, gapPct);
+  return base;
+}
+
+function mergeLegacyLayoutIntoRects(
+  offsets: Record<string, any> = {},
+  sizes: Record<string, any> = {},
+  padPct: number,
+  gapPct: number,
+): Record<number, CellRectPct> {
+  const base = createBaseCellRects(padPct, gapPct);
+  Object.keys({ ...offsets, ...sizes }).forEach((key) => {
+    const id = Number(key);
+    if (!Number.isFinite(id) || id < 1 || id > 72) return;
+    const off = offsets[key] ?? {};
+    const size = sizes[key] ?? {};
+    const cur = base[id];
+    base[id] = {
+      xPct: cur.xPct + (typeof off.xPct === "number" ? off.xPct : 0),
+      yPct: cur.yPct + (typeof off.yPct === "number" ? off.yPct : 0),
+      wPct: cur.wPct + (typeof size.wPct === "number" ? size.wPct : 0),
+      hPct: cur.hPct + (typeof size.hPct === "number" ? size.hPct : 0),
+    };
+  });
+  return base;
+}
+
+function rebaseCellRects(
+  rects: Record<number, CellRectPct>,
+  fromPad: number,
+  fromGap: number,
+  toPad: number,
+  toGap: number,
+): Record<number, CellRectPct> {
+  const next: Record<number, CellRectPct> = {};
+  for (let id = 1; id <= 72; id += 1) {
+    const current = rects[id] ?? baseCellRectPct(id, fromPad, fromGap);
+    const oldBase = baseCellRectPct(id, fromPad, fromGap);
+    const newBase = baseCellRectPct(id, toPad, toGap);
+    next[id] = {
+      xPct: newBase.xPct + (current.xPct - oldBase.xPct),
+      yPct: newBase.yPct + (current.yPct - oldBase.yPct),
+      wPct: newBase.wPct + (current.wPct - oldBase.wPct),
+      hPct: newBase.hPct + (current.hPct - oldBase.hPct),
+    };
+  }
+  return next;
+}
+
+function hasCustomizedRects(rects: Record<number, CellRectPct>, padPct: number, gapPct: number): boolean {
+  for (let id = 1; id <= 72; id += 1) {
+    const rect = rects[id];
+    if (!rect) continue;
+    const base = baseCellRectPct(id, padPct, gapPct);
+    if (
+      Math.abs(rect.xPct - base.xPct) > 0.001 ||
+      Math.abs(rect.yPct - base.yPct) > 0.001 ||
+      Math.abs(rect.wPct - base.wPct) > 0.001 ||
+      Math.abs(rect.hPct - base.hPct) > 0.001
+    ) return true;
+  }
+  return false;
 }
 
 const MAPPING_ISSUES: string[] = verifyBoardMapping();
@@ -59,68 +149,86 @@ const PLANE_TINTS = [
   "bg-amber-700/30",
 ];
 
-/** Центр клетки в координатах SVG-оверлея 100×100. */
-function cellCenterPct(id: number): { x: number; y: number } {
-  const { row, col } = rowColForId(id);
-  const visualRow = ROWS - 1 - row; // 0 сверху
-  return {
-    x: ((col + 0.5) * 100) / COLS,
-    y: ((visualRow + 0.5) * 100) / ROWS,
-  };
-}
-
 function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const [zoom, setZoom] = useState(1);
-  // Debug-only «растяжка» сетки: не влияет на прод-рендер.
-  // Все параметры дебаг-разметки персистятся в localStorage.
+  // Параметры разметки применяются и в обычном режиме: иначе выровненная
+  // на ПК карта снова «разъезжается» на телефоне.
   const debugInit = (() => {
     if (typeof window === "undefined") return null;
     try {
-      const raw = window.localStorage.getItem("lila:debug:board");
+      const raw = safeGet(BOARD_LAYOUT_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   })();
   const [aspectW, setAspectW] = useState<number>(debugInit?.aspectW ?? COLS);
   const [aspectH, setAspectH] = useState<number>(debugInit?.aspectH ?? ROWS);
-  const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? 0.5);
-  const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? 0.6);
+  const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? DEFAULT_GAP_PCT);
+  const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? DEFAULT_PAD_PCT);
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
   const [sizePct, setSizePct] = useState<number>(debugInit?.sizePct ?? 100);
   const [dragging, setDragging] = useState(false);
 
-  // Смещения и размеры клеток храним в ПРОЦЕНТАХ от размера доски —
-  // так одна и та же разметка корректно работает и на десктопе, и на мобильном.
-  // {xPct, yPct} — сдвиг в % от ширины/высоты доски.
-  // {wPct, hPct} — прибавка к ширине/высоте клетки в % от ширины/высоты доски.
-  const [cellOffsets, setCellOffsets] = useState<Record<number, { xPct: number; yPct: number }>>(() => {
+  const [cellOffsets, setCellOffsets] = useState<Record<number, CellOffsetPct>>(() => {
     if (typeof window === "undefined") return {};
     try {
-      const raw = window.localStorage.getItem("lila:debug:cell-offsets");
+      const raw = safeGet(CELL_OFFSETS_KEY);
       if (!raw) return {};
       const parsed = JSON.parse(raw);
-      // Миграция: старый формат {x, y} в px → пересчитаем при первом рендере через ResizeObserver.
-      const out: Record<number, { xPct: number; yPct: number }> = {};
+      const out: Record<number, CellOffsetPct> = {};
       Object.entries(parsed).forEach(([k, v]: [string, any]) => {
         if (typeof v?.xPct === "number") out[+k] = { xPct: v.xPct, yPct: v.yPct ?? 0 };
-        else if (typeof v?.x === "number") out[+k] = { xPct: v.x, yPct: v.y ?? 0, _legacyPx: true } as any;
+        else if (typeof v?.x === "number") out[+k] = { xPct: v.x, yPct: v.y ?? 0, _legacyPx: true };
       });
       return out;
     } catch { return {}; }
   });
-  const [cellSizes, setCellSizes] = useState<Record<number, { wPct: number; hPct: number }>>(() => {
+  const [cellSizes, setCellSizes] = useState<Record<number, CellSizePct>>(() => {
     if (typeof window === "undefined") return {};
     try {
-      const raw = window.localStorage.getItem("lila:debug:cell-sizes");
+      const raw = safeGet(CELL_SIZES_KEY);
       if (!raw) return {};
       const parsed = JSON.parse(raw);
-      const out: Record<number, { wPct: number; hPct: number }> = {};
+      const out: Record<number, CellSizePct> = {};
       Object.entries(parsed).forEach(([k, v]: [string, any]) => {
         if (typeof v?.wPct === "number") out[+k] = { wPct: v.wPct, hPct: v.hPct ?? 0 };
-        else if (typeof v?.w === "number") out[+k] = { wPct: v.w, hPct: v.h ?? 0, _legacyPx: true } as any;
+        else if (typeof v?.w === "number") out[+k] = { wPct: v.w, hPct: v.h ?? 0, _legacyPx: true };
       });
       return out;
     } catch { return {}; }
+  });
+  const [cellRects, setCellRects] = useState<Record<number, CellRectPct>>(() => {
+    const initPad = debugInit?.padPct ?? DEFAULT_PAD_PCT;
+    const initGap = debugInit?.gapPct ?? DEFAULT_GAP_PCT;
+    const base = createBaseCellRects(initPad, initGap);
+    if (typeof window === "undefined") return base;
+    try {
+      const rawRects = safeGet(CELL_RECTS_KEY);
+      if (rawRects) {
+        const parsed = JSON.parse(rawRects);
+        Object.entries(parsed).forEach(([k, v]: [string, any]) => {
+          if (
+            typeof v?.xPct === "number" &&
+            typeof v?.yPct === "number" &&
+            typeof v?.wPct === "number" &&
+            typeof v?.hPct === "number"
+          ) {
+            base[+k] = { xPct: v.xPct, yPct: v.yPct, wPct: v.wPct, hPct: v.hPct };
+          }
+        });
+        return base;
+      }
+
+      // Миграция старого формата: CSS-grid база + смещение/растяжка в процентах.
+      const rawOffsets = safeGet(CELL_OFFSETS_KEY);
+      const rawSizes = safeGet(CELL_SIZES_KEY);
+      return mergeLegacyLayoutIntoRects(
+        rawOffsets ? JSON.parse(rawOffsets) : {},
+        rawSizes ? JSON.parse(rawSizes) : {},
+        initPad,
+        initGap,
+      );
+    } catch { return base; }
   });
 
   // Живой размер доски — нужен, чтобы конвертировать px-жесты в проценты
@@ -131,8 +239,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     const el = boardRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const update = () => {
-      const r = el.getBoundingClientRect();
-      setBoardSize({ w: r.width, h: r.height });
+      // offsetWidth/Height не включают CSS transform(scale), поэтому проценты
+      // не «плывут» при debug-зуме и одинаково переносятся на телефон.
+      setBoardSize({ w: el.offsetWidth, h: el.offsetHeight });
     };
     update();
     const ro = new ResizeObserver(update);
@@ -145,7 +254,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (!boardSize.w || !boardSize.h) return;
     setCellOffsets((prev) => {
       let changed = false;
-      const next: Record<number, { xPct: number; yPct: number }> = {};
+      const next: Record<number, CellOffsetPct> = {};
       Object.entries(prev).forEach(([k, v]: [string, any]) => {
         if (v?._legacyPx) {
           changed = true;
@@ -156,7 +265,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     });
     setCellSizes((prev) => {
       let changed = false;
-      const next: Record<number, { wPct: number; hPct: number }> = {};
+      const next: Record<number, CellSizePct> = {};
       Object.entries(prev).forEach(([k, v]: [string, any]) => {
         if (v?._legacyPx) {
           changed = true;
@@ -174,17 +283,21 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try { window.localStorage.setItem("lila:debug:cell-offsets", JSON.stringify(cellOffsets)); } catch {}
+    try { safeSet(CELL_OFFSETS_KEY, JSON.stringify(cellOffsets)); } catch {}
   }, [cellOffsets]);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try { window.localStorage.setItem("lila:debug:cell-sizes", JSON.stringify(cellSizes)); } catch {}
+    try { safeSet(CELL_SIZES_KEY, JSON.stringify(cellSizes)); } catch {}
   }, [cellSizes]);
   useEffect(() => {
     if (typeof window === "undefined") return;
+    try { safeSet(CELL_RECTS_KEY, JSON.stringify(cellRects)); } catch {}
+  }, [cellRects]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(
-        "lila:debug:board",
+      safeSet(
+        BOARD_LAYOUT_KEY,
         JSON.stringify({ aspectW, aspectH, gapPct, padPct, offset, sizePct }),
       );
     } catch {}
@@ -195,7 +308,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (!debug) return;
     e.stopPropagation();
     e.preventDefault();
-    const cur = cellSizes[id] ?? { wPct: 0, hPct: 0 };
+    const cur = cellRects[id] ?? baseCellRectPct(id, padPct, gapPct);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, wPct: cur.wPct, hPct: cur.hPct };
   }
@@ -204,9 +317,19 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (!r) return;
     const bw = boardSize.w || 1;
     const bh = boardSize.h || 1;
-    const dxPct = ((e.clientX - r.startX) / bw) * 100;
-    const dyPct = ((e.clientY - r.startY) / bh) * 100;
-    setCellSizes((prev) => ({ ...prev, [r.id]: { wPct: r.wPct + dxPct, hPct: r.hPct + dyPct } }));
+    const dxPct = ((e.clientX - r.startX) / (bw * zoom)) * 100;
+    const dyPct = ((e.clientY - r.startY) / (bh * zoom)) * 100;
+    setCellRects((prev) => {
+      const cur = prev[r.id] ?? baseCellRectPct(r.id, padPct, gapPct);
+      return {
+        ...prev,
+        [r.id]: {
+          ...cur,
+          wPct: Math.max(1, r.wPct + dxPct),
+          hPct: Math.max(1, r.hPct + dyPct),
+        },
+      };
+    });
   }
   function onCellResizeEnd(e: React.PointerEvent) {
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
@@ -220,9 +343,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       e.stopPropagation();
       e.preventDefault();
       const id = Number(cellEl.dataset.cellId);
-      const cur = cellOffsets[id] ?? { xPct: 0, yPct: 0 };
+      const cur = cellRects[id] ?? baseCellRectPct(id, padPct, gapPct);
       cellEl.setPointerCapture(e.pointerId);
-      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, oxPct: cur.xPct, oyPct: cur.yPct, moved: false };
+      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, xPct: cur.xPct, yPct: cur.yPct, moved: false };
       return;
     }
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -236,10 +359,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (cd) {
       const bw = boardSize.w || 1;
       const bh = boardSize.h || 1;
-      const nxPct = cd.oxPct + ((e.clientX - cd.startX) / bw) * 100;
-      const nyPct = cd.oyPct + ((e.clientY - cd.startY) / bh) * 100;
-      if (Math.abs(nxPct - cd.oxPct) + Math.abs(nyPct - cd.oyPct) > 0.5) cd.moved = true;
-      setCellOffsets((prev) => ({ ...prev, [cd.id]: { xPct: nxPct, yPct: nyPct } }));
+      const nxPct = cd.xPct + ((e.clientX - cd.startX) / (bw * zoom)) * 100;
+      const nyPct = cd.yPct + ((e.clientY - cd.startY) / (bh * zoom)) * 100;
+      if (Math.abs(nxPct - cd.xPct) + Math.abs(nyPct - cd.yPct) > 0.5) cd.moved = true;
+      setCellRects((prev) => {
+        const cur = prev[cd.id] ?? baseCellRectPct(cd.id, padPct, gapPct);
+        return { ...prev, [cd.id]: { ...cur, xPct: nxPct, yPct: nyPct } };
+      });
       return;
     }
     if (!dragging) return;
@@ -271,19 +397,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   /** Shift+двойной клик по клетке в debug — выровнять весь её ряд по этой клетке. */
   function alignRowTo(id: number) {
     const { row } = rowColForId(id);
-    const size = cellSizes[id] ?? { wPct: 0, hPct: 0 };
-    const off = cellOffsets[id] ?? { xPct: 0, yPct: 0 };
+    const rect = cellRects[id] ?? baseCellRectPct(id, padPct, gapPct);
     const rowIds: number[] = [];
     for (let c = 0; c < COLS; c++) rowIds.push(idForRowCol(row, c));
-    setCellSizes((prev) => {
+    setCellRects((prev) => {
       const next = { ...prev };
-      rowIds.forEach((cid) => { next[cid] = { ...size }; });
-      return next;
-    });
-    setCellOffsets((prev) => {
-      const next = { ...prev };
-      // выравниваем по вертикали (y), горизонталь оставляем сеточную (x=0)
-      rowIds.forEach((cid) => { next[cid] = { xPct: 0, yPct: off.yPct }; });
+      rowIds.forEach((cid) => {
+        const base = baseCellRectPct(cid, padPct, gapPct);
+        next[cid] = { xPct: base.xPct, yPct: rect.yPct, wPct: rect.wPct, hPct: rect.hPct };
+      });
       return next;
     });
   }
@@ -304,6 +426,12 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     []
   );
 
+  /** Центр клетки в координатах SVG-оверлея 100×100 с учётом ручной разметки. */
+  const cellCenterPct = (id: number): { x: number; y: number } => {
+    const rect = cellRects[id] ?? baseCellRectPct(id, padPct, gapPct);
+    return { x: rect.xPct + rect.wPct / 2, y: rect.yPct + rect.hPct / 2 };
+  };
+
   return (
     <div className="relative">
       {MAPPING_ISSUES.length > 0 && (
@@ -323,10 +451,10 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           onPointerMove={onDragMove}
           onPointerUp={onDragEnd}
           onPointerCancel={onDragEnd}
-          className={`relative rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING} ${debug ? (dragging ? "cursor-grabbing" : "cursor-grab") : "w-full"}`}
+            className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING} ${debug ? (dragging ? "cursor-grabbing" : "cursor-grab") : ""}`}
           style={{
             width: debug ? `${sizePct}%` : undefined,
-            aspectRatio: debug ? `${aspectW} / ${aspectH}` : `${COLS} / ${ROWS}`,
+              aspectRatio: `${aspectW} / ${aspectH}`,
             background: BOARD_BG,
             transform: debug ? `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` : undefined,
             transformOrigin: "top left",
@@ -355,21 +483,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             }}
           />
 
-          {/* Строгая сетка 9×8 — единственный источник геометрии клеток */}
+          {/* Абсолютная сетка 9×8 в процентах: одна разметка работает на ПК и телефоне */}
           <div
-            className="absolute inset-0 grid"
-            style={{
-              padding: `${debug ? padPct : 0.6}%`,
-              gap: `${debug ? gapPct : 0.5}%`,
-              gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
-            }}
+            className="absolute inset-0"
           >
 
             {ids.map((id) => {
               const cell = BOARD[id - 1];
               const { row, col } = rowColForId(id);
-              const visualRow = ROWS - 1 - row;
               const isPlayer = id === playerPos;
               const isMoksha = id === 68;
               const isTrap = id === 8 || id === 71;
@@ -402,8 +523,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 ? "ring-1 ring-purple-300/60"
                 : "ring-1 ring-white/10";
 
-              const co = cellOffsets[id];
-              const cs = cellSizes[id];
+              const baseRect = baseCellRectPct(id, padPct, gapPct);
+              const rect = cellRects[id] ?? baseRect;
+              const isCustomized =
+                Math.abs(rect.xPct - baseRect.xPct) > 0.001 ||
+                Math.abs(rect.yPct - baseRect.yPct) > 0.001 ||
+                Math.abs(rect.wPct - baseRect.wPct) > 0.001 ||
+                Math.abs(rect.hPct - baseRect.hPct) > 0.001;
               return (
                 <button
                   key={id}
@@ -428,15 +554,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                     }
                   }}
                   style={{
-                    gridColumn: col + 1,
-                    gridRow: visualRow + 1,
-                    transform: co ? `translate(${(co.xPct * boardSize.w) / 100}px, ${(co.yPct * boardSize.h) / 100}px)` : undefined,
+                    left: `${rect.xPct}%`,
+                    top: `${rect.yPct}%`,
+                    width: `${rect.wPct}%`,
+                    height: `${rect.hPct}%`,
                     touchAction: debug ? "none" : undefined,
-                    zIndex: co || cs ? 15 : undefined,
-                    width: cs ? `calc(100% + ${(cs.wPct * boardSize.w) / 100}px)` : undefined,
-                    height: cs ? `calc(100% + ${(cs.hPct * boardSize.h) / 100}px)` : undefined,
+                    zIndex: isCustomized ? 15 : undefined,
                   }}
-                  className={`relative flex items-end justify-center rounded-[6px] p-0.5 text-center select-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 cursor-pointer hover:brightness-125 ${tint} ${stateRing} ${
+                  className={`absolute flex items-end justify-center rounded-[6px] p-0.5 text-center select-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 cursor-pointer hover:brightness-125 ${tint} ${stateRing} ${
                     isVisited ? "brightness-110" : ""
                   }`}
                 >
@@ -641,14 +766,22 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
             <span className="opacity-70">gap</span>
             <input type="range" min={0} max={3} step={0.1} value={gapPct}
-              onChange={(e) => setGapPct(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const nextGap = parseFloat(e.target.value);
+                setCellRects((prev) => rebaseCellRects(prev, padPct, gapPct, padPct, nextGap));
+                setGapPct(nextGap);
+              }}
               className="w-16" />
             <span className="tabular-nums w-8 text-right">{gapPct.toFixed(1)}%</span>
           </label>
           <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
             <span className="opacity-70">pad</span>
             <input type="range" min={0} max={3} step={0.1} value={padPct}
-              onChange={(e) => setPadPct(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const nextPad = parseFloat(e.target.value);
+                setCellRects((prev) => rebaseCellRects(prev, padPct, gapPct, nextPad, gapPct));
+                setPadPct(nextPad);
+              }}
               className="w-16" />
             <span className="tabular-nums w-8 text-right">{padPct.toFixed(1)}%</span>
           </label>
@@ -660,17 +793,34 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             <span className="tabular-nums w-10 text-right">{sizePct}%</span>
           </label>
           <span className="px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20 opacity-70">
-            drag: {offset.x | 0},{offset.y | 0} · cells: {Object.keys(cellOffsets).length}
+            drag: {offset.x | 0},{offset.y | 0} · custom: {hasCustomizedRects(cellRects, padPct, gapPct) ? "yes" : "no"}
           </span>
           <button
-            onClick={() => { setCellOffsets({}); setCellSizes({}); }}
+            onClick={() => {
+              setCellOffsets({});
+              setCellSizes({});
+              setCellRects(createBaseCellRects(padPct, gapPct));
+              safeRemove(CELL_RECTS_KEY);
+            }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
             title="Сбросить позиции и размеры клеток"
           >
             Сброс клеток
           </button>
           <button
-            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); setCellOffsets({}); setCellSizes({}); }}
+            onClick={() => {
+              setAspectW(COLS);
+              setAspectH(ROWS);
+              setGapPct(DEFAULT_GAP_PCT);
+              setPadPct(DEFAULT_PAD_PCT);
+              setOffset({x:0,y:0});
+              setSizePct(100);
+              setZoom(1);
+              setCellOffsets({});
+              setCellSizes({});
+              setCellRects(createBaseCellRects(DEFAULT_PAD_PCT, DEFAULT_GAP_PCT));
+              safeRemove(CELL_RECTS_KEY);
+            }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
           >
             Сброс
@@ -679,6 +829,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             onClick={async () => {
               const payload = JSON.stringify({
                 aspectW, aspectH, gapPct, padPct, sizePct, offset,
+                cellRects,
                 cellOffsets, cellSizes,
               }, null, 2);
               try { await navigator.clipboard.writeText(payload); alert("Layout скопирован в буфер обмена. Пришлите его мне — сохраню как дефолт."); }
@@ -701,6 +852,12 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 if (typeof p.padPct === "number") setPadPct(p.padPct);
                 if (typeof p.sizePct === "number") setSizePct(p.sizePct);
                 if (p.offset) setOffset(p.offset);
+                if (p.cellRects) setCellRects(p.cellRects);
+                else if (p.cellOffsets || p.cellSizes) {
+                  const nextPad = typeof p.padPct === "number" ? p.padPct : padPct;
+                  const nextGap = typeof p.gapPct === "number" ? p.gapPct : gapPct;
+                  setCellRects(mergeLegacyLayoutIntoRects(p.cellOffsets ?? {}, p.cellSizes ?? {}, nextPad, nextGap));
+                }
                 if (p.cellOffsets) setCellOffsets(p.cellOffsets);
                 if (p.cellSizes) setCellSizes(p.cellSizes);
               } catch { alert("Не удалось распарсить JSON."); }
