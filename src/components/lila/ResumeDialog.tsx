@@ -42,10 +42,10 @@ export function ResumeDialog({
               id="resume-title"
               className="mt-2 text-center text-lg font-bold bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent"
             >
-              Твой путь не закончен
+              Твой путь ещё продолжается
             </h2>
             <p className="mt-3 text-sm opacity-80 text-center leading-relaxed">
-              Душа остановилась на клетке <b>{snapshot.currentCell || "порога рождения"}</b>
+              Ты остановился на клетке <b>{snapshot.currentCell || "порога рождения"}</b>
               {snapshot.movesCount > 0 && (
                 <> · сделано бросков: <b>{snapshot.movesCount}</b></>
               )}
@@ -71,7 +71,7 @@ export function ResumeDialog({
               </button>
             </div>
             <p className="mt-3 text-[11px] opacity-50 text-center leading-relaxed">
-              Начиная заново, ты завершишь прошлый путь как «оставленный».
+              Если начать заново — прошлый путь мягко закроется как «оставленный».
             </p>
           </motion.div>
         </motion.div>
