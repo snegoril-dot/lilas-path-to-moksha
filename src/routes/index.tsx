@@ -453,9 +453,15 @@ function Index() {
     const value = rollDice(getRuntimeRng());
     setDice(value);
     setDiceHistory((d) => [...d, value]);
-    setTotalRolls((n) => n + 1);
+    setTotalRolls((n) => {
+      const next = n + 1;
+      if (next === 1) trackEvent("first_roll", { dice: value, sessionId: sessionIdRef.current });
+      return next;
+    });
+    trackEvent("dice_rolled", { dice: value, cell: pos, sessionId: sessionIdRef.current });
     play("roll");
     addMsg(`🎲 Бросок: ${value}`, "player");
+
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
