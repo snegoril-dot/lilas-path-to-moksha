@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Share2, Save, BookOpen } from "lucide-react";
+import { Share2, Save, BookOpen, Clipboard, AlertTriangle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection, getJournal } from "@/lib/guru.functions";
 import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
+import { getCellExperience } from "@/lib/cell-experience";
+import { buildShareText as buildShareTextLib, shareToTelegram, type ShareResult } from "@/lib/share";
 import { getCellExperience } from "@/lib/cell-experience";
 import type { KeyCell } from "./WinOverlay";
 
