@@ -726,15 +726,35 @@ function Index() {
       <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[var(--lila-surface)]/90 backdrop-blur-md border-t border-white/10">
         <div className="flex items-center gap-2">
           <Dice value={dice} rolling={rolling} />
-          <button
-            onClick={() => { haptic("medium"); handleRoll(); }}
-            disabled={rolling || won}
-            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Бросить кубик"
-          >
-            <DiceIcon size={20} />
-            Бросить
-          </button>
+          {won ? (
+            <button
+              onClick={() => { haptic("medium"); setWinOpen(true); }}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition"
+              aria-label="Посмотреть итог пути"
+            >
+              <Eye size={20} />
+              Посмотреть итог пути
+            </button>
+          ) : landed && !landedOpen ? (
+            <button
+              onClick={() => { haptic("light"); setLandedOpen(true); }}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition"
+              aria-label="Осмыслить клетку"
+            >
+              <Sparkles size={20} />
+              Осмыслить клетку
+            </button>
+          ) : (
+            <button
+              onClick={() => { haptic("medium"); handleRoll(); }}
+              disabled={rolling}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Бросить кубик"
+            >
+              <DiceIcon size={20} />
+              Бросить кубик
+            </button>
+          )}
           <button
             onClick={() => { haptic("light"); setCellOpen(pos === 0 ? 1 : pos); }}
             className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
