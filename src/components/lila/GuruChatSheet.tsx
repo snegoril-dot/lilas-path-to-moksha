@@ -12,6 +12,9 @@ import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
 import { CellContextChip } from "./CellContextChip";
 import { Glyph } from "./Glyph";
+import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
+import { FEATURE_IDS } from "@/lib/entitlements";
+import { Lock } from "lucide-react";
 
 
 
@@ -200,6 +203,8 @@ export function GuruChatSheet({
   const badge = EVENT_BADGE[eventKind];
   const cellPack = ctx ? getGuruCellPack(ctx.cell) : null;
   const eventPrompts = QUICK_PROMPTS[eventKind];
+  const { has } = useEntitlements();
+  const hasDeepGuru = has(FEATURE_IDS.DEEP_GURU);
 
   return (
     <AnimatePresence>
