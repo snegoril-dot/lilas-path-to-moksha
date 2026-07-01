@@ -655,9 +655,11 @@ function Index() {
         } else {
           addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
+          trackEvent("cell_landed", { cell: landed.id, sessionId: sessionIdRef.current });
           openLanded(landed.id);
           finishTurn();
         }
+
       });
     }, diceDelay);
   }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded]);
