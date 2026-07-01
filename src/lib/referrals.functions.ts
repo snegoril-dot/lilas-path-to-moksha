@@ -32,12 +32,12 @@ export const claimReferral = createServerFn({ method: "POST" })
     // ищем среди последних 5000 профилей.
     const { data: candidates } = await supabaseAdmin
       .from("profiles")
-      .select("user_id")
+      .select("id")
       .limit(5000);
     let referrerId: string | null = null;
-    for (const c of candidates ?? []) {
-      if (refCodeFor(c.user_id) === code) {
-        referrerId = c.user_id;
+    for (const c of (candidates ?? []) as { id: string }[]) {
+      if (refCodeFor(c.id) === code) {
+        referrerId = c.id;
         break;
       }
     }
@@ -45,22 +45,18 @@ export const claimReferral = createServerFn({ method: "POST" })
       return { ok: false, reason: "not_found" as const };
     }
 
-    // Пишем связь
-    const { error: refErr } = await supabaseAdmin
-      .from("referrals")
-      .insert({
-        referrer_user_id: referrerId,
-        referred_user_id: context.userId,
-        ref_code: code,
-        rewarded_at: new Date().toISOString(),
-      });
+    const { error: refErr } = await supabaseAdmin.from("referrals").insert({
+      referrer_user_id: referrerId,
+      referred_user_id: context.userId,
+      ref_code: code,
+      rewarded_at: new Date().toISOString(),
+    });
     if (refErr) throw new Error(refErr.message);
 
-    // Выдаём +7 дней Deep Guru рефереру
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     await supabaseAdmin.from("user_entitlements").insert({
       user_id: referrerId,
-      feature_key: "deep_guru",
+      feature: "deep_guru",
       status: "active",
       source: "referral_bonus",
       expires_at: expires,

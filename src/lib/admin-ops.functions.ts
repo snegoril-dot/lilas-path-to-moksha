@@ -44,30 +44,39 @@ export const lookupUser = createServerFn({ method: "POST" })
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
     let query = supabaseAdmin
       .from("profiles")
-      .select("user_id, telegram_id, display_name, banned_at, created_at")
+      .select("id, telegram_id, first_name, last_name, username, banned_at, created_at")
       .limit(20);
-    if (isUuid) query = query.eq("user_id", q);
+    if (isUuid) query = query.eq("id", q);
     else if (/^\d+$/.test(q)) query = query.eq("telegram_id", Number(q));
-    else query = query.ilike("display_name", `%${q}%`);
+    else query = query.or(`username.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%`);
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
 
-    // enrich with entitlements + spend
     const results = await Promise.all(
-      (rows ?? []).map(async (p) => {
+      (rows ?? []).map(async (p: any) => {
         const [{ data: ents }, { data: pays }] = await Promise.all([
           supabaseAdmin
             .from("user_entitlements")
-            .select("feature_key, status, expires_at, source")
-            .eq("user_id", p.user_id),
+            .select("feature, status, expires_at, source")
+            .eq("user_id", p.id),
           supabaseAdmin
             .from("stars_payments")
             .select("stars_amount")
-            .eq("user_id", p.user_id)
+            .eq("user_id", p.id)
             .is("refunded_at", null),
         ]);
-        const spend = (pays ?? []).reduce((s, r: any) => s + Number(r.stars_amount || 0), 0);
-        return { profile: p, entitlements: ents ?? [], totalStars: spend };
+        const spend = (pays ?? []).reduce((s: number, r: any) => s + Number(r.stars_amount || 0), 0);
+        return {
+          profile: {
+            user_id: p.id as string,
+            telegram_id: p.telegram_id as number | null,
+            display_name: (p.first_name || p.username || p.last_name || null) as string | null,
+            banned_at: p.banned_at as string | null,
+            created_at: p.created_at as string,
+          },
+          entitlements: (ents ?? []).map((e: any) => ({ feature_key: e.feature, ...e })),
+          totalStars: spend,
+        };
       }),
     );
     return results;
