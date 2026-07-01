@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
 import boardBgAsset from "@/assets/lila-board-cosmos.png.asset.json";
 const boardBg = boardBgAsset.url;
@@ -95,6 +95,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     } catch { return {}; }
   });
 
+  // ref для подавления клика по клетке сразу после её перетаскивания
+  const suppressClickRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem("lila:debug:cell-offsets", JSON.stringify(cellOffsets)); } catch {}
@@ -159,7 +162,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     const cd = cellEl && (cellEl as any)._cellDrag;
     if (cd) {
       try { cellEl!.releasePointerCapture(e.pointerId); } catch {}
-      if (cd.moved) { e.stopPropagation(); e.preventDefault(); }
+      if (cd.moved) {
+        e.stopPropagation();
+        e.preventDefault();
+        // подавляем ближайший click по этой клетке, чтобы модалка не открывалась
+        suppressClickRef.current = cd.id;
+        window.setTimeout(() => {
+          if (suppressClickRef.current === cd.id) suppressClickRef.current = null;
+        }, 300);
+      }
       delete (cellEl as any)._cellDrag;
       return;
     }
@@ -167,6 +178,25 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
   }
 
+  /** Shift+двойной клик по клетке в debug — выровнять весь её ряд по этой клетке. */
+  function alignRowTo(id: number) {
+    const { row } = rowColForId(id);
+    const size = cellSizes[id] ?? { w: 0, h: 0 };
+    const off = cellOffsets[id] ?? { x: 0, y: 0 };
+    const rowIds: number[] = [];
+    for (let c = 0; c < COLS; c++) rowIds.push(idForRowCol(row, c));
+    setCellSizes((prev) => {
+      const next = { ...prev };
+      rowIds.forEach((cid) => { next[cid] = { ...size }; });
+      return next;
+    });
+    setCellOffsets((prev) => {
+      const next = { ...prev };
+      // выравниваем по вертикали (y), горизонталь оставляем сеточную (x=0)
+      rowIds.forEach((cid) => { next[cid] = { x: 0, y: off.y }; });
+      return next;
+    });
+  }
 
   useEffect(() => {
     purgeLegacyLayoutStorage();
@@ -289,7 +319,22 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   data-cell-id={id}
                   aria-label={fullLabel}
                   aria-current={isPlayer ? "location" : undefined}
-                  onClick={() => onSelectCell?.(id)}
+                  onClick={(e) => {
+                    if (debug && suppressClickRef.current === id) {
+                      suppressClickRef.current = null;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    onSelectCell?.(id);
+                  }}
+                  onDoubleClick={(e) => {
+                    if (debug && e.shiftKey) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      alignRowTo(id);
+                    }
+                  }}
                   style={{
                     gridColumn: col + 1,
                     gridRow: visualRow + 1,
