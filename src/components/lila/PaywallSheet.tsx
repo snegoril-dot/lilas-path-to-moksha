@@ -3,7 +3,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Sparkles, Check, RefreshCw, Loader2 } from "lucide-react";
 import { STARS_PRODUCTS, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
 import { listEntitlements, restorePurchases, createStarsInvoice } from "@/lib/entitlements.functions";
-import { hapticImpact, hapticNotification } from "@/lib/telegram";
+
+function haptic(type: "success" | "error" | "light") {
+  const tg = typeof window !== "undefined" ? (window as any).Telegram?.WebApp : undefined;
+  try {
+    if (type === "light") tg?.HapticFeedback?.impactOccurred?.("light");
+    else tg?.HapticFeedback?.notificationOccurred?.(type);
+  } catch { /* noop */ }
+}
 
 interface Props {
   open: boolean;
