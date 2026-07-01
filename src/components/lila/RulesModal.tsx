@@ -136,6 +136,24 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
                 </p>
               </section>
 
+              <section className="pt-3 border-t border-white/10">
+                <h3 className="font-semibold text-amber-200 mb-1">Бета-версия</h3>
+                <p className="opacity-80 text-xs">
+                  Игра находится в бета-версии. Некоторые элементы пути ещё могут меняться.
+                </p>
+                <div className="mt-2 grid grid-cols-1 gap-1.5 text-xs opacity-80">
+                  <div><b className="text-emerald-200">Уже работает:</b> путь по 72 клеткам, змеи и лестницы, Санкальпа, дневник инсайтов, ИИ-Гуру как зеркало, пауза и возврат.</div>
+                  <div><b className="text-amber-200">В разработке:</b> тонкая настройка текстов клеток, расширенная карточка итога, еженедельные подсказки, улучшения дизайна на маленьких экранах.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFbOpen(true)}
+                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 px-4 py-2.5 text-sm font-medium transition"
+                >
+                  <MessageSquarePlus size={15} /> Оставить отзыв
+                </button>
+              </section>
+
               <p className="opacity-70 italic pt-2 border-t border-white/10">
                 «Игра — это сама жизнь. Кубик — это карма. Доска — это сознание».
               </p>
@@ -144,6 +162,8 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
         </motion.div>
       )}
       <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
+      <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="help" />
     </AnimatePresence>
   );
 }
+
