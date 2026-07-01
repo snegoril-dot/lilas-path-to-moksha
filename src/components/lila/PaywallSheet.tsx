@@ -95,6 +95,7 @@ export function PaywallSheet({ open, onClose }: Props) {
     try {
       const data = await restorePurchases({ data: {} });
       setEnt(data);
+      notifyEntitlementsChanged();
       haptic("success");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось восстановить покупки");
