@@ -42,29 +42,7 @@ function fmtDuration(startedAt: string | null | undefined): string | null {
   return m === 0 ? `${h} ч` : `${h} ч ${m} мин`;
 }
 
-function shareText(text: string) {
-  const tg = (window as unknown as {
-    Telegram?: {
-      WebApp?: {
-        switchInlineQuery?: (q: string, types?: string[]) => void;
-        openTelegramLink?: (url: string) => void;
-      };
-    };
-  }).Telegram?.WebApp;
-  if (tg?.switchInlineQuery) {
-    try {
-      tg.switchInlineQuery(text, ["users", "groups"]);
-      return;
-    } catch {
-      /* fall through */
-    }
-  }
-  const url = `https://t.me/share/url?url=${encodeURIComponent(
-    typeof window !== "undefined" ? window.location.href : "https://t.me"
-  )}&text=${encodeURIComponent(text)}`;
-  if (tg?.openTelegramLink) tg.openTelegramLink(url);
-  else if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
-}
+// share helpers moved to src/lib/share.ts
 
 type JournalRow = {
   id: string;
