@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { BOARD } from "@/lib/lila-board";
 import { useState } from "react";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
+
 
 export type ResumeSnapshot = {
   currentCell: number;
