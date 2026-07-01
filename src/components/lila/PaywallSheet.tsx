@@ -85,6 +85,13 @@ export function PaywallSheet({ open, onClose }: Props) {
     setError(null);
     try {
       haptic("light");
+      trackEvent("paywall_buy_clicked", {
+        extra: {
+          product: product.id,
+          variant: priceVariant,
+          stars: getProductPrice(product, ent?.userId),
+        },
+      });
       const { url } = await createStarsInvoice({ data: { productId: product.id } });
       openTelegramInvoice(url, async () => {
         haptic("success");
