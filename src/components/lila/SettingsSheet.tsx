@@ -5,7 +5,8 @@ import {
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { onPaywallOpen } from "@/hooks/use-entitlements";
 import type { PlayerToken } from "@/lib/player-tokens";
 import { BOARD } from "@/lib/lila-board";
 import { OnboardingModal } from "./OnboardingModal";
