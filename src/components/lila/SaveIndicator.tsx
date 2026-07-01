@@ -29,9 +29,9 @@ export function SaveIndicator({ state }: { state: SaveState }) {
             {state === "saving" && <Loader2 size={12} className="animate-spin" />}
             {state === "saved" && <Check size={12} />}
             <span>
-              {state === "saving" && "Сохраняю…"}
+              {state === "saving" && "Сохраняю путь…"}
               {state === "saved" && "Путь сохранён"}
-              {state === "error" && "Не удалось сохранить"}
+              {state === "error" && "Не удалось сохранить. Проверь соединение."}
             </span>
           </div>
         </motion.div>
