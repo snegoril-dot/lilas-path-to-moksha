@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { DailyCard } from "./DailyCard";
+import { MorningSankalpaCard } from "./MorningSankalpaCard";
 import { AchievementsModal } from "./AchievementsModal";
 import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
@@ -132,6 +133,10 @@ export function WelcomeScreen({
 
       <div className="mt-4 w-full max-w-sm">
         <DailyCard />
+      </div>
+
+      <div className="mt-3 w-full max-w-sm">
+        <MorningSankalpaCard />
       </div>
 
       {showReturning && (
