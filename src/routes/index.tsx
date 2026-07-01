@@ -52,6 +52,7 @@ function Index() {
   const [entryGrace, setEntryGrace] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sankalpa, setSankalpa] = useState("");
+  const [mode, setMode] = useState<GameMode>("classic");
   const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
   const [totalRolls, setTotalRolls] = useState(0);
   const [cellVisits, setCellVisits] = useState<Record<number, number>>({});
