@@ -48,6 +48,7 @@ export function ReflectionModal({
       setNote("");
       setAiText(null);
       setAiErr(null);
+      setSaving(false);
       setTimeout(() => taRef.current?.focus(), 50);
     }
   }, [open]);
