@@ -947,28 +947,44 @@ function Index() {
           });
         }}
       />
-      <PauseSheet
-        open={pauseOpen}
-        onContinue={() => setPauseOpen(false)}
-        onExit={doRestart}
-        sankalpa={sankalpa}
-        startedAt={startedAt}
-        currentCell={pos}
-        totalRolls={totalRolls}
-        keyCells={keyCells}
-        sessionId={sessionIdRef.current}
-      />
+      {pauseOpen && (
+        <Suspense fallback={null}>
+          <PauseSheet
+            open={pauseOpen}
+            onContinue={() => setPauseOpen(false)}
+            onExit={doRestart}
+            sankalpa={sankalpa}
+            startedAt={startedAt}
+            currentCell={pos}
+            totalRolls={totalRolls}
+            keyCells={keyCells}
+            sessionId={sessionIdRef.current}
+          />
+        </Suspense>
+      )}
 
-      <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
-      <PathAnalysisSheet ctx={pathAnalysisCtx} onClose={() => setPathAnalysisCtx(null)} />
-      <PathTimelineSheet
-        open={timelineOpen}
-        onClose={() => setTimelineOpen(false)}
-        pathLog={pathLog}
-        diceHistory={diceHistory}
-        keyCells={keyCells}
-        currentCell={pos}
-      />
+      {guruCtx && (
+        <Suspense fallback={null}>
+          <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
+        </Suspense>
+      )}
+      {pathAnalysisCtx && (
+        <Suspense fallback={null}>
+          <PathAnalysisSheet ctx={pathAnalysisCtx} onClose={() => setPathAnalysisCtx(null)} />
+        </Suspense>
+      )}
+      {timelineOpen && (
+        <Suspense fallback={null}>
+          <PathTimelineSheet
+            open={timelineOpen}
+            onClose={() => setTimelineOpen(false)}
+            pathLog={pathLog}
+            diceHistory={diceHistory}
+            keyCells={keyCells}
+            currentCell={pos}
+          />
+        </Suspense>
+      )}
       <BirthIntroCard
         open={birthIntroOpen && pos === 0 && !won}
         sankalpa={sankalpa}
@@ -978,25 +994,29 @@ function Index() {
         }}
         onClose={() => setBirthIntroOpen(false)}
       />
-      <SettingsSheet
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        soundEnabled={soundEnabled}
-        onToggleSound={toggleSound}
-        notesEnabled={notesEnabled}
-        onToggleNotes={toggleNotes}
-        token={token}
-        onCycleToken={cycleToken}
-        debug={debug}
-        onToggleDebug={() => setDebug((d) => !d)}
-        started={started}
-        won={won}
-        currentCell={pos}
-        totalRolls={totalRolls}
-        onPause={() => setPauseOpen(true)}
-        onNewPath={doRestart}
-        onStart={() => setSettingsOpen(false)}
-      />
+      {settingsOpen && (
+        <Suspense fallback={null}>
+          <SettingsSheet
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            notesEnabled={notesEnabled}
+            onToggleNotes={toggleNotes}
+            token={token}
+            onCycleToken={cycleToken}
+            debug={debug}
+            onToggleDebug={() => setDebug((d) => !d)}
+            started={started}
+            won={won}
+            currentCell={pos}
+            totalRolls={totalRolls}
+            onPause={() => setPauseOpen(true)}
+            onNewPath={doRestart}
+            onStart={() => setSettingsOpen(false)}
+          />
+        </Suspense>
+      )}
 
       <SaveIndicator state={saveState} />
       <HintToast text={hint?.text ?? null} onDismiss={() => setHint(null)} />
