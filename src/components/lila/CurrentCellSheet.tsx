@@ -20,6 +20,7 @@ export interface CurrentCellSheetProps {
   visitCount?: number;
   onContinue: () => void;
   onAskGuru: (cellId: number, opts?: { prompt?: string }) => void;
+  onTakeAsPractice?: (cellId: number) => void;
 }
 
 export function CurrentCellSheet({
