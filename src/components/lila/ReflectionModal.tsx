@@ -5,6 +5,7 @@ import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
 import { useTelegramBackButton, hapticNotify, haptic } from "@/hooks/use-telegram";
+import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
 import { trackEvent } from "@/lib/analytics";
 
 
@@ -40,6 +41,7 @@ export function ReflectionModal({
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleId = "reflection-modal-title";
   const save = useServerFn(saveReflection);
+  const kbInset = useKeyboardInset(open);
   const journalKind: "snake_lesson" | "ladder_gift" =
     data?.kind === "snake" ? "snake_lesson" : "ladder_gift";
 
@@ -140,7 +142,8 @@ export function ReflectionModal({
             exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] p-6 shadow-2xl ring-1 ring-white/10 max-h-[85vh] overflow-y-auto"
+            style={{ paddingBottom: kbInset ? kbInset + 16 : undefined }}
+            className="w-full max-w-md rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] p-6 shadow-2xl ring-1 ring-white/10 max-h-[85dvh] overflow-y-auto overscroll-contain"
           >
             <div className="flex items-start justify-between mb-3">
               <div>
@@ -189,9 +192,15 @@ export function ReflectionModal({
                   const v = e.target.value;
                   setNote(v.length > 400 ? v.slice(0, 400) : v);
                 }}
+                onFocus={() => {
+                  // Подтянуть к кнопке «Сохранить», когда откроется клавиатура.
+                  setTimeout(() => {
+                    taRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+                  }, 250);
+                }}
                 rows={4}
                 placeholder="Несколько слов от сердца. Можно оставить пустым."
-                className="mt-1 w-full rounded-2xl bg-black/20 border border-white/10 px-3 py-2 text-[15px] placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
+                className="mt-1 w-full rounded-2xl bg-black/20 border border-white/10 px-3 py-2 text-[16px] placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
               />
               <div className="text-[10px] opacity-50 text-right mt-1">
                 {note.length >= 400
