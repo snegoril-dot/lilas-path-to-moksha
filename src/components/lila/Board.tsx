@@ -95,6 +95,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     } catch { return {}; }
   });
 
+  // ref для подавления клика по клетке сразу после её перетаскивания
+  const suppressClickRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem("lila:debug:cell-offsets", JSON.stringify(cellOffsets)); } catch {}
