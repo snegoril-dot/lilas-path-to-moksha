@@ -546,7 +546,7 @@ function Index() {
 
       if (overshoot) {
         const need = 68 - pos;
-        addMsg(`Ход: ${pos} → 68 → ${pos}`, "system");
+        addMsg(`Шаг: ${pos} → 68 → ${pos}`, "system");
         // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
         animateStep(pos, 68, () => {
           addMsg(
@@ -565,7 +565,7 @@ function Index() {
         return;
       }
 
-      addMsg(`Ход: ${pos} → ${target}`, "system");
+      addMsg(`Шаг: ${pos} → ${target}`, "system");
 
       animateStep(pos, target, () => {
         const { final, jumped } = resolveJump(target);
