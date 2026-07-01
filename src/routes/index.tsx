@@ -195,6 +195,38 @@ function Index() {
     trackEvent("app_opened");
   }, []);
 
+  // Telegram deep-link: ?startapp=... — one-shot on mount.
+  // Supported: `paywall`, `settings`, `journal`, `cell_<N>` (1..72).
+  useEffect(() => {
+    let sp: string | undefined;
+    try {
+      const tg = (window as unknown as { Telegram?: { WebApp?: { initDataUnsafe?: { start_param?: string } } } }).Telegram?.WebApp;
+      sp = tg?.initDataUnsafe?.start_param;
+      if (!sp) {
+        const url = new URL(window.location.href);
+        sp = url.searchParams.get("startapp") ?? url.searchParams.get("tgWebAppStartParam") ?? undefined;
+      }
+    } catch { /* noop */ }
+    if (!sp) return;
+    trackEvent("deep_link_opened", { extra: { param: sp.slice(0, 32) } });
+    const t = setTimeout(() => {
+      if (sp === "paywall") {
+        window.dispatchEvent(new CustomEvent("lila:paywall-open"));
+      } else if (sp === "settings") {
+        setSettingsOpen(true);
+      } else if (sp === "journal") {
+        window.location.assign("/journal");
+      } else {
+        const m = /^cell[_-]?(\d{1,2})$/i.exec(sp);
+        if (m) {
+          const n = Number(m[1]);
+          if (n >= 1 && n <= 72) setCellOpen(n);
+        }
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, []);
+
   // Global online-listener: чистим очередь отложенных заметок при появлении сети.
   useEffect(() => {
     const unsub = registerOnlineFlush(async (n) => {
