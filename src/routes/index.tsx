@@ -140,6 +140,7 @@ function Index() {
       setSankalpa(userSankalpa);
       setMode(chosenMode);
       setStartedAt(new Date().toISOString());
+      setBirthIntroOpen(true);
       setTimeout(() => {
         if (userSankalpa) {
           addMsg(
