@@ -3,7 +3,7 @@ import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
-  Receipt, Scale,
+  Receipt, Scale, LifeBuoy,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
