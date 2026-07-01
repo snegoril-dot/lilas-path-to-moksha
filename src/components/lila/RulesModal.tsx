@@ -49,6 +49,14 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
                 Правила ниже помогут пройти путь осознанно.
               </p>
 
+              <button
+                type="button"
+                onClick={() => setOnbOpen(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-amber-400/10 hover:bg-amber-400/20 ring-1 ring-amber-300/40 text-amber-100 px-4 py-2.5 text-sm font-medium transition"
+              >
+                <Sparkles size={15} /> Показать вступление заново
+              </button>
+
               <section>
                 <h3 className="font-semibold text-amber-200 mb-1">1. Сформулируй Санкальпу</h3>
                 <p className="opacity-80">
