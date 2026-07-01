@@ -1,53 +1,108 @@
-# План: Недельный обзор, Утренняя Санкальпа + проверки
+# Практика клетки → коммерческий уровень
 
-## 1. Недельный обзор «Что показала тебе неделя»
-**Новое:**
-- `src/lib/weekly-review.functions.ts` — server fn `getWeeklyReview()` с `requireSupabaseAuth`:
-  - последние 3 завершённых практики (cell_id, resonance, reflection, completed_at) за 7 дней;
-  - последние 3 записи `practice_journal_entries`;
-  - средний резонанс, число «прожитых» клеток за неделю.
-- `src/components/lila/WeeklyReviewSheet.tsx` — Sheet со списком клеток (Glyph, название, резонанс 1–5 точками), заметками, кнопкой «Поделиться в Telegram».
-- Триггер: кнопка «Неделя» в `SettingsSheet.tsx` (Help hub) и авто-подсказка воскресеньем через `HintToast`.
+Цель: превратить «Практику» из инфраструктурной заготовки в законченный продукт — с продуманным контентом на все 72 клетки, спокойным UX запуска и возврата, полноценным журналом практики и напоминаниями через Telegram-бота. Монетизация в этой итерации не затрагивается.
 
-## 2. Утренняя Санкальпа
-**Миграция:** уже есть `sankalpa_history (id, user_id, text, created_at, source)`. Добавить `source enum` не нужно — используем text-поле `source` (`morning` / `game`). Убедиться, что колонка есть; если нет — миграция.
-**Новое:**
-- `src/content/morning-sankalpa.ts` — пул из ~30 вопросов на «ты», ротация по дню года + userId.
-- `src/lib/morning-sankalpa.functions.ts` — `getTodayPrompt()`, `answerMorningSankalpa({text})` → пишет в `sankalpa_history` с `source='morning'`.
-- `src/components/lila/MorningSankalpaCard.tsx` — карточка на главном экране (`src/routes/index.tsx`), показывается 1×/день (localStorage-флаг `morning-sankalpa:YYYY-MM-DD`), кнопки «Ответить» → textarea → сохранить, «Позже».
-- История в `WeeklyReviewSheet` (секция «Санкальпы недели»).
+## 1. Контент практик (все 72 клетки, вручную)
 
-## 3. Проверка metadata (/`, `/journal`, `/insights`)
-- Прочитать три файла роутов; убедиться:
-  - Уникальные `title`, `description`, `og:title`, `og:description`, `og:url`.
-  - `canonical` только на leaf-роуте с абсолютным `https://lilas-path-to-moksha.lovable.app/...`.
-  - `og:type` = website на `/`, article на `/journal` и `/insights` (или website — оба ок, лишь бы явно).
-- Починить недостающее.
+Единая структура для каждой клетки:
 
-## 4. Проверка narration в чат-ленте
-- Прочитать `src/routes/index.tsx` (обработчики Змеи/Лестницы/Мокши/повтора) и `ChatFeed.tsx`.
-- Убедиться: сообщения формируются через `narrateSnake`, `narrateLadder`, `narrateMoksha`, `narrateOvershoot`, `narrateRepeat`; обычная клетка использует `CellContextChip` + wisdom.
-- Если есть inline-строки — заменить на импорт.
+- `intent` — одна фраза-цель («что я исследую»)
+- `invitation` — 2–3 предложения мягкого введения от Гуру
+- `duration` — рекомендованная (1ч / 1д / 3д / 7д) + `minDuration`, `maxDuration`
+- `dailySteps[]` — конкретные шаги на день (2–4 микро-действия по 1–10 мин)
+- `noticePrompts[]` — 3–5 вопросов для внимания в течение дня
+- `journalPrompts[]` — 2–3 вечерних вопроса для записи
+- `completionCriteria` — как понять, что практика прожита
+- `safety` — «когда прервать», исключения (тревога, тяжёлое состояние), без медицины
+- `closingReflection` — финальный вопрос перед возвратом в игру
 
-## Технические рамки
-- Никаких новых npm-зависимостей.
-- RLS уже покрывает `sankalpa_history`, `practice_sessions`, `practice_journal_entries` (`auth.uid()`).
-- Аналитика: `weekly_review_opened`, `morning_sankalpa_shown`, `morning_sankalpa_answered`.
+Организация:
+- `src/content/practices/cells/cell-01.ts` … `cell-72.ts` (по файлу на клетку — удобно ревьюить)
+- `src/content/practices/index.ts` — реестр + типы
+- `scripts/check-practices.ts` — валидатор (все 72 присутствуют, поля не пустые, длина в границах, нет дубликатов между клетками)
+- Vitest: смоук-тест реестра
 
-## Порядок реализации (батчами)
-1. Проверки (metadata + narration) → фиксы, если нужно.
-2. Server fns (weekly-review, morning-sankalpa) + миграция при необходимости.
-3. Контент (пул вопросов).
-4. UI компоненты (MorningSankalpaCard, WeeklyReviewSheet) + интеграции.
-5. Аналитика.
+Тон: тёплый, «на ты», без эзотерического жаргона, без гарантий, без обещаний результата.
 
-## Ручная проверка (мобилка)
-1. На главной утром видна карточка «Утренняя Санкальпа», ответ сохраняется.
-2. Повторный вход в тот же день — карточка не показывается.
-3. Settings → «Неделя» открывает обзор с 3 клетками + резонансом.
-4. При выпадении Змеи в чате появляется текст `narrateSnake` (клетка → клетка + пояснение).
-5. Проверить <title> вкладки на `/`, `/journal`, `/insights` — разные.
-6. Поделиться /journal — og:title/description отличаются от главной.
-7. Ответ на Санкальпу появляется в WeeklyReview → «Санкальпы недели».
+## 2. UX запуска и возврата
 
-**Следующий шаг после аппрува:** начну с батча проверок (пункты 3–4), затем миграция при необходимости.
+Запуск (`PracticeChooserSheet`, доработка):
+- Заголовок «Практика клетки N — {название}»
+- Блок `intent` + `invitation`
+- Выбор длительности карточками (1ч / 1д / 3д / 7д) с оценкой нагрузки
+- Превью первого дня (шаги + вопросы внимания)
+- Явное «Что если не получится» — можно отпустить в любой момент
+- Кнопки: «Начать», «Позже», «Не сейчас, просто прочитать»
+
+Активная практика:
+- Обновлённый `ActivePracticeBanner`: прогресс по дням (день X из Y), время до следующего чек-ина, кнопка «Открыть сегодня»
+- Экран «Сегодня» в `PracticeReturnSheet`: шаги дня, вопросы внимания, кнопка «Записать в журнал», «Отметить день», «Пропустить день»
+- Пустое/утреннее состояние («ещё рано, вернись после …»)
+
+Возврат в игру:
+- `closingReflection` перед разблокировкой кубика
+- Опция «Ещё день» для 3д/7д, если игрок не готов завершить
+- Мягкое завершение при прерывании (не «провал», а «остановка»)
+
+Главный экран:
+- Состояние «в практике» видно всегда: банер + иконка на кнопке кубика (disabled с подсказкой)
+
+## 3. Журнал практики
+
+`PracticeJournalSheet` доработка:
+- Таймлайн по дням: заметки, отметки «сделал/пропустил», шкала состояния (1–5) — сохранение в `practice_journal_entries`
+- Финальный экран практики: сводка (дней прожито, ключевые заметки), кнопка «Разбор с Гуру» (одноразовый запрос) → сохраняется как отдельная запись kind `practice_final`
+- Экспорт: копировать в буфер / поделиться безопасным кратким текстом
+- Связка с основным дневником (`/journal`): фильтр «Практики» + переход к конкретной практике
+
+Серверные функции (расширение `practices.functions.ts`):
+- `addPracticeJournalEntry({ practiceId, day, mood, note, done })`
+- `getPracticeJournal(practiceId)`
+- `generatePracticeFinalInsight(practiceId)` — через Lovable AI, с safety-guardrails
+
+## 4. Напоминания через Telegram-бота
+
+Реализация:
+- Таблица `practice_reminders` уже есть — использовать: `practice_id`, `chat_id`, `scheduled_at`, `kind` (`morning` / `evening` / `deadline`), `sent_at`
+- При старте практики: планируются напоминания на всю длительность (утро 09:00 локально, вечер 20:00, дедлайн — за час до окончания)
+- Публичный роут `src/routes/api/public/practice/send-reminders.ts`: cron-эндпоинт (`apikey` = SUPABASE_ANON_KEY), выбирает `scheduled_at <= now()` и `sent_at is null`, шлёт в Telegram через connector gateway, ставит `sent_at`
+- `pg_cron` каждые 5 минут вызывает эндпоинт
+- Настройки в `SettingsSheet`: тумблер «Напоминания в Telegram», время утра/вечера, отдельная отмена для активной практики
+- Тексты напоминаний — в `src/content/practices/reminder-copy.ts`, короткие и без давления
+- Отписка одной кнопкой; при отписке — очищать будущие reminders
+
+Требования:
+- Telegram connector должен быть подключён (проверить `list_connections`); если нет — попросить подключить до фазы 4
+- `chat_id` берём из `use-telegram-auth` (уже есть в проекте)
+
+## 5. Аналитика, приватность, безопасность
+
+- События: `practice_started`, `practice_day_logged`, `practice_completed`, `practice_abandoned`, `practice_reminder_sent`, `practice_reminder_opt_out`, `practice_final_insight_generated`
+- Все текстовые заметки — приватные, в `TO auth.uid()` RLS (уже так); в аналитике — только метаданные
+- Safety-guardrails в AI-разборе: тот же `GURU_SYSTEM_PROMPT` + запрет медицинских/юридических/финансовых советов
+- В UX практики — плашка «Это не терапия. Если тяжело — остановись и обратись к специалисту»
+
+## 6. Поэтапная доставка
+
+Реалистично разбить на PR:
+
+1. **Схема контента + 10 клеток «маяков»** (1, 9, 10, 12, 28, 41, 51, 63, 68, 72) + валидатор + смоук-тесты. Уже даёт продуктовое ощущение.
+2. **UX запуска и возврата** на новой схеме (Chooser, Banner, Return, ClosingReflection).
+3. **Журнал практики** (таймлайн, финальный разбор, связка с /journal).
+4. **Оставшиеся 62 клетки** — авторский контент партиями по 10–15, каждая партия через `check-practices.ts`.
+5. **Telegram-напоминания** (таблица уже есть → cron-эндпоинт → настройки → тексты).
+6. Полировка: пустые/ошибочные состояния, копирайт, a11y, тесты.
+
+## Технические детали
+
+- Файлы: `src/content/practices/cells/cell-XX.ts`, `src/content/practices/index.ts`, `src/content/practices/reminder-copy.ts`, `src/lib/practices.functions.ts` (расширение), `src/routes/api/public/practice/send-reminders.ts`, `scripts/check-practices.ts`
+- Компоненты: `PracticeChooserSheet`, `ActivePracticeBanner`, `PracticeReturnSheet`, `PracticeJournalSheet`, новый `PracticeClosingSheet`
+- Миграции: добавить поля `mood int`, `done bool`, `day int` в `practice_journal_entries` (если ещё нет); индекс `practice_reminders(scheduled_at) where sent_at is null`
+- Cron: `pg_cron` + `pg_net`, каждые 5 минут → `POST /api/public/practice/send-reminders`
+- Telegram-коннектор используется по документированному gateway-паттерну; проверяем подключение до 5-й фазы
+
+## Что просить у пользователя перед стартом
+
+- Подтверждение приоритета фаз (или изменить порядок)
+- Готовность подключить Telegram-коннектор к фазе 5 (для напоминаний)
+- Согласие на объём: 72 авторских практики — это ~15–25 итераций по контенту (я разложу на партии, каждая проходит через валидатор)
