@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronDown, MessageSquarePlus, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
+import { ArrowLeft, ChevronDown, MessageSquarePlus, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag, CalendarDays } from "lucide-react";
 import { FeedbackModal } from "@/components/lila/FeedbackModal";
+import { WeeklyReviewSheet } from "@/components/lila/WeeklyReviewSheet";
 
 import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
@@ -90,6 +91,7 @@ function JournalPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Kind>("all");
   const [fbOpen, setFbOpen] = useState(false);
+  const [weeklyOpen, setWeeklyOpen] = useState(false);
 
 
   useEffect(() => { trackEvent("journal_opened"); }, []);
@@ -144,6 +146,14 @@ function JournalPage() {
           <ArrowLeft size={18} />
         </Link>
         <h1 className="text-lg font-semibold">📓 Дневник пути</h1>
+        <button
+          type="button"
+          onClick={() => setWeeklyOpen(true)}
+          className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400/15 ring-1 ring-amber-300/30 text-amber-100 text-xs font-medium hover:bg-amber-400/25 transition"
+        >
+          <CalendarDays size={14} />
+          Неделя
+        </button>
       </header>
 
       <div className="px-4 pt-3 max-w-2xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
@@ -268,6 +278,7 @@ function JournalPage() {
         </div>
       </main>
       <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="journal" />
+      <WeeklyReviewSheet open={weeklyOpen} onClose={() => setWeeklyOpen(false)} />
     </div>
   );
 }
