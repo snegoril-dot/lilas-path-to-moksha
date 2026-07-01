@@ -79,7 +79,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [padPct, setPadPct] = useState(0.6);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [sizePct, setSizePct] = useState(100); // ширина в % от контейнера
-  const dragRef = useState<{ startX: number; startY: number; ox: number; oy: number } | null>(null)[0];
+  const [dragging, setDragging] = useState(false);
   const [dragging, setDragging] = useState(false);
 
   function onDragStart(e: React.PointerEvent) {
