@@ -429,7 +429,7 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
               ) : (
                 <>
                   <span
-                    className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-sm font-bold ${NUMBER_CLASS}`}
+                    className={`absolute inset-0 flex items-center justify-center text-[15px] sm:text-base font-extrabold ${NUMBER_CLASS}`}
                     aria-label={cell.name}
                     title={cell.name}
                   >
