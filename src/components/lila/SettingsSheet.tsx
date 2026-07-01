@@ -361,6 +361,7 @@ export function SettingsSheet(props: Props) {
       <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
       <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="settings" />
       <WeeklyReviewSheet open={weeklyOpen} onClose={() => setWeeklyOpen(false)} />
+      <PaywallSheet open={paywallOpen} onClose={() => setPaywallOpen(false)} />
     </>
   );
 }
