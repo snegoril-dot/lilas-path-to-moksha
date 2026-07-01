@@ -77,6 +77,7 @@ function Index() {
   const [reflection, setReflection] = useState<ReflectionPayload | null>(null);
   const [guruCtx, setGuruCtx] = useState<GuruChatContext | null>(null);
   const [pathLog, setPathLog] = useState<Array<{ cell: number; kind: string; to?: number }>>([]);
+  const [pathAnalysisCtx, setPathAnalysisCtx] = useState<PathAnalysisContext | null>(null);
   const [diceHistory, setDiceHistory] = useState<number[]>([]);
   const sessionSavedRef = useRef(false);
   const pendingResume = useRef<(() => void) | null>(null);
