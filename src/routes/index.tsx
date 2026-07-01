@@ -27,6 +27,7 @@ import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
+import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
