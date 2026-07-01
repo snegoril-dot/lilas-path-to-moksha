@@ -79,7 +79,8 @@ export function ReflectionModal({
   };
 
   const handleSubmit = async () => {
-    if (!data) return;
+    if (!data || saving) return;
+    setSaving(true);
     hapticNotify("success");
     const trimmed = note.trim();
     if (trimmed.length > 0) {
