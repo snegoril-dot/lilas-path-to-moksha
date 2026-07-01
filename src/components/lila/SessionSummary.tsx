@@ -232,14 +232,27 @@ export function SessionSummary({
         </div>
       )}
 
+      {/* Final reflection question (Moksha) */}
+      {result === "moksha" && (
+        <div className="rounded-2xl bg-indigo-300/5 ring-1 ring-indigo-300/25 p-4">
+          <div className="text-[11px] uppercase tracking-wider text-indigo-200/80 mb-1">
+            🕉 Финальная рефлексия
+          </div>
+          <p className="text-sm leading-relaxed text-indigo-50/90 italic">
+            «Если сейчас снова услышать твою Санкальпу — что путь ответил тебе
+            событиями, а не словами?»
+          </p>
+        </div>
+      )}
+
       {/* Share */}
       <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 space-y-2">
         <div className="text-[11px] uppercase tracking-wider text-amber-300/80">
           Поделиться
         </div>
         <p className="text-xs opacity-70 leading-relaxed">
-          По умолчанию делимся только текущей клеткой и одной поэтичной строкой. Личное
-          остаётся с тобой.
+          По умолчанию делимся только результатом и одной поэтичной строкой.
+          Санкальпа и заметки остаются с тобой.
         </p>
         <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
           <input
@@ -270,7 +283,7 @@ export function SessionSummary({
           className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 ring-1 ring-amber-200/30 text-amber-100 text-sm font-semibold active:scale-95 transition"
         >
           <Share2 size={15} />
-          Поделиться в Telegram
+          {shareLabel}
         </button>
       </div>
     </div>
