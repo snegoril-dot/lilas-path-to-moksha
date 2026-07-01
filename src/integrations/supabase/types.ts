@@ -22,6 +22,7 @@ export type Database = {
           finished_at: string | null
           id: string
           key_cells: Json
+          mode: string
           moves_count: number
           path: Json
           result: string
@@ -38,6 +39,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           key_cells?: Json
+          mode?: string
           moves_count?: number
           path?: Json
           result?: string
@@ -54,6 +56,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           key_cells?: Json
+          mode?: string
           moves_count?: number
           path?: Json
           result?: string

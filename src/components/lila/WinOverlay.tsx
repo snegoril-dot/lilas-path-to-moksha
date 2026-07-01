@@ -57,12 +57,14 @@ export function WinOverlay({
   sankalpa,
   keyCells = [],
   totalRolls,
+  mode,
 }: {
   open: boolean;
   onRestart: () => void;
   sankalpa?: string;
   keyCells?: KeyCell[];
   totalRolls?: number;
+  mode?: "classic" | "soft";
 }) {
   const loadSessions = useServerFn(getMySessions);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
@@ -206,8 +208,13 @@ export function WinOverlay({
                 ))}
               </ol>
               {typeof totalRolls === "number" && (
-                <div className="mt-3 text-[11px] opacity-50">
-                  Всего бросков: {totalRolls}
+                <div className="mt-3 text-[11px] opacity-50 flex items-center justify-between">
+                  <span>Всего бросков: {totalRolls}</span>
+                  {mode && (
+                    <span className="uppercase tracking-wider">
+                      Режим: {mode === "soft" ? "🌿 Мягкий путь" : "🕉 Классика"}
+                    </span>
+                  )}
                 </div>
               )}
             </motion.div>

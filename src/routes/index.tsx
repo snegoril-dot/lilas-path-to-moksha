@@ -12,6 +12,7 @@ import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
 import { GuruChatSheet, type GuruChatContext } from "@/components/lila/GuruChatSheet";
 import { SettingsSheet } from "@/components/lila/SettingsSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
+import { resolveEntry, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
@@ -51,6 +52,7 @@ function Index() {
   const [entryGrace, setEntryGrace] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sankalpa, setSankalpa] = useState("");
+  const [mode, setMode] = useState<GameMode>("classic");
   const [keyCells, setKeyCells] = useState<KeyCell[]>([]);
   const [totalRolls, setTotalRolls] = useState(0);
   const [cellVisits, setCellVisits] = useState<Record<number, number>>({});
@@ -68,6 +70,7 @@ function Index() {
     id: string;
     currentCell: number;
     sankalpa: string | null;
+    mode: GameMode;
     movesCount: number;
     updatedAt: string | null;
     entryMisses: number;
@@ -106,7 +109,7 @@ function Index() {
   useTelegramInit();
 
   const startGame = useCallback(
-    (userSankalpa: string) => {
+    (userSankalpa: string, chosenMode: GameMode = "classic") => {
       setStarted(true);
       setPos(0);
       setWon(false);
@@ -122,6 +125,7 @@ function Index() {
       sessionSavedRef.current = false;
       sessionIdRef.current = null;
       setSankalpa(userSankalpa);
+      setMode(chosenMode);
       setTimeout(() => {
         if (userSankalpa) {
           addMsg(
@@ -132,8 +136,18 @@ function Index() {
         }
         setTimeout(() => {
           addMsg(
-            "Душа ещё не воплощена. Чтобы войти в игру, выброси 🎲 шестёрку.\n\nПочему именно 6? В традиции Лилы это священное число рождения: шесть чакр пробуждаются, шесть направлений пространства раскрываются, и душа получает право войти в тело. Пока не выпала 6 — ты стоишь у врат воплощения."
+            `Ты выбрал путь: «${MODE_LABEL[chosenMode]}».`,
+            "system"
           );
+          if (chosenMode === "soft") {
+            addMsg(
+              "🌿 Мягкий путь: если после трёх бросков шестёрка не пришла — врата откроются на четвёртом. Это бережное начало для первого знакомства с игрой."
+            );
+          } else {
+            addMsg(
+              "Душа ещё не воплощена. Чтобы войти в игру, выброси 🎲 шестёрку.\n\nПочему именно 6? В традиции Лилы это священное число рождения: шесть чакр пробуждаются, шесть направлений пространства раскрываются, и душа получает право войти в тело. Пока не выпала 6 — ты стоишь у врат воплощения."
+            );
+          }
         }, 800);
       }, 250);
     },
@@ -144,6 +158,7 @@ function Index() {
     if (!resumeData) return;
     sessionIdRef.current = resumeData.id;
     setSankalpa(resumeData.sankalpa ?? "");
+    setMode(resumeData.mode);
     setPos(resumeData.currentCell);
     setTotalRolls(resumeData.movesCount);
     setEntryMisses(resumeData.entryMisses);
@@ -204,6 +219,7 @@ function Index() {
     sessionSavedRef.current = false;
     setReflection(null);
     setSankalpa("");
+    setMode("classic");
   }, [persistAbandon]);
 
   // On mount: check for an active in-progress session and offer to resume.
@@ -223,6 +239,7 @@ function Index() {
           id: row.id as string,
           currentCell: (row.current_cell as number) ?? 0,
           sankalpa: (row.sankalpa as string | null) ?? null,
+          mode: ((row as { mode?: string }).mode === "soft" ? "soft" : "classic") as GameMode,
           movesCount: (row.moves_count as number) ?? 0,
           updatedAt: (row.updated_at as string | null) ?? null,
           entryMisses: (row.entry_misses as number) ?? 0,
@@ -249,6 +266,7 @@ function Index() {
         data: {
           id: sessionIdRef.current,
           sankalpa: sankalpa || undefined,
+          mode,
           result: "in_progress",
           currentCell: pos,
           movesCount: totalRolls,
@@ -286,6 +304,7 @@ function Index() {
     diceHistory,
     keyCells,
     sankalpa,
+    mode,
     persistUpsert,
   ]);
 
@@ -299,6 +318,7 @@ function Index() {
         data: {
           id: sessionIdRef.current,
           sankalpa: sankalpa || undefined,
+          mode,
           result: "moksha",
           currentCell: pos,
           movesCount: totalRolls,
@@ -323,7 +343,7 @@ function Index() {
         },
       }).catch((e) => console.error("[saveSession]", e));
     }
-  }, [won, sankalpa, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
+  }, [won, sankalpa, mode, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
 
 
   const animateStep = useCallback(
@@ -361,12 +381,13 @@ function Index() {
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
-    // Фаза входа в игру: pos = 0, нужна 6.
+    // Фаза входа в игру: pos = 0, нужна 6 (в мягком режиме — милость после 3-х промахов).
     if (pos === 0) {
+      const entry = resolveEntry(mode, value, entryMisses);
       setTimeout(() => {
-        if (value !== 6) {
-          const next = entryMisses + 1;
-          setEntryMisses(next);
+        if (!entry.entered) {
+          setEntryMisses(entry.nextEntryMisses);
+          const next = entry.nextEntryMisses;
           const hints = [
             `Выпало ${value}. Врата воплощения открывает только 🎲 6. Пробуй снова — терпение тоже часть пути.`,
             `Снова не 6 (попытка ${next}). Наблюдай за нетерпением ума: сколько раз душа стучит, прежде чем родиться?`,
@@ -376,22 +397,32 @@ function Index() {
           setRolling(false);
           return;
         }
-        // успех
+        // успех (реальная 6 или милость Мягкого пути)
         setEntryMisses(0);
         setEntryGrace(false);
-        addMsg(
-          "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
-          "guru"
-        );
+        if (entry.mercy) {
+          addMsg(
+            `🌿 Мягкий путь: после трёх бросков врата открылись сами. Выпало ${value}, но душа входит в мир.`,
+            "guru"
+          );
+        } else {
+          addMsg(
+            "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
+            "guru"
+          );
+        }
         animateStep(0, 1, () => {
           addMsg(BOARD[0].wisdom, "guru");
-          setSixStreak(1);
-          addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
+          setSixStreak(entry.mercy ? 0 : 1);
+          if (!entry.mercy) {
+            addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
+          }
           setRolling(false);
         });
       }, diceDelay);
       return;
     }
+
 
     const rule = applySixRule(sixStreak, value);
     setSixStreak(rule.nextConsecutiveSixes);
@@ -525,7 +556,7 @@ function Index() {
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
@@ -592,11 +623,19 @@ function Index() {
                   {currentLoka.name.split("·")[0].trim()}
                 </span>
               )}
+              <span
+                className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 ring-1 ring-white/15 opacity-80"
+                title={mode === "soft" ? "После 3 промахов шестёрка приходит сама" : "Врата открывает только настоящая 6"}
+              >
+                {mode === "soft" ? "🌿 Мягкий" : "🕉 Классика"}
+              </span>
             </div>
             <div className="text-[11px] opacity-60">
               {currentCell
                 ? `Клетка ${pos} · ${currentCell.name}`
-                : "Душа ждёт воплощения · нужна 🎲 6"}
+                : mode === "soft"
+                  ? `Душа ждёт воплощения · попытка ${entryMisses + 1}/4`
+                  : "Душа ждёт воплощения · нужна 🎲 6"}
             </div>
           </div>
         </div>
@@ -691,7 +730,9 @@ function Index() {
         sankalpa={sankalpa}
         keyCells={keyCells}
         totalRolls={totalRolls}
+        mode={mode}
       />
+
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
       <SettingsSheet
         open={settingsOpen}
