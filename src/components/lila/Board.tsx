@@ -474,14 +474,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 >
                   <motion.span
                     className="block w-full h-full"
-                    animate={{
+                    animate={prefersReducedMotion ? undefined : {
                       rotate: token?.motion.idle.rotate,
                       scale: token?.motion.idle.scale,
                       y: token?.motion.idle.y,
                     }}
                     transition={{
                       duration: token?.motion.idle.duration ?? 3,
-                      repeat: Infinity,
+                      repeat: prefersReducedMotion ? 0 : Infinity,
                       ease: "easeInOut",
                     }}
                   >
