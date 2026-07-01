@@ -20,18 +20,18 @@ function buildDefault(cellId: number): Practice {
   const cell = BOARD[cellId - 1];
   const exp = getCellExperience(cellId);
   const name = cell?.name ?? `Клетка ${cellId}`;
+  const shortMeaning = exp?.shortMeaning ?? "Побудь с этой клеткой в течение дня.";
+  const daily = exp?.dailyPractice ?? "Один раз в день замечай, как эта тема проявляется в жизни.";
+  const question = exp?.reflectionQuestion ?? "Что эта клетка показала тебе сегодня?";
 
   return {
     id: "default-witness",
     cellId,
     title: `Наблюдение: ${name}`,
-    intention: exp.shortMeaning,
+    intention: shortMeaning,
     durations: DEFAULT_DURATIONS,
     steps: [
-      {
-        title: "Замечай в течение дня",
-        hint: exp.dailyPractice,
-      },
+      { title: "Замечай в течение дня", hint: daily },
       {
         title: "Одна короткая пауза",
         hint: "Один раз в день остановись на 60 секунд и вернись к дыханию.",
@@ -42,7 +42,7 @@ function buildDefault(cellId: number): Practice {
       },
     ],
     reflectionPrompts: [
-      exp.reflectionQuestion,
+      question,
       "Где сегодня эта тема встретила тебя ярче всего?",
       "Что бы ты сказал себе завтрашнему об этом дне?",
       "Что просит остаться, а что — уйти?",
