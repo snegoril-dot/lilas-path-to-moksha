@@ -928,6 +928,24 @@ function Index() {
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
+      {returnBanner && (
+        <ReturnBanner
+          open={!!returnBanner}
+          cellId={returnBanner.cellId}
+          sankalpa={returnBanner.sankalpa}
+          lastNote={returnBanner.lastNote}
+          hoursSince={returnBanner.hoursSince}
+          onContinue={() => setReturnBanner(null)}
+          onReread={() => {
+            setCellOpen(returnBanner.cellId);
+            setReturnBanner(null);
+          }}
+          onDismiss={() => setReturnBanner(null)}
+        />
+      )}
+
+
+
       {/* Board — capped so the current action stays visible on short phones. */}
       <div className="relative z-20 shrink-0 px-2 pt-2 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
         <div className="mx-auto w-full" style={{ maxHeight: "44dvh", maxWidth: "min(100%, calc((44dvh) * 9 / 8))" }}>
