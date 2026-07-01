@@ -195,14 +195,18 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (!debug) return;
     e.stopPropagation();
     e.preventDefault();
-    const cur = cellSizes[id] ?? { w: 0, h: 0 };
+    const cur = cellSizes[id] ?? { wPct: 0, hPct: 0 };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, w: cur.w, h: cur.h };
+    (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, wPct: cur.wPct, hPct: cur.hPct };
   }
   function onCellResizeMove(e: React.PointerEvent) {
     const r = (e.currentTarget as any)._resize;
     if (!r) return;
-    setCellSizes((prev) => ({ ...prev, [r.id]: { w: r.w + (e.clientX - r.startX), h: r.h + (e.clientY - r.startY) } }));
+    const bw = boardSize.w || 1;
+    const bh = boardSize.h || 1;
+    const dxPct = ((e.clientX - r.startX) / bw) * 100;
+    const dyPct = ((e.clientY - r.startY) / bh) * 100;
+    setCellSizes((prev) => ({ ...prev, [r.id]: { wPct: r.wPct + dxPct, hPct: r.hPct + dyPct } }));
   }
   function onCellResizeEnd(e: React.PointerEvent) {
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
@@ -216,9 +220,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       e.stopPropagation();
       e.preventDefault();
       const id = Number(cellEl.dataset.cellId);
-      const cur = cellOffsets[id] ?? { x: 0, y: 0 };
+      const cur = cellOffsets[id] ?? { xPct: 0, yPct: 0 };
       cellEl.setPointerCapture(e.pointerId);
-      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, ox: cur.x, oy: cur.y, moved: false };
+      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, oxPct: cur.xPct, oyPct: cur.yPct, moved: false };
       return;
     }
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -230,10 +234,12 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     const cellEl = (e.target as HTMLElement).closest("[data-cell-id]") as HTMLElement | null;
     const cd = cellEl && (cellEl as any)._cellDrag;
     if (cd) {
-      const nx = cd.ox + (e.clientX - cd.startX);
-      const ny = cd.oy + (e.clientY - cd.startY);
-      if (Math.abs(nx - cd.ox) + Math.abs(ny - cd.oy) > 3) cd.moved = true;
-      setCellOffsets((prev) => ({ ...prev, [cd.id]: { x: nx, y: ny } }));
+      const bw = boardSize.w || 1;
+      const bh = boardSize.h || 1;
+      const nxPct = cd.oxPct + ((e.clientX - cd.startX) / bw) * 100;
+      const nyPct = cd.oyPct + ((e.clientY - cd.startY) / bh) * 100;
+      if (Math.abs(nxPct - cd.oxPct) + Math.abs(nyPct - cd.oyPct) > 0.5) cd.moved = true;
+      setCellOffsets((prev) => ({ ...prev, [cd.id]: { xPct: nxPct, yPct: nyPct } }));
       return;
     }
     if (!dragging) return;
@@ -265,8 +271,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   /** Shift+двойной клик по клетке в debug — выровнять весь её ряд по этой клетке. */
   function alignRowTo(id: number) {
     const { row } = rowColForId(id);
-    const size = cellSizes[id] ?? { w: 0, h: 0 };
-    const off = cellOffsets[id] ?? { x: 0, y: 0 };
+    const size = cellSizes[id] ?? { wPct: 0, hPct: 0 };
+    const off = cellOffsets[id] ?? { xPct: 0, yPct: 0 };
     const rowIds: number[] = [];
     for (let c = 0; c < COLS; c++) rowIds.push(idForRowCol(row, c));
     setCellSizes((prev) => {
@@ -277,10 +283,11 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     setCellOffsets((prev) => {
       const next = { ...prev };
       // выравниваем по вертикали (y), горизонталь оставляем сеточную (x=0)
-      rowIds.forEach((cid) => { next[cid] = { x: 0, y: off.y }; });
+      rowIds.forEach((cid) => { next[cid] = { xPct: 0, yPct: off.yPct }; });
       return next;
     });
   }
+
 
   useEffect(() => {
     purgeLegacyLayoutStorage();
