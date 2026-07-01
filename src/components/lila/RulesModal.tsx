@@ -135,6 +135,7 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
           </motion.div>
         </motion.div>
       )}
+      <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
     </AnimatePresence>
   );
 }
