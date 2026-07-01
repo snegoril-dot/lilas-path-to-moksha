@@ -102,6 +102,7 @@ export function SettingsSheet(props: Props) {
   const [onbOpen, setOnbOpen] = useState(false);
   const [fbOpen, setFbOpen] = useState(false);
   const [weeklyOpen, setWeeklyOpen] = useState(false);
+  const { isAdmin } = useIsAdmin();
 
   const isBeta = true;
   const cellInfo = currentCell > 0 ? BOARD[currentCell - 1] : null;
