@@ -429,11 +429,11 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   style={{
                     gridColumn: col + 1,
                     gridRow: visualRow + 1,
-                    transform: co ? `translate(${co.x}px, ${co.y}px)` : undefined,
+                    transform: co ? `translate(${co.xPct}%, ${co.yPct}%)` : undefined,
                     touchAction: debug ? "none" : undefined,
                     zIndex: co || cs ? 15 : undefined,
-                    width: cs ? `calc(100% + ${cs.w}px)` : undefined,
-                    height: cs ? `calc(100% + ${cs.h}px)` : undefined,
+                    width: cs ? `calc(100% + ${cs.wPct}%)` : undefined,
+                    height: cs ? `calc(100% + ${cs.hPct}%)` : undefined,
                   }}
                   className={`relative flex items-end justify-center rounded-[6px] p-0.5 text-center select-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 cursor-pointer hover:brightness-125 ${tint} ${stateRing} ${
                     isVisited ? "brightness-110" : ""
