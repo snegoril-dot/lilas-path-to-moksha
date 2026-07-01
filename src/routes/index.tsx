@@ -137,6 +137,13 @@ function Index() {
   // Init Telegram SDK
   useTelegramInit();
 
+  // Fire once on mount.
+  useEffect(() => {
+    trackEvent("app_opened");
+  }, []);
+
+
+
   const startGame = useCallback(
     (userSankalpa: string, chosenMode: GameMode = "classic") => {
       setStarted(true);
