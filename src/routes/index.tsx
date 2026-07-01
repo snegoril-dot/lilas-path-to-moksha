@@ -370,6 +370,11 @@ function Index() {
   }, [won, sankalpa, mode, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
 
 
+  // Открывать оверлей победы, когда игрок достиг Мокши.
+  useEffect(() => {
+    if (won) setWinOpen(true);
+  }, [won]);
+
   const animateStep = useCallback(
     (from: number, to: number, onDone: () => void) => {
       if (from === to) {
