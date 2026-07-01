@@ -12,6 +12,7 @@ import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
 import { GuruChatSheet, type GuruChatContext } from "@/components/lila/GuruChatSheet";
 import { SettingsSheet } from "@/components/lila/SettingsSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
+import { resolveEntry, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
