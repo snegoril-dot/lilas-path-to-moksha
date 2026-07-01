@@ -114,6 +114,14 @@ export const Route = createFileRoute("/api/guru/chat")({
         }
         const userId = userData.user.id;
 
+        // 1.5. Burst rate limit (in-memory sliding window)
+        if (!checkBurst(userId)) {
+          log("burst_limited", { userId });
+          return Response.json({ error: BURST_MSG }, { status: 429 });
+        }
+
+
+
         // 2. Validate payload
         let raw: unknown;
         try {
