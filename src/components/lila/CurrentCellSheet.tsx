@@ -401,6 +401,7 @@ export function CurrentCellSheet({
                   Продолжить
                 </button>
               </div>
+              </>
             )}
           </motion.div>
         </motion.div>
