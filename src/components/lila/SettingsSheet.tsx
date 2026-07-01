@@ -11,6 +11,7 @@ import { BOARD } from "@/lib/lila-board";
 import { OnboardingModal } from "./OnboardingModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 interface Props {
   open: boolean;
