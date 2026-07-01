@@ -207,7 +207,7 @@ export function WinOverlay({
               onClick={onRestart}
               className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-xl hover:brightness-110 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-amber-200 focus:outline-none"
             >
-              🪷 Играть снова
+              🪷 Начать новый путь
             </button>
             <button
               onClick={onSaveCard}
