@@ -322,6 +322,20 @@ export function SettingsSheet(props: Props) {
                 Lila&apos;s Path to Moksha — цифровая версия пути Лилы как практики самонаблюдения.
               </p>
             </Section>
+
+            <Section title="Что появится позже" icon={<Info size={16} />}>
+              <p className="opacity-70">
+                Сейчас основной путь открыт для тестирования. Эти функции появятся после бета-теста:
+              </p>
+              <ul className="mt-2 space-y-1.5 opacity-80 list-disc list-inside">
+                <li>Глубокий разбор с Гуру</li>
+                <li>Расширенная трактовка клетки</li>
+                <li>Итоговый разбор пути</li>
+                <li>Аудио-проводник</li>
+                <li>Полная история дневника</li>
+                <li>Еженедельные подсказки</li>
+              </ul>
+            </Section>
           </div>
         </SheetContent>
       </Sheet>
