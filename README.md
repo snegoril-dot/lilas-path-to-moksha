@@ -75,9 +75,30 @@ bun run check      # тесты + сборка (CI-гейт)
 ## Telegram Mini App
 
 1. Создайте бота у [@BotFather](https://t.me/BotFather), получите `TELEGRAM_BOT_TOKEN`.
-2. `/newapp` → привяжите Web App URL к опубликованному домену (`MINI_APP_URL`).
-3. Установите webhook на `POST /api/public/telegram-webhook` (в этом репозитории), при желании с `secret_token`.
-4. Внутри Telegram открывайте мини-приложение — SDK и тема применятся автоматически. В обычном браузере игра тоже работает (без нативных кнопок).
+2. `/newapp` → привяжите Web App URL к опубликованному домену (`MINI_APP_URL`, вида `https://<project>.lovable.app`).
+3. Опубликуйте проект (`Publish`), затем зарегистрируйте webhook Telegram-бота — он реализован в `src/routes/api/public/telegram/webhook.ts`:
+
+   ```bash
+   curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+     -d "url=<MINI_APP_URL>/api/public/telegram/webhook" \
+     -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"    # опционально
+   ```
+
+4. У бота задайте команды (`/setcommands` в BotFather):
+
+   ```text
+   start - Открыть Лилу
+   continue - Продолжить путь
+   journal - Открыть дневник
+   help - Как играть
+   ```
+
+5. Внутри Telegram открывайте мини-приложение — SDK и тема применятся автоматически. В обычном браузере игра тоже работает (без нативных кнопок).
+
+### Локальный запуск бота
+
+Специальный процесс для бота не требуется — webhook живёт вместе с приложением (`/api/public/telegram/webhook`). Для локальной отладки поднимите Vite (`bun run dev`), пробросьте порт через `ngrok`/`cloudflared`, установите `setWebhook` на публичный URL. `TELEGRAM_BOT_TOKEN` читается только на сервере и никогда не попадает в клиентский бандл. Бот не отправляет Санкальпу и заметки пользователя — только приглашения открыть Mini App.
+
 
 ## Supabase (Lovable Cloud)
 
