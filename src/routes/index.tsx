@@ -955,6 +955,10 @@ function Index() {
             : undefined
         }
         onContinue={() => setLandedOpen(false)}
+        onTakeAsPractice={(id) => {
+          setLandedOpen(false);
+          setPracticeChooserCell(id);
+        }}
         onAskGuru={(cellId, opts) => {
           setLandedOpen(false);
           const landedCell = BOARD[cellId - 1] ?? BOARD[0];
