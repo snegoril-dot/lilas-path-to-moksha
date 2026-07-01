@@ -548,13 +548,13 @@ function Index() {
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
-              `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
+              `🐍 Ты попал на клетку ${landed.id} — «${landed.name}». Змея возвращает тебя на клетку ${final} — «${dest.name}».\n\nЭто не наказание, а указание: посмотри, где эта тема проявляется в твоей Санкальпе.\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
             play("ladder"); hapticNotify("success");
             addMsg(
-              `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
+              `🪜 Ты попал на клетку ${landed.id} — «${landed.name}». Лестница поднимает тебя на клетку ${final} — «${dest.name}».\n\nЭто дар пути: качество этой клетки помогает сознанию подняться выше.\n\n${landed.wisdom}`,
               "guru"
             );
           }
