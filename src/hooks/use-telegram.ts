@@ -104,14 +104,32 @@ function applyThemeParams(tp?: TgThemeParams) {
   set("--tg-theme-destructive-text-color", tp.destructive_text_color);
 }
 
-/** Publish viewport height as `--tg-viewport-height` for CSS min-height hooks. */
+/** Publish viewport height + safe-area insets as CSS variables. */
 function applyViewportHeight(tg?: TgWebApp) {
   if (!tg || typeof document === "undefined") return;
+  const root = document.documentElement;
   const h = tg.viewportStableHeight ?? tg.viewportHeight;
   if (typeof h === "number" && h > 0) {
-    document.documentElement.style.setProperty("--tg-viewport-height", `${h}px`);
+    root.style.setProperty("--tg-viewport-height", `${h}px`);
+    // Signal whether the keyboard is likely open (stable < current).
+    const cur = tg.viewportHeight ?? h;
+    const kbOpen = tg.viewportStableHeight && cur < tg.viewportStableHeight ? "1" : "0";
+    root.style.setProperty("--tg-keyboard-open", kbOpen);
+  }
+  const sa = tg.safeAreaInset;
+  if (sa) {
+    root.style.setProperty("--tg-safe-area-top", `${sa.top ?? 0}px`);
+    root.style.setProperty("--tg-safe-area-bottom", `${sa.bottom ?? 0}px`);
+    root.style.setProperty("--tg-safe-area-left", `${sa.left ?? 0}px`);
+    root.style.setProperty("--tg-safe-area-right", `${sa.right ?? 0}px`);
+  }
+  const csa = tg.contentSafeAreaInset;
+  if (csa) {
+    root.style.setProperty("--tg-content-safe-area-top", `${csa.top ?? 0}px`);
+    root.style.setProperty("--tg-content-safe-area-bottom", `${csa.bottom ?? 0}px`);
   }
 }
+
 
 /**
  * Initialise the Telegram WebApp SDK. Handles the async script load — the
