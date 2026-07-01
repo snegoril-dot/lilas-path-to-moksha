@@ -5,6 +5,8 @@ import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
 import { useTelegramBackButton, hapticNotify, haptic } from "@/hooks/use-telegram";
+import { trackEvent } from "@/lib/analytics";
+
 
 export interface ReflectionPayload {
   fromId: number;
