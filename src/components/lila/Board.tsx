@@ -339,6 +339,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
         style={{
           aspectRatio: "9 / 8",
           background: BOARD_BG,
+          transform: debug ? `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` : undefined,
+          transformOrigin: "top left",
+          transition: debug ? "transform 120ms ease-out" : undefined,
         }}
       >
         <img
