@@ -16,33 +16,51 @@ export type Database = {
     Tables: {
       game_sessions: {
         Row: {
+          current_cell: number
+          dice_history: Json
+          entry_misses: number
           finished_at: string | null
           id: string
+          key_cells: Json
           moves_count: number
           path: Json
           result: string
           sankalpa: string | null
+          six_streak: number
           started_at: string
+          updated_at: string
           user_id: string
         }
         Insert: {
+          current_cell?: number
+          dice_history?: Json
+          entry_misses?: number
           finished_at?: string | null
           id?: string
+          key_cells?: Json
           moves_count?: number
           path?: Json
           result?: string
           sankalpa?: string | null
+          six_streak?: number
           started_at?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
+          current_cell?: number
+          dice_history?: Json
+          entry_misses?: number
           finished_at?: string | null
           id?: string
+          key_cells?: Json
           moves_count?: number
           path?: Json
           result?: string
           sankalpa?: string | null
+          six_streak?: number
           started_at?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
