@@ -56,7 +56,7 @@ export function GameHeader({
             )}
           </div>
 
-          <div className="text-[11px] opacity-70 truncate">
+          <div className="text-[12px] text-white/85 font-medium truncate">
             {currentCell
               ? `Клетка ${pos} · ${currentCell.name}`
               : mode === "soft"
