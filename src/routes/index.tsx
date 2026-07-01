@@ -716,71 +716,15 @@ function Index() {
 
   return (
     <div className="flex flex-col h-app min-h-app bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
-      {/* Header */}
-      <div
-        className="shrink-0 flex items-center justify-between gap-2 px-3 py-2 bg-[var(--lila-surface)]/85 backdrop-blur-md border-b border-white/5"
-        style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-lg shadow">
-            🕉
-          </div>
-          <div className="leading-tight min-w-0">
-            <div className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
-              <span className="truncate">Гуру</span>
-              {currentLoka && (
-                <span
-                  className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r ${currentLoka.color} text-stone-900 font-bold shadow-sm`}
-                  title={currentLoka.hint}
-                >
-                  {currentLoka.name.split("·")[0].trim()}
-                </span>
-              )}
-            </div>
-            <div className="text-[11px] opacity-70 truncate">
-              {currentCell
-                ? `Клетка ${pos} · ${currentCell.name}`
-                : mode === "soft"
-                  ? `Душа ждёт · попытка ${entryMisses + 1}/4`
-                  : "Душа ждёт своего часа · 🎲 6"}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            onClick={() => { haptic("light"); setTimelineOpen(true); }}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Мой путь"
-            title="Мой путь"
-          >
-            <RouteIcon size={18} />
-          </button>
-          <Link
-            to="/journal"
-            className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Дневник"
-            title="Дневник пути"
-          >
-            <BookOpen size={18} />
-          </Link>
-          <button
-            onClick={restart}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Пауза"
-            title="Пауза"
-          >
-            <Pause size={18} />
-          </button>
-          <button
-            onClick={() => { haptic("light"); setSettingsOpen(true); }}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Открыть меню"
-            title="Меню"
-          >
-            <Menu size={20} />
-          </button>
-        </div>
-      </div>
+      <GameHeader
+        pos={pos}
+        currentCell={currentCell}
+        mode={mode}
+        entryMisses={entryMisses}
+        onOpenTimeline={() => setTimelineOpen(true)}
+        onPause={restart}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
 
       {/* Board — capped so chat stays visible on short phones. */}
       <div className="relative z-20 shrink-0 px-2 pt-2 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
@@ -792,81 +736,20 @@ function Index() {
       {/* Chat */}
       <ChatFeed messages={messages} />
 
-      {/* Sticky action bar — primary CTA reachable by thumb, safe-area aware. */}
-      <div className="sticky bottom-0 shrink-0 z-30 px-3 pt-2 pb-safe bg-[var(--lila-surface)]/95 backdrop-blur-md border-t border-white/10">
+      <GameActionBar
+        dice={dice}
+        rolling={rolling}
+        won={won}
+        landed={landed}
+        landedOpen={landedOpen}
+        pos={pos}
+        onRoll={handleRoll}
+        onOpenWin={() => setWinOpen(true)}
+        onOpenLanded={() => setLandedOpen(true)}
+        onOpenCell={() => setCellOpen(pos === 0 ? 1 : pos)}
+        onAskGuru={() => setGuruCtx(buildGuruCtx())}
+      />
 
-        <div className="flex items-center gap-2">
-          <Dice value={dice} rolling={rolling} />
-          {won ? (
-            <button
-              onClick={() => { haptic("medium"); setWinOpen(true); }}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition"
-              aria-label="Посмотреть итог пути"
-            >
-              <Eye size={20} />
-              Посмотреть итог пути
-            </button>
-          ) : landed && !landedOpen ? (
-            <button
-              onClick={() => { haptic("light"); setLandedOpen(true); }}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition"
-              aria-label="Осмыслить клетку"
-            >
-              <Sparkles size={20} />
-              Осмыслить клетку
-            </button>
-          ) : (
-            <button
-              onClick={() => { haptic("medium"); handleRoll(); }}
-              disabled={rolling}
-              aria-busy={rolling}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-70 disabled:cursor-not-allowed"
-              aria-label={rolling ? "Кубик катится" : "Бросить кубик"}
-            >
-              <DiceIcon size={20} className={rolling ? "animate-spin" : ""} />
-              {rolling ? "Кубик катится…" : "Бросить кубик"}
-            </button>
-          )}
-          <button
-            onClick={() => { haptic("light"); setCellOpen(pos === 0 ? 1 : pos); }}
-            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
-            aria-label="О текущей клетке"
-            title="Клетка"
-          >
-            <MapIcon size={20} />
-            <span className="text-[10px] mt-0.5 opacity-70">Клетка</span>
-          </button>
-          <button
-            onClick={() => {
-              haptic("light");
-              const c = pos === 0 ? 1 : pos;
-              const landedCell = BOARD[c - 1] ?? BOARD[0];
-              setGuruCtx({
-                cell: c,
-                cellName: landedCell.name,
-                sankalpa,
-                sessionId: sessionIdRef.current,
-                eventKind: pos === 0
-                  ? "waiting"
-                  : landedCell.type === "end"
-                    ? "moksha"
-                    : landedCell.type === "snake"
-                      ? "snake"
-                      : landedCell.type === "ladder"
-                        ? "ladder"
-                        : "normal",
-                recentPath: pathLog.slice(-8),
-              });
-            }}
-            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 text-amber-200 ring-1 ring-amber-300/30 active:scale-95 transition"
-            aria-label="Спросить ИИ-Гуру"
-            title="Гуру"
-          >
-            <MessageCircle size={20} />
-            <span className="text-[10px] mt-0.5 opacity-80">Гуру</span>
-          </button>
-        </div>
-      </div>
 
       <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
       <ReflectionModal
