@@ -833,7 +833,9 @@ function Index() {
           setLandedOpen(false);
           const landedCell = BOARD[cellId - 1] ?? BOARD[0];
           const kind = landed?.kind;
+          trackEvent("guru_opened", { cell: cellId, sessionId: sessionIdRef.current });
           setGuruCtx({
+
             cell: cellId,
             cellName: landedCell.name,
             sankalpa,
