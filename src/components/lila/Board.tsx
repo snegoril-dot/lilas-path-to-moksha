@@ -29,7 +29,7 @@ const BOARD_BG = "linear-gradient(180deg, var(--lila-board-bg, rgba(15,23,42,0.6
 const FRAME_RING = "ring-white/10";
 const NUMBER_CLASS = "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]";
 const LABEL_CLASS = "text-[var(--lila-cell-fg,#f8fafc)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]";
-const LAYOUT_STORAGE_KEY = "lila.layout.v6.base";
+const LAYOUT_STORAGE_KEY = "lila.layout.v7.base";
 
 // Рантайм-проверка: ловим перевёрнутую последнюю строку и любые сбои маппинга
 // сразу при загрузке модуля. Issues пробрасываются в UI ниже.
