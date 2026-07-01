@@ -181,11 +181,11 @@ export function SettingsSheet(props: Props) {
               hint={token.name}
               onClick={onCycleToken}
             />
-            {isAdmin && (
+            {(isAdmin || !isInTelegram()) && (
               <Row
                 icon={<Ruler size={18} />}
                 label="Отладка сетки"
-                hint={debug ? "Включена (админ)" : "Только для админа"}
+                hint={debug ? (isAdmin ? "Включена (админ)" : "Включена (dev)") : (isAdmin ? "Только для админа" : "Доступно вне Telegram")}
                 onClick={onToggleDebug}
                 active={debug}
               />
