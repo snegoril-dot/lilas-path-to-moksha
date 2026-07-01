@@ -316,13 +316,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                       aria-hidden
                     />
                   )}
-                  <span
-                    className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-[15px] font-extrabold ${NUMBER_CLASS}`}
-                    aria-hidden
-                    title={cell.name}
-                  >
-                    {id}
-                  </span>
+                  {debug && (
+                    <span
+                      className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-[15px] font-extrabold ${NUMBER_CLASS}`}
+                      aria-hidden
+                      title={cell.name}
+                    >
+                      {id}
+                    </span>
+                  )}
                   <span
                     className="absolute right-1 top-1 text-[9px] opacity-70 leading-none"
                     aria-hidden
