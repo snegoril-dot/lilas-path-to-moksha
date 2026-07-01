@@ -67,7 +67,8 @@ export function ReflectionModal({
       });
       setAiText((row as { ai_reflection: string | null }).ai_reflection ?? null);
     } catch (e) {
-      setAiErr(e instanceof Error ? e.message : String(e));
+      console.error("[guru ask]", e);
+      setAiErr("Гуру сейчас молчит. Попробуй вернуться к вопросу чуть позже.");
     } finally {
       setAiBusy(false);
     }
@@ -90,8 +91,17 @@ export function ReflectionModal({
             kind: journalKind,
           },
         });
+        // очищаем локальный черновик после успешного сохранения
+        try { localStorage.removeItem(`lila.reflection.draft.${data.fromId}`); } catch {}
       } catch (e) {
         console.error("[reflection save]", e);
+        // Сохраняем черновик локально до восстановления связи
+        try {
+          localStorage.setItem(
+            `lila.reflection.draft.${data.fromId}`,
+            JSON.stringify({ text: trimmed, at: new Date().toISOString(), kind: journalKind })
+          );
+        } catch {}
       }
     }
     onSubmit(trimmed);
