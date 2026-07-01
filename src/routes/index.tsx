@@ -25,7 +25,10 @@ import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { useTelegramAuth } from "@/hooks/use-telegram-auth";
-import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/lib/guru.functions";
+import { saveSession, upsertSession, getActiveSession, abandonSession, saveReflection, getLastCellNote } from "@/lib/guru.functions";
+import { registerOnlineFlush } from "@/lib/note-queue";
+import { saveLastCell } from "@/lib/last-cell-cache";
+import { ReturnBanner } from "@/components/lila/ReturnBanner";
 import { useTelegramInit, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
@@ -143,6 +146,16 @@ function Index() {
   const persistUpsert = useServerFn(upsertSession);
   const persistAbandon = useServerFn(abandonSession);
   const fetchActiveSession = useServerFn(getActiveSession);
+  const fetchLastCellNote = useServerFn(getLastCellNote);
+  const sendReflection = useServerFn(saveReflection);
+
+  // Return-баннер: показываем, если возвращение >24ч.
+  const [returnBanner, setReturnBanner] = useState<{
+    cellId: number;
+    sankalpa: string | null;
+    lastNote: string | null;
+    hoursSince: number;
+  } | null>(null);
 
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
@@ -180,6 +193,37 @@ function Index() {
   useEffect(() => {
     trackEvent("app_opened");
   }, []);
+
+  // Global online-listener: чистим очередь отложенных заметок при появлении сети.
+  useEffect(() => {
+    const unsub = registerOnlineFlush(async (n) => {
+      await sendReflection({
+        data: {
+          sessionId: n.sessionId,
+          cell: n.cellId,
+          userText: n.text,
+          sankalpa: n.sankalpa,
+          prompt: n.prompt,
+          withAi: false,
+          kind: n.kind,
+        },
+      });
+    });
+    return unsub;
+  }, [sendReflection]);
+
+  // Кешируем последнюю клетку — чтобы оффлайн-открытие показало осмысленный контент.
+  useEffect(() => {
+    if (!started || pos === 0) return;
+    const cell = BOARD[pos - 1];
+    if (!cell) return;
+    const userKey = tgAuth.profile?.telegram_id ? String(tgAuth.profile.telegram_id) : null;
+    saveLastCell(userKey, {
+      cellId: cell.id,
+      name: cell.name,
+      wisdom: cell.wisdom,
+    });
+  }, [started, pos, tgAuth.profile]);
 
   // Contextual hints — shown once per user (localStorage).
   useEffect(() => {
@@ -284,7 +328,27 @@ function Index() {
         if (cell) addMsg(`Ты стоишь на клетке ${cell.id} · ${cell.name}.`, "system");
       }
     }, 200);
-  }, [resumeData, addMsg]);
+
+    // Если возвращение спустя сутки+ — показать тёплый ReturnBanner.
+    const updated = resumeData.updatedAt ? new Date(resumeData.updatedAt).getTime() : 0;
+    const hoursSince = updated ? (Date.now() - updated) / 3_600_000 : 0;
+    if (hoursSince >= 24 && resumeData.currentCell > 0) {
+      const cellId = resumeData.currentCell;
+      const sankalpaSnap = resumeData.sankalpa;
+      // Асинхронно подтягиваем последнюю мысль по клетке.
+      fetchLastCellNote({ data: { cell: cellId } })
+        .then((row) => {
+          const text =
+            (row as { user_text?: string | null } | null)?.user_text ??
+            (row as { ai_reflection?: string | null } | null)?.ai_reflection ??
+            null;
+          setReturnBanner({ cellId, sankalpa: sankalpaSnap, lastNote: text, hoursSince });
+        })
+        .catch(() => {
+          setReturnBanner({ cellId, sankalpa: sankalpaSnap, lastNote: null, hoursSince });
+        });
+    }
+  }, [resumeData, addMsg, fetchLastCellNote]);
 
   const startFresh = useCallback(async () => {
     setResumeOpen(false);
@@ -863,6 +927,24 @@ function Index() {
         onPause={restart}
         onOpenSettings={() => setSettingsOpen(true)}
       />
+
+      {returnBanner && (
+        <ReturnBanner
+          open={!!returnBanner}
+          cellId={returnBanner.cellId}
+          sankalpa={returnBanner.sankalpa}
+          lastNote={returnBanner.lastNote}
+          hoursSince={returnBanner.hoursSince}
+          onContinue={() => setReturnBanner(null)}
+          onReread={() => {
+            setCellOpen(returnBanner.cellId);
+            setReturnBanner(null);
+          }}
+          onDismiss={() => setReturnBanner(null)}
+        />
+      )}
+
+
 
       {/* Board — capped so the current action stays visible on short phones. */}
       <div className="relative z-20 shrink-0 px-2 pt-2 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
