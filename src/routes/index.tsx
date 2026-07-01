@@ -566,6 +566,7 @@ function Index() {
                 }, 600);
               } else {
                 addMsg(`Ты постигаешь «${dest.name}». ${dest.wisdom}`, "guru");
+                openLanded(final, { from: landed.id, kind });
                 finishTurn();
               }
             });
@@ -589,11 +590,12 @@ function Index() {
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
+          openLanded(landed.id);
           finishTurn();
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
