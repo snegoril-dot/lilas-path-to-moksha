@@ -259,6 +259,7 @@ function Index() {
           mode: ((row as { mode?: string }).mode === "soft" ? "soft" : "classic") as GameMode,
           movesCount: (row.moves_count as number) ?? 0,
           updatedAt: (row.updated_at as string | null) ?? null,
+          startedAt: (row.started_at as string | null) ?? null,
           entryMisses: (row.entry_misses as number) ?? 0,
           sixStreak: (row.six_streak as number) ?? 0,
           path: ((row.path as Array<{ cell: number; kind: string; to?: number }>) ?? []),
