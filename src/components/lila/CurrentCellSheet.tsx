@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
-import { getCellExperience } from "@/lib/cell-experience";
+import { getCellExperience, TONE_LABEL } from "@/lib/cell-experience";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegram";
 
@@ -57,7 +57,7 @@ export function CurrentCellSheet({
   if (cellId === null) return null;
   const exp = getCellExperience(cellId);
   if (!exp) return null;
-  const { cell, lokaName, shortMeaning, reflectionQuestion, dailyPractice } = exp;
+  const { cell, lokaName, shortMeaning, reflectionQuestion, dailyPractice, tone, keywords } = exp;
 
   const fromExp = fromCellId ? getCellExperience(fromCellId) : null;
 
@@ -131,6 +131,9 @@ export function CurrentCellSheet({
                       {lokaName}
                     </span>
                   )}
+                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/5 ring-1 ring-white/10 opacity-70">
+                    {TONE_LABEL[tone]}
+                  </span>
                   {cell.type === "snake" && (
                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-500/20 ring-1 ring-rose-300/40 text-rose-100">
                       🐍 Змея
@@ -179,7 +182,21 @@ export function CurrentCellSheet({
 
               <p className="text-amber-100/95 font-medium">{shortMeaning}</p>
 
+              {keywords.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 -mt-1">
+                  {keywords.map((k) => (
+                    <span
+                      key={k}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 ring-1 ring-white/10 opacity-80"
+                    >
+                      #{k}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <p className="whitespace-pre-line opacity-90">{cell.wisdom}</p>
+
 
               <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-3 space-y-1">
                 <div className="text-[11px] uppercase tracking-wider opacity-60">
