@@ -65,7 +65,7 @@ export function SupportFAQSheet({ open, onClose }: Props) {
             <span className="flex items-center gap-2 text-sm font-medium">
               <MessageCircle size={16} /> Написать в поддержку
             </span>
-            <span className="text-xs opacity-70">@support_bot</span>
+            <span className="text-xs opacity-70">@{SUPPORT_USERNAME}</span>
           </a>
 
           <div>
