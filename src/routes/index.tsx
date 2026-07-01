@@ -439,11 +439,14 @@ function Index() {
 
   const openLanded = useCallback(
     (cell: number, opts?: { from?: number; kind?: "snake" | "ladder" }) => {
+      // Не открываем шит автоматически — оставляем как заметный CTA
+      // «Осмыслить клетку», чтобы игрок мог выдохнуть после хода.
       setLanded({ cell, from: opts?.from, kind: opts?.kind });
-      setLandedOpen(true);
+      setLandedOpen(false);
     },
     []
   );
+
 
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
