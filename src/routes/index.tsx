@@ -197,6 +197,8 @@ function Index() {
 
   const resumeGame = useCallback(() => {
     if (!resumeData) return;
+    trackEvent("session_resumed", { cell: resumeData.currentCell, sessionId: resumeData.id });
+
     sessionIdRef.current = resumeData.id;
     setSankalpa(resumeData.sankalpa ?? "");
     setMode(resumeData.mode);
