@@ -294,6 +294,23 @@ function Index() {
     }
   }, [started, won, pos, totalRolls, showHint]);
 
+  // Мягкий paywall: после N бросков напоминаем, что «однажды начатая игра
+  // должна быть закончена». Один раз за сессию, только для non-premium.
+  useEffect(() => {
+    if (!started || won || paywallShownRef.current) return;
+    if (totalRolls < FREE_ROLLS_LIMIT) return;
+    if (ent?.isPremium) return;
+    paywallShownRef.current = true;
+    trackEvent("paywall_viewed", { extra: { trigger: "free_rolls_limit", rolls: totalRolls } });
+    addMsg(
+      `«Однажды начатая игра должна быть закончена» — таково правило Лилы.\nТы уже прошёл ${totalRolls} бросков. Чтобы пройти путь до конца без ограничений, открой полный доступ.`,
+      "guru",
+    );
+    setTimeout(() => openPaywallGlobal("free_rolls_limit"), 600);
+  }, [started, won, totalRolls, ent, addMsg]);
+
+
+
 
 
 
