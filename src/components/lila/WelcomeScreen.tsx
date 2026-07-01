@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
+import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 
@@ -17,7 +18,12 @@ export function WelcomeScreen({
   const [mode, setMode] = useState<GameMode>("classic");
 
   const [achOpen, setAchOpen] = useState(false);
+  const [onbOpen, setOnbOpen] = useState(false);
   const inTg = isInTelegram();
+
+  useEffect(() => {
+    if (!hasSeenOnboarding()) setOnbOpen(true);
+  }, []);
 
   const handleStart = () => {
     haptic("medium");
@@ -163,6 +169,7 @@ export function WelcomeScreen({
 
       </motion.div>
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
+      <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
     </div>
   );
 }
