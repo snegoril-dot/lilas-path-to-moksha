@@ -342,7 +342,22 @@ export function CurrentCellSheet({
 
             {/* Actions */}
             {!showInsight && (
+              <>
+                {onTakeAsPractice && (
+                  <div className="shrink-0 px-3 pt-3">
+                    <button
+                      onClick={() => {
+                        haptic("light");
+                        onTakeAsPractice(cell.id);
+                      }}
+                      className="w-full h-11 rounded-2xl bg-gradient-to-r from-amber-500/20 to-rose-500/15 ring-1 ring-amber-300/40 text-amber-100 text-sm font-medium"
+                    >
+                      Взять эту клетку как практику →
+                    </button>
+                  </div>
+                )}
               <div className="shrink-0 grid grid-cols-4 gap-2 p-3 border-t border-white/5 bg-black/20">
+
                 <button
                   onClick={() => {
                     haptic("light");
