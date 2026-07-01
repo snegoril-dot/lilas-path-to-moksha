@@ -203,6 +203,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
   const [sizePct, setSizePct] = useState<number>(debugInit?.sizePct ?? 100);
   const [dragging, setDragging] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<number | null>(null);
+  const [nudgeStep, setNudgeStep] = useState<number>(0.2);
 
   const [cellOffsets, setCellOffsets] = useState<Record<number, CellOffsetPct>>(() => {
     if (typeof window === "undefined") return {};
