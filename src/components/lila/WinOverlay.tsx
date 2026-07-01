@@ -57,12 +57,14 @@ export function WinOverlay({
   sankalpa,
   keyCells = [],
   totalRolls,
+  mode,
 }: {
   open: boolean;
   onRestart: () => void;
   sankalpa?: string;
   keyCells?: KeyCell[];
   totalRolls?: number;
+  mode?: "classic" | "soft";
 }) {
   const loadSessions = useServerFn(getMySessions);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
