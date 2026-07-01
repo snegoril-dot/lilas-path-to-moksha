@@ -93,6 +93,25 @@ function detectPlatform(): "telegram" | "browser" {
 }
 
 /**
+ * Defensive sanitizer: analytics `extra` must never carry user free-text.
+ * Strips string values longer than 40 chars and drops keys that look like
+ * private content (sankalpa, reflection, note, message, insight, journal, text, content).
+ */
+const FORBIDDEN_EXTRA_KEYS = /(sankalpa|reflect|note|message|insight|journal|text|content|body|prompt)/i;
+function sanitizeExtra(
+  extra: Record<string, string | number | boolean | null> | undefined,
+): Record<string, string | number | boolean | null> {
+  if (!extra) return {};
+  const out: Record<string, string | number | boolean | null> = {};
+  for (const [k, v] of Object.entries(extra)) {
+    if (FORBIDDEN_EXTRA_KEYS.test(k)) continue;
+    if (typeof v === "string" && v.length > 40) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+/**
  * Fire-and-forget analytics event. Safe to call from any render path.
  * Errors are swallowed; gameplay must never depend on this.
  */
@@ -112,7 +131,7 @@ export function trackEvent(name: AnalyticsEventName, meta: TrackMeta = {}): void
         dice: meta.dice ?? null,
         platform: detectPlatform(),
         app_version: APP_VERSION,
-        metadata: meta.extra ?? {},
+        metadata: sanitizeExtra(meta.extra),
       };
       await supabase.from("analytics_events").insert(payload as never);
     } catch {
@@ -120,3 +139,4 @@ export function trackEvent(name: AnalyticsEventName, meta: TrackMeta = {}): void
     }
   });
 }
+
