@@ -197,6 +197,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       return next;
     });
   }
+
+  useEffect(() => {
     purgeLegacyLayoutStorage();
   }, []);
 
