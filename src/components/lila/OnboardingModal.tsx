@@ -97,6 +97,12 @@ export function OnboardingModal({
     }
   }, [open]);
 
+  useTelegramBackButton(open, () => {
+    if (step > 0) setStep((s) => s - 1);
+    else onClose();
+  });
+
+
   const finish = () => {
     markSeen();
     trackEvent("onboarding_completed", { extra: { last_step: step } });
