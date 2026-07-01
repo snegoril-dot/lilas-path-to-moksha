@@ -164,8 +164,11 @@ function Index() {
       setMode(chosenMode);
       setStartedAt(new Date().toISOString());
       setBirthIntroOpen(true);
+      trackEvent("new_session_started", { extra: { has_sankalpa: !!userSankalpa } });
+      if (userSankalpa) trackEvent("sankalpa_submitted", { extra: { length: userSankalpa.length } });
       setTimeout(() => {
         if (userSankalpa) {
+
           addMsg(
             `🙏 Намасте. Твоя Санкальпа принята:\n«${userSankalpa}»\n\nПусть путь даст на неё ответ.`
           );
