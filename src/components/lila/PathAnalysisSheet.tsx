@@ -1,11 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { BookmarkPlus, Check, Loader2, Sparkles, X } from "lucide-react";
+import { BookmarkPlus, Check, Loader2, Lock, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, haptic } from "@/hooks/use-telegram";
 import { analyzePath, saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
+import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
+import { FEATURE_IDS } from "@/lib/entitlements";
 
 export interface PathAnalysisContext {
   sankalpa?: string;
@@ -32,6 +34,9 @@ export function PathAnalysisSheet({ ctx, onClose }: Props) {
   const save = useServerFn(saveReflection);
   useDialogA11y(open, onClose);
   useTelegramBackButton(open, onClose);
+  const { has } = useEntitlements();
+  const canAnalyze = has(FEATURE_IDS.FINAL_AI_ANALYSIS);
+
 
   useEffect(() => {
     if (!open) {
