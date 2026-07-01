@@ -1,4 +1,5 @@
-import { Dice5 as DiceIcon, Eye, Map as MapIcon, MessageCircle, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Dice5 as DiceIcon, Eye, Map as MapIcon, MessageCircle, Sparkles } from "lucide-react";
 import { Dice } from "@/components/lila/Dice";
 import { haptic } from "@/hooks/use-telegram";
 import type { MoveEvent } from "@/lib/game-types";
