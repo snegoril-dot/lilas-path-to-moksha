@@ -148,12 +148,12 @@ function JournalPage() {
       </div>
 
       <main className="px-4 py-4 max-w-2xl mx-auto space-y-6">
-        {loading && <div className="opacity-60 text-sm">Открываю свитки…</div>}
+        {loading && <div className="opacity-60 text-sm">Открываю страницы…</div>}
         {err && <div className="text-rose-300 text-sm">{err}</div>}
         {!loading && !err && filtered.length === 0 && (
           <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 text-sm leading-relaxed text-amber-50/85">
             {filter === "all"
-              ? "Здесь появятся твои инсайты. После хода ты сможешь сохранить то, что откликнулось."
+              ? "Здесь будут появляться твои инсайты. После хода — если что-то откликнулось — можно сохранить это в дневник."
               : "В этом разделе пока пусто."}
           </div>
         )}

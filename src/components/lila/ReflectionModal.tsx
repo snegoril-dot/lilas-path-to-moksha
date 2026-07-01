@@ -140,11 +140,11 @@ export function ReflectionModal({
             </div>
 
             <p className="text-sm opacity-80 leading-relaxed">
-              Гуру спрашивает:{" "}
+              Гуру предлагает вопрос:{" "}
               <i>
                 «{data.kind === "snake"
-                  ? "Где в твоей жизни сейчас живёт этот порок? Что он отнимает?"
-                  : "Какая добродетель в тебе сейчас просит выражения?"}»
+                  ? "Где в твоей жизни сейчас может жить эта тема? Что она у тебя забирает, если посмотреть честно?"
+                  : "Какое качество в тебе сейчас откликается на эту тему и просит выражения?"}»
               </i>
             </p>
 
@@ -178,7 +178,7 @@ export function ReflectionModal({
               </div>
             )}
             {aiErr && (
-              <div className="mt-2 text-xs text-rose-300">Гуру не ответил: {aiErr}</div>
+              <div className="mt-2 text-xs text-rose-300">Гуру пока не отвечает: {aiErr}</div>
             )}
 
             <div className="mt-4 grid grid-cols-1 gap-2">
@@ -188,7 +188,7 @@ export function ReflectionModal({
                 className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition disabled:opacity-50"
               >
                 <Sparkles size={14} />
-                {aiBusy ? "Гуру слушает…" : aiText ? "Спросить ещё раз" : "Получить отклик Гуру"}
+                {aiBusy ? "Гуру слушает…" : aiText ? "Спросить ещё раз" : "Услышать отклик Гуру"}
               </button>
               <div className="flex gap-2">
                 <button
@@ -201,7 +201,7 @@ export function ReflectionModal({
                   onClick={handleSubmit}
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
                 >
-                  Принять урок
+                  Сохранить и идти дальше
                 </button>
               </div>
             </div>

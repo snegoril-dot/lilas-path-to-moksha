@@ -437,9 +437,9 @@ function Index() {
           setEntryMisses(entry.nextEntryMisses);
           const next = entry.nextEntryMisses;
           const hints = [
-            `Выпало ${value}. Врата воплощения открывает только 🎲 6. Пробуй снова — терпение тоже часть пути.`,
-            `Снова не 6 (попытка ${next}). Наблюдай за нетерпением ума: сколько раз душа стучит, прежде чем родиться?`,
-            `${next}-я попытка. Джохари учит: рождение — милость, а не право. Дыши и бросай ещё.`,
+            `Выпало ${value}. Врата воплощения открывает только 🎲 6 — попробуй снова. Само ожидание тоже часть пути.`,
+            `Снова не 6 (попытка ${next}). Можно заметить, как ум встречает паузу: с нетерпением, с любопытством, с чем-то ещё?`,
+            `${next}-я попытка. Рождение — это то, что приходит в своё время. Дыши спокойно и брось ещё раз.`,
           ];
           addMsg(hints[Math.min(next - 1, hints.length - 1)], "guru");
           setRolling(false);
@@ -450,12 +450,12 @@ function Index() {
         setEntryGrace(false);
         if (entry.mercy) {
           addMsg(
-            `🌿 Мягкий путь: после трёх бросков врата открылись сами. Выпало ${value}, но душа входит в мир.`,
+            `🌿 Мягкий путь: после трёх бросков врата открываются мягко. Выпало ${value} — душа входит в мир.`,
             "guru"
           );
         } else {
           addMsg(
-            "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
+            "✨ Шестёрка! Душа входит в тело. Ты появляешься на клетке 1 — «Рождение».",
             "guru"
           );
         }
@@ -463,7 +463,7 @@ function Index() {
           addMsg(BOARD[0].wisdom, "guru");
           setSixStreak(entry.mercy ? 0 : 1);
           if (!entry.mercy) {
-            addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
+            addMsg("🎲 Шестёрка даёт ещё один бросок.", "system");
           }
           openLanded(1);
           setRolling(false);
@@ -480,7 +480,7 @@ function Index() {
       if (rule.forfeited) {
         hapticNotify("warning");
         addMsg(
-          "🔥 Три шестёрки подряд. Карма перегорела — этот бросок не считается. Фишка остаётся на месте.",
+          "🔥 Три шестёрки подряд. По правилу игры этот бросок не считается — фишка остаётся на месте. Можно выдохнуть и продолжить.",
           "system"
         );
         setRolling(false);
@@ -501,13 +501,13 @@ function Index() {
         // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
         animateStep(pos, 68, () => {
           addMsg(
-            `До Мокши нужен точный шаг: осталось ровно ${need}. Путь продолжается — фишка мягко возвращается.`,
+            `До Мокши нужен точный шаг: остаётся ровно ${need}. Путь пока продолжается — фишка мягко возвращается назад.`,
             "guru"
           );
           setTimeout(() => {
             animateStep(68, pos, () => {
               if (rule.extraTurn) {
-                addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+                addMsg("🎲 Шестёрка даёт ещё один бросок.", "system");
               }
               setRolling(false);
             });
@@ -524,7 +524,7 @@ function Index() {
 
         const finishTurn = () => {
           if (rule.extraTurn && final !== 68) {
-            addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+            addMsg("🎲 Шестёрка даёт ещё один бросок.", "system");
           }
           setRolling(false);
         };
@@ -551,13 +551,13 @@ function Index() {
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
-              `🐍 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЗмея не наказывает — она возвращает внимание к тому, что просит осознания.\n\n${landed.wisdom}`,
+              `🐍 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЗмея не наказывает — она мягко возвращает внимание к теме, которая просит осознания.\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
             play("ladder"); hapticNotify("success");
             addMsg(
-              `🪜 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЛестница показывает качество, которое поднимает сознание выше.\n\n${landed.wisdom}`,
+              `🪜 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЛестница показывает качество, которое сейчас поднимает сознание выше. Можно заметить, откуда оно приходит в тебе.\n\n${landed.wisdom}`,
               "guru"
             );
           }
@@ -565,8 +565,8 @@ function Index() {
           if (visitCount > 1) {
             addMsg(
               kind === "snake"
-                ? `⚠️ Ты возвращаешься сюда уже ${visitCount}-й раз. Урок не усвоен — карма повторяет до тех пор, пока не услышишь.`
-                : `🌟 Снова эта добродетель (${visitCount}-й раз). Гуру улыбается: ты узнал свой путь.`,
+                ? `↩️ Эта тема возвращается уже ${visitCount}-й раз. Можно посмотреть на неё как на приглашение задержаться подольше — что здесь ещё не увидено?`
+                : `🌟 И снова это качество (${visitCount}-й раз). Похоже, оно всё ближе становится своим.`,
               "system"
             );
           }
@@ -581,7 +581,7 @@ function Index() {
                   setRolling(false);
                 }, 600);
               } else {
-                addMsg(`Ты постигаешь «${dest.name}». ${dest.wisdom}`, "guru");
+                addMsg(`Клетка «${dest.name}». ${dest.wisdom}`, "guru");
                 openLanded(final, { from: landed.id, kind });
                 finishTurn();
               }
@@ -604,7 +604,7 @@ function Index() {
             });
           }, reduceMotion ? 500 : 1300);
         } else {
-          addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
+          addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
           openLanded(landed.id);
           finishTurn();
@@ -697,8 +697,8 @@ function Index() {
               {currentCell
                 ? `Клетка ${pos} · ${currentCell.name}`
                 : mode === "soft"
-                  ? `Душа ждёт воплощения · попытка ${entryMisses + 1}/4`
-                  : "Душа ждёт воплощения · нужна 🎲 6"}
+                  ? `Душа ждёт своего часа · попытка ${entryMisses + 1}/4`
+                  : "Душа ждёт своего часа · нужна 🎲 6"}
             </div>
           </div>
         </div>
