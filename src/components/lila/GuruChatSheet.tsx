@@ -152,20 +152,22 @@ export function GuruChatSheet({
 
   /** Insert a pre-written Q&A locally, without hitting the AI. */
   const sendCanned = (q: string, a: string) => {
-    if (busy) return;
+    if (busy || askedCanned.has(q)) return;
     haptic("light");
     trackEvent("guru_message_sent", {
       cell: ctx?.cell ?? null,
       sessionId: ctx?.sessionId ?? null,
       extra: { length: q.length, quick: true, canned: true },
     });
-    const now = Date.now();
+    const n = ++cannedCounter.current;
+    const stamp = `${ctx?.cell ?? 0}-${Date.now()}-${n}`;
     setMessages((prev) => [
       ...prev,
-      { id: `canned-q-${now}`, role: "user", parts: [{ type: "text", text: q }] },
-      { id: `canned-a-${now}`, role: "assistant", parts: [{ type: "text", text: a }] },
+      { id: `canned-q-${stamp}`, role: "user", parts: [{ type: "text", text: q }] },
+      { id: `canned-a-${stamp}`, role: "assistant", parts: [{ type: "text", text: a }] },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ] as any);
+    setAskedCanned((prev) => new Set(prev).add(q));
   };
 
 
