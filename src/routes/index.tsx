@@ -76,6 +76,7 @@ function Index() {
     mode: GameMode;
     movesCount: number;
     updatedAt: string | null;
+    startedAt: string | null;
     entryMisses: number;
     sixStreak: number;
     path: Array<{ cell: number; kind: string; to?: number }>;
