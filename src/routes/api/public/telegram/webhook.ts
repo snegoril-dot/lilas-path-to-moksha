@@ -292,13 +292,17 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           return ok({ configured: false });
         }
 
-        // Optional shared secret from setWebhook(secret_token=...).
+        // Обязательный shared secret из setWebhook(secret_token=...).
+        // Fail-closed: без секрета кто угодно может подделать successful_payment
+        // и выдать себе Premium. См. audit P0-1.
         const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-        if (expectedSecret) {
-          const got = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
-          if (got !== expectedSecret) {
-            return new Response("Unauthorized", { status: 401 });
-          }
+        if (!expectedSecret) {
+          console.error("telegram webhook: TELEGRAM_WEBHOOK_SECRET is not configured");
+          return new Response("Server not configured", { status: 503 });
+        }
+        const got = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
+        if (got.length !== expectedSecret.length || got !== expectedSecret) {
+          return new Response("Unauthorized", { status: 401 });
         }
 
         let update: TgUpdate;
