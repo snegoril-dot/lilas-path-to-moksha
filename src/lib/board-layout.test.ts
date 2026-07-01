@@ -84,3 +84,58 @@ describe("board-layout / бустрофедон 9×8", () => {
     expect(verifyBoardMapping()).toEqual([]);
   });
 });
+
+describe("board-layout / публичные алиасы и снейки/лестницы", () => {
+  it("getCellCoordinates и getCellIdByCoordinates взаимно обратны", () => {
+    for (let id = 1; id <= TOTAL; id++) {
+      const { row, col } = getCellCoordinates(id);
+      expect(getCellIdByCoordinates(row, col)).toBe(id);
+    }
+  });
+
+  it("BOARD_MATRIX содержит ровно 72 уникальных ID (1..72)", () => {
+    const flat = BOARD_MATRIX.flat();
+    expect(flat).toHaveLength(TOTAL);
+    expect(new Set(flat).size).toBe(TOTAL);
+    for (let i = 1; i <= TOTAL; i++) expect(flat).toContain(i);
+  });
+
+  it("BOARD_MATRIX[0] — визуально верхний ряд с Мокшей=68 в центре", () => {
+    expect(BOARD_MATRIX[0]).toEqual([72, 71, 70, 69, 68, 67, 66, 65, 64]);
+  });
+
+  it("Мокша (68) расположена в верхнем ряду в центральной колонке", () => {
+    const { row, col } = getCellCoordinates(68);
+    expect(row).toBe(ROWS - 1);
+    expect(col).toBe(Math.floor(COLS / 2));
+  });
+
+  it("все истоки и цели лестниц лежат в диапазоне 1..72 и ведут вверх", () => {
+    for (const [fromStr, to] of Object.entries(LADDERS)) {
+      const from = Number(fromStr);
+      expect(from).toBeGreaterThanOrEqual(1);
+      expect(from).toBeLessThanOrEqual(TOTAL);
+      expect(to).toBeGreaterThanOrEqual(1);
+      expect(to).toBeLessThanOrEqual(TOTAL);
+      expect(to).toBeGreaterThan(from);
+      // визуально «выше» = больший row
+      expect(getCellCoordinates(to).row).toBeGreaterThan(
+        getCellCoordinates(from).row,
+      );
+    }
+  });
+
+  it("все истоки и цели змей лежат в диапазоне 1..72 и ведут вниз", () => {
+    for (const [fromStr, to] of Object.entries(SNAKES)) {
+      const from = Number(fromStr);
+      expect(from).toBeGreaterThanOrEqual(1);
+      expect(from).toBeLessThanOrEqual(TOTAL);
+      expect(to).toBeGreaterThanOrEqual(1);
+      expect(to).toBeLessThanOrEqual(TOTAL);
+      expect(to).toBeLessThan(from);
+      expect(getCellCoordinates(to).row).toBeLessThan(
+        getCellCoordinates(from).row,
+      );
+    }
+  });
+});
