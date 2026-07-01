@@ -10,6 +10,12 @@ import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 import { getProfileSummary } from "@/lib/profile-summary.functions";
+import {
+  validateSankalpa,
+  type SankalpaValidation,
+  GOOD_EXAMPLES,
+  BAD_EXAMPLES,
+} from "@/lib/sankalpa-validation";
 
 export function WelcomeScreen({
   onStart,
