@@ -164,11 +164,12 @@ function Index() {
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
   const { isAdmin } = useIsAdmin();
+  // Вне Telegram (web-превью Lovable / ПК) отладка сетки доступна всем — для удобства работы с раскладкой.
+  const debugAllowed = isAdmin || !isInTelegram();
   const [debug, setDebug] = useState(false);
-  // Если пользователь не админ — принудительно выключаем отладку.
   useEffect(() => {
-    if (!isAdmin && debug) setDebug(false);
-  }, [isAdmin, debug]);
+    if (!debugAllowed && debug) setDebug(false);
+  }, [debugAllowed, debug]);
 
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
