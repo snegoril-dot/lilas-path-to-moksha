@@ -105,6 +105,7 @@ export function SettingsSheet(props: Props) {
   const [onbOpen, setOnbOpen] = useState(false);
   const [fbOpen, setFbOpen] = useState(false);
   const [weeklyOpen, setWeeklyOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
 
   const isBeta = true;
