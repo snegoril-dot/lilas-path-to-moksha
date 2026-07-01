@@ -127,16 +127,22 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
         </div>
       )}
 
-      <div className={debug && zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : ""}>
+      <div className={debug ? "overflow-auto max-h-[80dvh] rounded-2xl" : (zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : "")}>
         <div
           data-lila-board
-          className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING}`}
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+          className={`relative rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING} ${debug ? (dragging ? "cursor-grabbing" : "cursor-grab") : "w-full"}`}
           style={{
+            width: debug ? `${sizePct}%` : undefined,
             aspectRatio: debug ? `${aspectW} / ${aspectH}` : `${COLS} / ${ROWS}`,
             background: BOARD_BG,
-            transform: debug && zoom !== 1 ? `scale(${zoom})` : undefined,
+            transform: debug ? `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` : undefined,
             transformOrigin: "top left",
-            transition: debug ? "transform 120ms ease-out" : undefined,
+            transition: debug && !dragging ? "transform 120ms ease-out" : undefined,
+            touchAction: debug ? "none" : undefined,
           }}
         >
           {/* Космический фон */}
