@@ -561,6 +561,21 @@ function Index() {
       <>
         <WelcomeScreen onStart={startGame} onRules={() => setRulesOpen(true)} />
         <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+        <ResumeDialog
+          open={resumeOpen}
+          snapshot={
+            resumeData
+              ? {
+                  currentCell: resumeData.currentCell,
+                  sankalpa: resumeData.sankalpa,
+                  movesCount: resumeData.movesCount,
+                  updatedAt: resumeData.updatedAt,
+                }
+              : null
+          }
+          onResume={resumeGame}
+          onFresh={startFresh}
+        />
       </>
     );
   }
