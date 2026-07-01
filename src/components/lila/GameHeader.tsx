@@ -79,7 +79,7 @@ export function GameHeader({
         </button>
         <Link
           to="/journal"
-          className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+          className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
           aria-label="Дневник"
           title="Дневник пути"
         >
