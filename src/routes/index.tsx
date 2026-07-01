@@ -56,10 +56,32 @@ function Index() {
   const [reflection, setReflection] = useState<ReflectionPayload | null>(null);
   const [guruCtx, setGuruCtx] = useState<GuruChatContext | null>(null);
   const [pathLog, setPathLog] = useState<Array<{ cell: number; kind: string; to?: number }>>([]);
+  const [diceHistory, setDiceHistory] = useState<number[]>([]);
   const sessionSavedRef = useRef(false);
   const pendingResume = useRef<(() => void) | null>(null);
+  // Persistent session bookkeeping
+  const sessionIdRef = useRef<string | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [resumeOpen, setResumeOpen] = useState(false);
+  const [resumeData, setResumeData] = useState<{
+    id: string;
+    currentCell: number;
+    sankalpa: string | null;
+    movesCount: number;
+    updatedAt: string | null;
+    entryMisses: number;
+    sixStreak: number;
+    path: Array<{ cell: number; kind: string; to?: number }>;
+    diceHistory: number[];
+    keyCells: KeyCell[];
+    cellVisits: Record<number, number>;
+  } | null>(null);
+  const resumeCheckedRef = useRef(false);
   useAuth(); // ensures anonymous session
   const persistSession = useServerFn(saveSession);
+  const persistUpsert = useServerFn(upsertSession);
+  const persistAbandon = useServerFn(abandonSession);
+  const fetchActiveSession = useServerFn(getActiveSession);
 
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
