@@ -256,11 +256,15 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
 
   const exportLayout = useCallback(() => {
     const json = JSON.stringify(layout, null, 2);
-    console.log("[Lila layout]", json);
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.log("[Lila layout]", json);
+    }
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(json).catch(() => {});
     }
   }, [layout]);
+
 
   const resetLayout = useCallback(() => {
     persist(defaultLayout());

@@ -88,13 +88,16 @@ export function SettingsSheet(props: Props) {
             hint={token.name}
             onClick={onCycleToken}
           />
-          <Row
-            icon={<Ruler size={18} />}
-            label="Отладка сетки"
-            hint={debug ? "Включена" : "Выключена"}
-            onClick={onToggleDebug}
-            active={debug}
-          />
+          {import.meta.env.DEV && (
+            <Row
+              icon={<Ruler size={18} />}
+              label="Отладка сетки"
+              hint={debug ? "Включена" : "Выключена"}
+              onClick={onToggleDebug}
+              active={debug}
+            />
+          )}
+
           <Row icon={<BookOpen size={18} />} label="Дневник" hint="История пути" asLink to="/journal" onClick={onClose} />
           <Row icon={<Sparkles size={18} />} label="Недельный план" hint="Рекомендации Гуру" asLink to="/insights" onClick={onClose} />
         </div>

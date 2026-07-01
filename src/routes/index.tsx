@@ -118,8 +118,11 @@ function Index() {
   const { token, cycle: cycleToken } = usePlayerToken();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
+    // Дебаг-оверлей доски доступен только в dev-сборке.
+    if (import.meta.env.PROD) return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
   });
+
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
@@ -716,6 +719,15 @@ function Index() {
 
   return (
     <div className="flex flex-col h-app min-h-app bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
+      {import.meta.env.DEV && debug && (
+        <div
+          className="fixed top-1 right-1 z-50 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-amber-500/90 text-black shadow-sm pointer-events-none"
+          aria-hidden="true"
+        >
+          Dev mode
+        </div>
+      )}
+
       <GameHeader
         pos={pos}
         currentCell={currentCell}
