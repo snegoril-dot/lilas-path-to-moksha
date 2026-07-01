@@ -89,6 +89,43 @@ export function WelcomeScreen({
         </div>
       </motion.div>
 
+      <motion.fieldset
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        className="mt-4 w-full max-w-sm text-left"
+      >
+        <legend className="text-xs uppercase tracking-wider opacity-60 ml-1 mb-1">
+          Режим игры
+        </legend>
+        <div className="grid grid-cols-1 gap-2">
+          {(["classic", "soft"] as GameMode[]).map((m) => {
+            const active = mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                aria-pressed={active}
+                className={`text-left rounded-2xl px-4 py-3 ring-1 transition ${
+                  active
+                    ? "bg-amber-400/15 ring-amber-300/60"
+                    : "bg-[var(--lila-surface)] ring-white/10 hover:ring-white/20"
+                }`}
+              >
+                <div className="text-sm font-semibold flex items-center gap-2">
+                  <span aria-hidden>{m === "classic" ? "🕉" : "🌿"}</span>
+                  {MODE_LABEL[m]}
+                </div>
+                <div className="text-[11px] opacity-70 mt-0.5 leading-snug">
+                  {MODE_DESCRIPTION[m]}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </motion.fieldset>
+
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -96,7 +133,7 @@ export function WelcomeScreen({
         className="mt-3 w-full max-w-sm space-y-3"
       >
         <button
-          onClick={() => onStart(sankalpa.trim())}
+          onClick={() => onStart(sankalpa.trim(), mode)}
           className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-base shadow-xl hover:brightness-110 active:scale-[0.98] transition"
         >
           🎲 Начать игру
