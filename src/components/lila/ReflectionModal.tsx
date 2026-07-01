@@ -171,13 +171,18 @@ export function ReflectionModal({
               <textarea
                 ref={taRef}
                 value={note}
-                onChange={(e) => setNote(e.target.value.slice(0, 400))}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setNote(v.length > 400 ? v.slice(0, 400) : v);
+                }}
                 rows={4}
                 placeholder="Несколько слов от сердца. Можно оставить пустым."
-                className="mt-1 w-full rounded-2xl bg-black/20 border border-white/10 px-3 py-2 text-sm placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
+                className="mt-1 w-full rounded-2xl bg-black/20 border border-white/10 px-3 py-2 text-[15px] placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
               />
-              <div className="text-[10px] opacity-40 text-right mt-1">
-                {note.length}/400
+              <div className="text-[10px] opacity-50 text-right mt-1">
+                {note.length >= 400
+                  ? "Инсайт слишком длинный. Попробуй сохранить главное."
+                  : `${note.length}/400`}
               </div>
             </label>
 
@@ -188,7 +193,7 @@ export function ReflectionModal({
               </div>
             )}
             {aiErr && (
-              <div className="mt-2 text-xs text-rose-300">Гуру пока не отвечает: {aiErr}</div>
+              <div className="mt-2 text-xs text-amber-200/80 italic">{aiErr}</div>
             )}
 
             <div className="mt-4 grid grid-cols-1 gap-2">
