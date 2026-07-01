@@ -199,7 +199,7 @@ function Index() {
     }
   }, [resumeData, persistAbandon]);
 
-  const restart = useCallback(() => {
+  const doRestart = useCallback(() => {
     // Abandon current in-progress session (if any) before returning to welcome.
     const prevId = sessionIdRef.current;
     if (prevId) {
@@ -208,6 +208,7 @@ function Index() {
       );
     }
     sessionIdRef.current = null;
+    setPauseOpen(false);
     setStarted(false);
     setWon(false);
     setPos(0);
@@ -224,7 +225,18 @@ function Index() {
     setReflection(null);
     setSankalpa("");
     setMode("classic");
+    setStartedAt(null);
   }, [persistAbandon]);
+
+  // Клик по «Начать заново» посреди игры → открываем итог сессии,
+  // чтобы игрок мог зафиксировать инсайт и решить.
+  const restart = useCallback(() => {
+    if (started && !won) {
+      setPauseOpen(true);
+    } else {
+      doRestart();
+    }
+  }, [started, won, doRestart]);
 
   // On mount: check for an active in-progress session and offer to resume.
   useEffect(() => {
