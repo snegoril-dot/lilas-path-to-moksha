@@ -88,7 +88,7 @@ export function GuruChatSheet({
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
-        api: "/api/guru/chat",
+        api: "/api/public/guru/chat",
         fetch: async (input, init) => {
           const { data } = await supabase.auth.getSession();
           const token = data.session?.access_token;
