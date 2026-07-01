@@ -774,9 +774,18 @@ const FALLBACK: GuruCellPack = {
   ],
 };
 
+/** Экспортируется для скриптов проверки целостности контента. */
+export const GURU_CELL_PACKS: Readonly<Record<number, GuruCellPack>> = PACKS;
+export const GURU_CELL_COUNT = 72 as const;
+
 export function getGuruCellPack(cellId: number): GuruCellPack {
   return PACKS[cellId] ?? FALLBACK;
 }
+
+export function hasGuruCellPack(cellId: number): boolean {
+  return Object.prototype.hasOwnProperty.call(PACKS, cellId);
+}
+
 
 // Backwards-compatible helpers used elsewhere in the app.
 export interface GuruCellAnswer {
