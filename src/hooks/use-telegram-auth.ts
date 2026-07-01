@@ -81,6 +81,8 @@ export function useTelegramAuth(authReady: boolean) {
             profile: json.profile as TelegramProfile,
             error: null,
           });
+          window.dispatchEvent(new CustomEvent("lila:telegram-authenticated", { detail: json.profile }));
+          window.dispatchEvent(new CustomEvent("lila:admin-role-refresh"));
         }
       } catch (e) {
         if (!cancelled) {
