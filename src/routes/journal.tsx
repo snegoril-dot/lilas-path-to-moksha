@@ -81,7 +81,10 @@ function JournalPage() {
     setLoading(true);
     load({ data: { limit: 100 } })
       .then((rows) => setEntries(rows as Entry[]))
-      .catch((e: Error) => setErr(e.message))
+      .catch((e: Error) => {
+        console.error("[journal load]", e);
+        setErr("Похоже, связь прервалась. Дневник загрузится, когда соединение вернётся.");
+      })
       .finally(() => setLoading(false));
   }, [ready, userId, load]);
 
