@@ -358,6 +358,10 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           setLayoutSyncState("idle");
           return;
         }
+        if (debug && hadSavedRectsRef.current) {
+          setLayoutSyncState("idle");
+          return;
+        }
         const nextPad = typeof layout.padPct === "number" ? layout.padPct : DEFAULT_PAD_PCT;
         const nextGap = typeof layout.gapPct === "number" ? layout.gapPct : DEFAULT_GAP_PCT;
         setAspectW(layout.aspectW);
