@@ -16,6 +16,8 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
   const meta = cell ? getCellMeta(cell.id) : null;
   const tattva = cell ? getTattvaForCell(cell.id) : null;
   const loka = cell ? getLoka(cell.id) : null;
+  const experience = cell ? getCellExperience(cell.id) : null;
+
 
   return (
     <AnimatePresence>
