@@ -105,9 +105,8 @@ export function WelcomeScreen({
         className="mt-5 max-w-sm rounded-2xl bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] px-4 py-3 text-sm leading-relaxed text-left shadow-md ring-1 ring-white/5"
       >
         <b>Намасте, странник.</b> 🙏<br />
-        Прежде чем бросить кубик — попробуй сформулировать <b>Санкальпу</b>:
-        вопрос или намерение, с которым ты входишь в игру. Клетки станут
-        зеркалом для этого вопроса.
+        <b>Санкальпа</b> — это вопрос или намерение, с которым ты входишь в
+        путь. Чем честнее формулировка, тем глубже откликается игра.
       </motion.div>
 
       <div className="mt-4 w-full max-w-sm">
