@@ -189,7 +189,8 @@ export function GuruChatSheet({
   };
 
   const badge = EVENT_BADGE[eventKind];
-  const prompts = QUICK_PROMPTS[eventKind];
+  const cellPack = ctx ? getGuruCellPack(ctx.cell) : null;
+  const eventPrompts = QUICK_PROMPTS[eventKind];
 
   return (
     <AnimatePresence>
