@@ -524,3 +524,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     </div>
   );
 }
+
+export const Board = memo(BoardImpl);
+export default Board;
+
