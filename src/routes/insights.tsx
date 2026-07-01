@@ -6,6 +6,16 @@ import { generateWeekly, getLatestWeekly } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/insights")({
+  head: () => ({
+    meta: [
+      { title: "Итоги недели · Лила" },
+      { name: "description", content: "Спокойный взгляд на неделю: фокус Локи, практики и то, что просит внимания." },
+      { property: "og:title", content: "Итоги недели · Лила" },
+      { property: "og:description", content: "Еженедельное отражение по мотивам твоего пути в Лиле." },
+      { property: "og:url", content: "https://lilas-path-to-moksha.lovable.app/insights" },
+    ],
+    links: [{ rel: "canonical", href: "https://lilas-path-to-moksha.lovable.app/insights" }],
+  }),
   component: InsightsPage,
 });
 

@@ -11,6 +11,16 @@ import { trackEvent } from "@/lib/analytics";
 
 
 export const Route = createFileRoute("/journal")({
+  head: () => ({
+    meta: [
+      { title: "Дневник пути · Лила" },
+      { name: "description", content: "Твои инсайты и заметки по клеткам Лилы: змеи, стрелы и вопросы к Гуру." },
+      { property: "og:title", content: "Дневник пути · Лила" },
+      { property: "og:description", content: "Собрание инсайтов и заметок, оставленных на клетках Лилы." },
+      { property: "og:url", content: "https://lilas-path-to-moksha.lovable.app/journal" },
+    ],
+    links: [{ rel: "canonical", href: "https://lilas-path-to-moksha.lovable.app/journal" }],
+  }),
   component: JournalPage,
 });
 
