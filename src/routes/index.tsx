@@ -999,7 +999,7 @@ function Index() {
   }
 
   return (
-    <div className="flex flex-col h-app min-h-app bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
+    <div className="flex flex-col h-app min-h-app overflow-hidden bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
       {debug && (
         <div
           className="fixed top-1 right-1 z-50 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-amber-500/90 text-black shadow-sm pointer-events-none"
@@ -1041,7 +1041,13 @@ function Index() {
 
       {/* Board — capped so the current action stays visible on short phones. */}
       <div className="relative z-20 shrink-0 px-2 pt-2 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <div className="mx-auto w-full" style={{ maxHeight: "44dvh", maxWidth: "min(100%, calc((44dvh) * 9 / 8))" }}>
+        <div
+          className="mx-auto w-full"
+          style={{
+            maxHeight: "min(38dvh, 42svh)",
+            maxWidth: "min(100%, calc(min(38dvh, 42svh) * 9 / 8))",
+          }}
+        >
           <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
         </div>
       </div>
