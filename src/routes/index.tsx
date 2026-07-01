@@ -381,12 +381,13 @@ function Index() {
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
-    // Фаза входа в игру: pos = 0, нужна 6.
+    // Фаза входа в игру: pos = 0, нужна 6 (в мягком режиме — милость после 3-х промахов).
     if (pos === 0) {
+      const entry = resolveEntry(mode, value, entryMisses);
       setTimeout(() => {
-        if (value !== 6) {
-          const next = entryMisses + 1;
-          setEntryMisses(next);
+        if (!entry.entered) {
+          setEntryMisses(entry.nextEntryMisses);
+          const next = entry.nextEntryMisses;
           const hints = [
             `Выпало ${value}. Врата воплощения открывает только 🎲 6. Пробуй снова — терпение тоже часть пути.`,
             `Снова не 6 (попытка ${next}). Наблюдай за нетерпением ума: сколько раз душа стучит, прежде чем родиться?`,
@@ -396,22 +397,32 @@ function Index() {
           setRolling(false);
           return;
         }
-        // успех
+        // успех (реальная 6 или милость Мягкого пути)
         setEntryMisses(0);
         setEntryGrace(false);
-        addMsg(
-          "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
-          "guru"
-        );
+        if (entry.mercy) {
+          addMsg(
+            `🌿 Мягкий путь: после трёх бросков врата открылись сами. Выпало ${value}, но душа входит в мир.`,
+            "guru"
+          );
+        } else {
+          addMsg(
+            "✨ Шестёрка! Душа облекается в плоть. Ты входишь на клетку 1 — «Рождение».",
+            "guru"
+          );
+        }
         animateStep(0, 1, () => {
           addMsg(BOARD[0].wisdom, "guru");
-          setSixStreak(1);
-          addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
+          setSixStreak(entry.mercy ? 0 : 1);
+          if (!entry.mercy) {
+            addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
+          }
           setRolling(false);
         });
       }, diceDelay);
       return;
     }
+
 
     const rule = applySixRule(sixStreak, value);
     setSixStreak(rule.nextConsecutiveSixes);
