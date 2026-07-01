@@ -146,18 +146,21 @@ export function WelcomeScreen({
         transition={{ delay: 0.75 }}
         className="mt-3 w-full max-w-sm space-y-3"
       >
-        <button
-          onClick={() => onStart(sankalpa.trim(), mode)}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-base shadow-xl hover:brightness-110 active:scale-[0.98] transition"
-        >
-          🎲 Начать игру
-        </button>
+        {!inTg && (
+          <button
+            onClick={handleStart}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-base shadow-xl hover:brightness-110 active:scale-[0.98] transition"
+          >
+            🎲 Начать игру
+          </button>
+        )}
         <button
           onClick={onRules}
           className="w-full py-3 rounded-2xl bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] font-semibold text-sm shadow-md hover:brightness-110 active:scale-[0.98] transition"
         >
           📜 Правила
         </button>
+
       </motion.div>
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
     </div>
