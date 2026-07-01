@@ -56,12 +56,13 @@ export function ReflectionModal({
     try {
       const row = await save({
         data: {
-          sessionId: null,
+          sessionId: sessionId ?? null,
           cell: data.fromId,
           userText: note.trim(),
           sankalpa,
           prompt: data.kind === "snake" ? "Урок змеи" : "Дар лестницы",
           withAi: true,
+          kind: "guru_note",
         },
       });
       setAiText((row as { ai_reflection: string | null }).ai_reflection ?? null);
@@ -70,6 +71,30 @@ export function ReflectionModal({
     } finally {
       setAiBusy(false);
     }
+  };
+
+  const handleSubmit = async () => {
+    if (!data) return;
+    hapticNotify("success");
+    const trimmed = note.trim();
+    if (trimmed.length > 0) {
+      try {
+        await save({
+          data: {
+            sessionId: sessionId ?? null,
+            cell: data.fromId,
+            userText: trimmed,
+            sankalpa,
+            prompt: data.kind === "snake" ? "Урок змеи" : "Дар лестницы",
+            withAi: false,
+            kind: journalKind,
+          },
+        });
+      } catch (e) {
+        console.error("[reflection save]", e);
+      }
+    }
+    onSubmit(trimmed);
   };
 
   return (
