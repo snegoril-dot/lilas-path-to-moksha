@@ -497,11 +497,12 @@ function Index() {
 
       if (overshoot) {
         const need = 68 - pos;
+        addMsg(`Ход: ${pos} → 68 → ${pos}`, "system");
         // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
         animateStep(pos, 68, () => {
           addMsg(
-            `Нужно ровно ${need}, а выпало ${value}. Карма ещё не готова — фишка отскакивает.`,
-            "system"
+            `До Мокши нужен точный шаг: осталось ровно ${need}. Путь продолжается — фишка мягко возвращается.`,
+            "guru"
           );
           setTimeout(() => {
             animateStep(68, pos, () => {
@@ -514,6 +515,8 @@ function Index() {
         });
         return;
       }
+
+      addMsg(`Ход: ${pos} → ${target}`, "system");
 
       animateStep(pos, target, () => {
         const { final, jumped } = resolveJump(target);
@@ -548,13 +551,13 @@ function Index() {
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
-              `🐍 Ты попал на клетку ${landed.id} — «${landed.name}». Змея возвращает тебя на клетку ${final} — «${dest.name}».\n\nЭто не наказание, а указание: посмотри, где эта тема проявляется в твоей Санкальпе.\n\n${landed.wisdom}`,
+              `🐍 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЗмея не наказывает — она возвращает внимание к тому, что просит осознания.\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
             play("ladder"); hapticNotify("success");
             addMsg(
-              `🪜 Ты попал на клетку ${landed.id} — «${landed.name}». Лестница поднимает тебя на клетку ${final} — «${dest.name}».\n\nЭто дар пути: качество этой клетки помогает сознанию подняться выше.\n\n${landed.wisdom}`,
+              `🪜 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЛестница показывает качество, которое поднимает сознание выше.\n\n${landed.wisdom}`,
               "guru"
             );
           }
@@ -769,11 +772,12 @@ function Index() {
             <button
               onClick={() => { haptic("medium"); handleRoll(); }}
               disabled={rolling}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Бросить кубик"
+              aria-busy={rolling}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-70 disabled:cursor-not-allowed"
+              aria-label={rolling ? "Кубик катится" : "Бросить кубик"}
             >
-              <DiceIcon size={20} />
-              Бросить кубик
+              <DiceIcon size={20} className={rolling ? "animate-spin" : ""} />
+              {rolling ? "Кубик катится…" : "Бросить кубик"}
             </button>
           )}
           <button
