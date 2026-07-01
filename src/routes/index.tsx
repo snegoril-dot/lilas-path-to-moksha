@@ -974,10 +974,12 @@ function Index() {
         currentCell={currentCell}
         mode={mode}
         entryMisses={entryMisses}
+        sixStreak={sixStreak}
         onOpenTimeline={() => setTimelineOpen(true)}
         onPause={restart}
         onOpenSettings={() => setSettingsOpen(true)}
       />
+
 
       {returnBanner && (
         <ReturnBanner
