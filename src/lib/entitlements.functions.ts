@@ -17,6 +17,7 @@ import {
   buildEntitlements,
   type UserEntitlements,
 } from "@/lib/entitlements";
+import { getProductPrice, getPriceVariant } from "@/lib/ab-pricing";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
