@@ -165,11 +165,11 @@ export function SettingsSheet(props: Props) {
               hint={token.name}
               onClick={onCycleToken}
             />
-            {import.meta.env.DEV && (
+            {isAdmin && (
               <Row
                 icon={<Ruler size={18} />}
                 label="Отладка сетки"
-                hint={debug ? "Включена" : "Выключена"}
+                hint={debug ? "Включена (админ)" : "Только для админа"}
                 onClick={onToggleDebug}
                 active={debug}
               />
