@@ -249,12 +249,36 @@ export function useTelegramMainButton(opts: {
   cbRef.current = opts.onClick;
 
   useEffect(() => {
-    const tg = getTg();
-    const mb = tg?.MainButton;
-    if (!mb) return;
+    let cancelled = false;
+    let mb: TgMainButton | undefined;
     const handler = () => cbRef.current();
-    mb.onClick(handler);
+
+    const bind = () => {
+      if (cancelled) return true;
+      mb = getTg()?.MainButton;
+      if (!mb) return false;
+      try {
+        mb.onClick(handler);
+      } catch {
+        /* noop */
+      }
+      return true;
+    };
+
+    if (!bind()) {
+      const started = Date.now();
+      const iv = window.setInterval(() => {
+        if (bind() || Date.now() - started > 2500) window.clearInterval(iv);
+      }, 100);
+      return () => {
+        cancelled = true;
+        window.clearInterval(iv);
+        try { mb?.offClick(handler); } catch { /* noop */ }
+      };
+    }
+
     return () => {
+      cancelled = true;
       try { mb.offClick(handler); } catch { /* noop */ }
     };
   }, []);
