@@ -869,14 +869,7 @@ function Index() {
 
 
   if (!authReady) {
-    return (
-      <div className="min-h-app flex flex-col items-center justify-center gap-3 text-center p-6 bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
-        <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-2xl shadow-[0_0_40px_rgba(251,191,36,0.35)] animate-pulse">
-          🕉
-        </div>
-        <div className="text-sm opacity-80">Открываю путь…</div>
-      </div>
-    );
+    return <PathLoadingSkeleton />;
   }
 
   if (!started) {
