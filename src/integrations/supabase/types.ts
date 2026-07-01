@@ -65,6 +65,27 @@ export type Database = {
         }
         Relationships: []
       }
+      guru_usage: {
+        Row: {
+          count: number
+          day: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           ai_reflection: string | null
@@ -183,7 +204,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_guru_usage: {
+        Args: { _limit: number; _user_id: string }
+        Returns: {
+          allowed: boolean
+          new_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface GuruChatContext {
   cell: number;
@@ -28,6 +29,13 @@ export function GuruChatSheet({
     () =>
       new DefaultChatTransport({
         api: "/api/guru/chat",
+        fetch: async (input, init) => {
+          const { data } = await supabase.auth.getSession();
+          const token = data.session?.access_token;
+          const headers = new Headers(init?.headers);
+          if (token) headers.set("Authorization", `Bearer ${token}`);
+          return fetch(input, { ...init, headers });
+        },
         prepareSendMessagesRequest: ({ messages }) => ({
           body: {
             messages,
@@ -143,11 +151,11 @@ export function GuruChatSheet({
               )}
               {error && (
                 <div className="text-xs text-rose-300 bg-rose-500/10 rounded-xl px-3 py-2">
-                  Гуру сейчас не отвечает. {error.message?.includes("429")
-                    ? "Слишком много запросов — попробуй позже."
-                    : error.message?.includes("402")
-                      ? "Закончились AI-кредиты."
-                      : "Попробуй ещё раз."}
+                  {error.message?.includes("429")
+                    ? "Достигнут дневной лимит сообщений Гуру. Возвращайся завтра."
+                    : error.message?.includes("401")
+                      ? "Нужен вход в приложение, чтобы говорить с Гуру."
+                      : "Гуру сейчас молчит. Попробуй вернуться к вопросу чуть позже."}
                 </div>
               )}
             </div>
