@@ -71,6 +71,7 @@ function Index() {
   const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
   const [landedOpen, setLandedOpen] = useState(false);
   const [winOpen, setWinOpen] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
