@@ -28,6 +28,7 @@ import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
 import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
+import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -72,6 +73,7 @@ function Index() {
   const [landedOpen, setLandedOpen] = useState(false);
   const [winOpen, setWinOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [birthIntroOpen, setBirthIntroOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -138,6 +140,7 @@ function Index() {
       setSankalpa(userSankalpa);
       setMode(chosenMode);
       setStartedAt(new Date().toISOString());
+      setBirthIntroOpen(true);
       setTimeout(() => {
         if (userSankalpa) {
           addMsg(
@@ -545,13 +548,13 @@ function Index() {
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
-              `🐍 «${landed.name}» низвергает тебя в «${dest.name}».\n\n${landed.wisdom}`,
+              `🐍 Ты попал на клетку ${landed.id} — «${landed.name}». Змея возвращает тебя на клетку ${final} — «${dest.name}».\n\nЭто не наказание, а указание: посмотри, где эта тема проявляется в твоей Санкальпе.\n\n${landed.wisdom}`,
               "guru"
             );
           } else {
             play("ladder"); hapticNotify("success");
             addMsg(
-              `🪜 «${landed.name}» возносит тебя к «${dest.name}».\n\n${landed.wisdom}`,
+              `🪜 Ты попал на клетку ${landed.id} — «${landed.name}». Лестница поднимает тебя на клетку ${final} — «${dest.name}».\n\nЭто дар пути: качество этой клетки помогает сознанию подняться выше.\n\n${landed.wisdom}`,
               "guru"
             );
           }
@@ -857,6 +860,15 @@ function Index() {
         diceHistory={diceHistory}
         keyCells={keyCells}
         currentCell={pos}
+      />
+      <BirthIntroCard
+        open={birthIntroOpen && pos === 0 && !won}
+        sankalpa={sankalpa}
+        onRoll={() => {
+          setBirthIntroOpen(false);
+          setTimeout(() => handleRoll(), 60);
+        }}
+        onClose={() => setBirthIntroOpen(false)}
       />
       <SettingsSheet
         open={settingsOpen}
