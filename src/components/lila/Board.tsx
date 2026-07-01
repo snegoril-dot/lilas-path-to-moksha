@@ -383,8 +383,9 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
           const isPlayer = id === playerPos;
           const isKailas = id === 68;
           const tint = PLANE_TINTS[cell.plane] ?? "bg-black/30";
-          const typeClass =
-            cell.type === "snake"
+          const typeClass = isPlayer
+            ? "ring-2 ring-emerald-300 shadow-[0_0_14px_rgba(110,231,183,0.75)]"
+            : cell.type === "snake"
               ? "ring-2 ring-rose-300/80 shadow-[inset_0_0_8px_rgba(244,63,94,0.3)]"
               : cell.type === "ladder"
                 ? "ring-2 ring-amber-200/80 shadow-[inset_0_0_8px_rgba(252,211,77,0.35)]"
