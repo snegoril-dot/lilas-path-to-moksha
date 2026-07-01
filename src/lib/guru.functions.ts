@@ -61,7 +61,7 @@ export const saveReflection = createServerFn({ method: "POST" })
         prompt: data.prompt ?? null,
         user_text: data.userText,
         ai_reflection: aiReflection,
-        kind: "reflection",
+        kind: data.kind,
       })
       .select()
       .single();
