@@ -262,7 +262,7 @@ export function SettingsSheet(props: Props) {
                   <p className="text-[11px] opacity-60">
                     Прогресс сохраняется автоматически. К игре можно вернуться позже.
                   </p>
-                  {onContinue && null}
+
                 </>
               ) : (
                 <>
