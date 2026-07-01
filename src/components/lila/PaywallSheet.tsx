@@ -169,8 +169,13 @@ export function PaywallSheet({ open, onClose }: Props) {
                       >
                         {busy ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : discounted ? (
+                          <>
+                            <span className="opacity-60 line-through mr-1">{p.stars}</span>
+                            Открыть за {price} ⭐
+                          </>
                         ) : (
-                          <>Открыть за {p.stars} ⭐</>
+                          <>Открыть за {price} ⭐</>
                         )}
                       </button>
                     )}
