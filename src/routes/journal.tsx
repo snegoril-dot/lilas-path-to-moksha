@@ -246,7 +246,19 @@ function JournalPage() {
             </ul>
           </section>
         ))}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setFbOpen(true)}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 ring-1 ring-white/10 text-amber-100/80 text-xs font-medium active:scale-95 transition"
+          >
+            <MessageSquarePlus size={14} />
+            Оставить отзыв о бете
+          </button>
+        </div>
       </main>
+      <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="journal" />
     </div>
   );
 }
+
