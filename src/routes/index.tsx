@@ -35,6 +35,17 @@ import { GameActionBar } from "@/components/lila/GameActionBar";
 import type { PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
 import { HintToast, hasSeenHint, markHintSeen, type HintId } from "@/components/lila/HintToast";
+import {
+  narrateMoksha,
+  narrateOvershoot,
+  narrateSnake,
+  narrateLadder,
+  narrateRepeat,
+  HINT_FIRST_SNAKE,
+  HINT_FIRST_LADDER,
+  HINT_NEAR_MOKSHA,
+  HINT_BEFORE_FIRST_ROLL,
+} from "@/content/narration";
 
 // Lazy-loaded heavy modals — only fetched when the user opens them.
 const RulesModal = lazy(() => import("@/components/lila/RulesModal").then(m => ({ default: m.RulesModal })));
@@ -51,11 +62,13 @@ const PathAnalysisSheet = lazy(() => import("@/components/lila/PathAnalysisSheet
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Лила — Игра Самопознания" },
-      { name: "description", content: "Классическая индийская духовная игра Лила. Путь души к Освобождению через 72 таттвы." },
-      { property: "og:title", content: "Лила — Игра Самопознания" },
-      { property: "og:description", content: "Telegram Mini App: древняя игра о карме, добродетелях и Мокше." },
+      { title: "Лила — Путь к Мокше · рефлексивная игра" },
+      { name: "description", content: "Классическая индийская игра Лила как Telegram Mini App: 72 клетки, Санкальпа, Гуру-зеркало и дневник инсайтов." },
+      { property: "og:title", content: "Лила — Путь к Мокше" },
+      { property: "og:description", content: "Тихая рефлексивная практика: пройди 72 клетки Лилы и услышь свою Санкальпу." },
+      { property: "og:url", content: "https://lilas-path-to-moksha.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://lilas-path-to-moksha.lovable.app/" }],
   }),
   component: Index,
 });
@@ -163,13 +176,13 @@ function Index() {
     if (pos === 0 && totalRolls === 0) {
       showHint(
         "before_first_roll",
-        "Чтобы войти в путь, дождись рождения через кубик.",
+        HINT_BEFORE_FIRST_ROLL,
       );
     }
     if (pos >= 63 && pos < 68) {
       showHint(
         "near_moksha",
-        "До Мокши нужен точный шаг. Если выпало больше, путь продолжается.",
+        HINT_NEAR_MOKSHA,
       );
     }
   }, [started, won, pos, totalRolls, showHint]);
@@ -583,7 +596,7 @@ function Index() {
         // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
         animateStep(pos, 68, () => {
           addMsg(
-            `До Мокши нужен точный шаг: остаётся ровно ${need}. Путь пока продолжается — фишка мягко возвращается назад.`,
+            narrateOvershoot(need),
             "guru"
           );
           setTimeout(() => {
@@ -613,7 +626,7 @@ function Index() {
 
         if (target === 68) {
           play("moksha"); hapticNotify("success");
-          addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
+          addMsg(narrateMoksha(landed.wisdom), "guru");
           setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
           trackEvent("cell_landed", { cell: 68, sessionId: sessionIdRef.current });
           trackEvent("moksha_reached", { cell: 68, sessionId: sessionIdRef.current, extra: { rolls: totalRolls } });
@@ -643,30 +656,28 @@ function Index() {
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
-              `🐍 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЗмея не наказывает — она мягко возвращает внимание к теме, которая просит осознания.\n\n${landed.wisdom}`,
+              narrateSnake(landed.id, landed.name, final, dest.name, landed.wisdom),
               "guru"
             );
             showHint(
               "first_snake",
-              "Змея — не наказание. Она показывает тему, которая просит осознания.",
+              HINT_FIRST_SNAKE,
             );
           } else {
             play("ladder"); hapticNotify("success");
             addMsg(
-              `🪜 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЛестница показывает качество, которое сейчас поднимает сознание выше. Можно заметить, откуда оно приходит в тебе.\n\n${landed.wisdom}`,
+              narrateLadder(landed.id, landed.name, final, dest.name, landed.wisdom),
               "guru"
             );
             showHint(
               "first_ladder",
-              "Лестница — не награда за правильность. Это качество, которое помогает подняться выше.",
+              HINT_FIRST_LADDER,
             );
           }
           // Кармический счётчик: повтор того же узла.
           if (visitCount > 1) {
             addMsg(
-              kind === "snake"
-                ? `↩️ Эта тема возвращается уже ${visitCount}-й раз. Можно посмотреть на неё как на приглашение задержаться подольше — что здесь ещё не увидено?`
-                : `🌟 И снова это качество (${visitCount}-й раз). Похоже, оно всё ближе становится своим.`,
+              narrateRepeat(kind, visitCount),
               "system"
             );
           }

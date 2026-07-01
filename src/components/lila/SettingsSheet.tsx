@@ -1,4 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight,
@@ -176,10 +177,7 @@ export function SettingsSheet(props: Props) {
           {/* Секции */}
           <div className="mt-4 space-y-2">
             <Section title="Как идти по пути" icon={<BookOpen size={16} />} defaultOpen>
-              <p>
-                <b>Санкальпа</b> — короткое честное намерение, с которым вы входите в игру.
-                Оно превращает движение в наблюдение за собой.
-              </p>
+              <p>{SANKALPA_INTRO_SHORT} Оно превращает движение в наблюдение за собой.</p>
               <p>
                 <b>Кубик и вход.</b> Чтобы войти в игру, бросьте <b>6</b>. После этого
                 каждый бросок ведёт по клеткам. Никакой спешки — темп ваш.

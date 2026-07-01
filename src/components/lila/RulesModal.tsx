@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { SANKALPA_INTRO_LONG } from "@/content/narration";
 import { MessageSquarePlus, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
@@ -62,11 +63,7 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
 
               <section>
                 <h3 className="font-semibold text-amber-200 mb-1">1. Сформулируй Санкальпу</h3>
-                <p className="opacity-80">
-                  Санкальпа — это вопрос или намерение, с которым ты входишь в игру.
-                  На него будут откликаться сами события на доске — а ты сможешь
-                  замечать, что в тебе на них резонирует.
-                </p>
+                <p className="opacity-80">{SANKALPA_INTRO_LONG}</p>
                 <ul className="mt-2 space-y-1 text-xs">
                   <li>✅ «Что мне важно понять о себе сейчас?»</li>
                   <li>✅ «Где я теряю внутреннюю опору?»</li>
