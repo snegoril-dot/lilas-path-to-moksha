@@ -49,8 +49,11 @@ export const createStarsInvoice = createServerFn({ method: "POST" })
     const product = findProductById(data.productId);
     if (!product) throw new Error("Unknown product");
 
-    // Payload связывает платёж с пользователем; проверяется в webhook.
-    const payload = `${product.id}:${context.userId}`;
+    const variant = getPriceVariant(context.userId);
+    const amount = getProductPrice(product, context.userId);
+
+    // Payload связывает платёж с пользователем и вариантом; проверяется в webhook.
+    const payload = `${product.id}:${context.userId}:${variant}`;
 
     const res = await fetch(`${TELEGRAM_API}/bot${token}/createInvoiceLink`, {
       method: "POST",
@@ -60,14 +63,14 @@ export const createStarsInvoice = createServerFn({ method: "POST" })
         description: product.description,
         payload,
         currency: "XTR",
-        prices: [{ label: product.title, amount: product.stars }],
+        prices: [{ label: product.title, amount }],
       }),
     });
     const body = (await res.json()) as { ok: boolean; result?: string; description?: string };
     if (!body.ok || !body.result) {
       throw new Error(body.description || "createInvoiceLink failed");
     }
-    return { url: body.result, product };
+    return { url: body.result, product, amount, variant };
   });
 
 export const getLastPayment = createServerFn({ method: "GET" })
