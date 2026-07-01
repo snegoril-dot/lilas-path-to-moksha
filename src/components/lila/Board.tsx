@@ -632,10 +632,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   aria-label={fullLabel}
                   aria-current={isPlayer ? "location" : undefined}
                   onClick={(e) => {
-                    if (debug && suppressClickRef.current === id) {
-                      suppressClickRef.current = null;
+                    if (debug) {
+                      if (suppressClickRef.current === id) {
+                        suppressClickRef.current = null;
+                      }
                       e.preventDefault();
                       e.stopPropagation();
+                      setSelectedCell(id);
                       return;
                     }
                     onSelectCell?.(id);
