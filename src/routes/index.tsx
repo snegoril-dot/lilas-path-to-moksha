@@ -129,6 +129,7 @@ function Index() {
       sessionIdRef.current = null;
       setSankalpa(userSankalpa);
       setMode(chosenMode);
+      setStartedAt(new Date().toISOString());
       setTimeout(() => {
         if (userSankalpa) {
           addMsg(
