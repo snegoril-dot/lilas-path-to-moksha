@@ -100,12 +100,17 @@ export function ReflectionModal({
         try { localStorage.removeItem(`lila.reflection.draft.${data.fromId}`); } catch {}
       } catch (e) {
         console.error("[reflection save]", e);
-        // Сохраняем черновик локально до восстановления связи
+        // Оффлайн/сетевой сбой — кладём заметку в очередь, чтобы отправить позже.
         try {
-          localStorage.setItem(
-            `lila.reflection.draft.${data.fromId}`,
-            JSON.stringify({ text: trimmed, at: new Date().toISOString(), kind: journalKind })
-          );
+          const { enqueueNote } = await import("@/lib/note-queue");
+          enqueueNote({
+            sessionId: sessionId ?? null,
+            cellId: data.fromId,
+            text: trimmed,
+            kind: journalKind,
+            prompt: data.kind === "snake" ? "Урок змеи" : "Дар лестницы",
+            sankalpa,
+          });
         } catch {}
       }
     }
