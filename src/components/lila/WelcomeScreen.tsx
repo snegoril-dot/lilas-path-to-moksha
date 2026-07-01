@@ -110,13 +110,20 @@ export function WelcomeScreen({
         <textarea
           value={sankalpa}
           onChange={(e) => setSankalpa(e.target.value.slice(0, 240))}
+          onBlur={() => setTouched(true)}
           placeholder="Например: «Что мне сейчас важнее всего понять о себе?»"
           rows={3}
-          className="mt-1 w-full rounded-2xl bg-[var(--lila-surface)] border border-white/10 px-4 py-3 text-sm text-[var(--tg-theme-text-color,#fff)] placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
+          aria-invalid={touched && !canStart}
+          className="mt-1 w-full rounded-2xl bg-[var(--lila-surface)] border border-white/10 px-4 py-3 text-[16px] text-[var(--tg-theme-text-color,#fff)] placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
         />
-        <div className="text-[10px] opacity-40 text-right mt-1">
-          {sankalpa.length}/240 · можно оставить пустым
+        <div className="text-[10px] opacity-50 text-right mt-1">
+          {sankalpa.length}/240
         </div>
+        {touched && !canStart && (
+          <div className="mt-1 text-[11px] text-amber-200/90 leading-snug">
+            Сформулируй вопрос или намерение, чтобы войти в путь.
+          </div>
+        )}
       </motion.div>
 
       <motion.fieldset
