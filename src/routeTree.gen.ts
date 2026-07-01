@@ -13,6 +13,7 @@ import { Route as JournalRouteImport } from './routes/journal'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
+import { Route as ApiAuthTelegramRouteImport } from './routes/api/auth.telegram'
 
 const JournalRoute = JournalRouteImport.update({
   id: '/journal',
@@ -34,17 +35,24 @@ const ApiGuruChatRoute = ApiGuruChatRouteImport.update({
   path: '/api/guru/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthTelegramRoute = ApiAuthTelegramRouteImport.update({
+  id: '/api/auth/telegram',
+  path: '/api/auth/telegram',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/insights' | '/journal' | '/api/guru/chat'
+  fullPaths:
+    | '/'
+    | '/insights'
+    | '/journal'
+    | '/api/auth/telegram'
+    | '/api/guru/chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/insights' | '/journal' | '/api/guru/chat'
-  id: '__root__' | '/' | '/insights' | '/journal' | '/api/guru/chat'
+  to: '/' | '/insights' | '/journal' | '/api/auth/telegram' | '/api/guru/chat'
+  id:
+    | '__root__'
+    | '/'
+    | '/insights'
+    | '/journal'
+    | '/api/auth/telegram'
+    | '/api/guru/chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InsightsRoute: typeof InsightsRoute
   JournalRoute: typeof JournalRoute
+  ApiAuthTelegramRoute: typeof ApiAuthTelegramRoute
   ApiGuruChatRoute: typeof ApiGuruChatRoute
 }
 
@@ -99,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGuruChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/telegram': {
+      id: '/api/auth/telegram'
+      path: '/api/auth/telegram'
+      fullPath: '/api/auth/telegram'
+      preLoaderRoute: typeof ApiAuthTelegramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -106,6 +134,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InsightsRoute: InsightsRoute,
   JournalRoute: JournalRoute,
+  ApiAuthTelegramRoute: ApiAuthTelegramRoute,
   ApiGuruChatRoute: ApiGuruChatRoute,
 }
 export const routeTree = rootRouteImport
