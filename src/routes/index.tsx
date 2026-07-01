@@ -497,11 +497,12 @@ function Index() {
 
       if (overshoot) {
         const need = 68 - pos;
+        addMsg(`Ход: ${pos} → 68 → ${pos}`, "system");
         // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
         animateStep(pos, 68, () => {
           addMsg(
-            `Нужно ровно ${need}, а выпало ${value}. Карма ещё не готова — фишка отскакивает.`,
-            "system"
+            `До Мокши нужен точный шаг: осталось ровно ${need}. Путь продолжается — фишка мягко возвращается.`,
+            "guru"
           );
           setTimeout(() => {
             animateStep(68, pos, () => {
@@ -514,6 +515,8 @@ function Index() {
         });
         return;
       }
+
+      addMsg(`Ход: ${pos} → ${target}`, "system");
 
       animateStep(pos, target, () => {
         const { final, jumped } = resolveJump(target);
