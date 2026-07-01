@@ -353,6 +353,7 @@ function Index() {
     const raw = rollDice(getRuntimeRng());
     const value = pos === 0 && entryGrace ? 6 : raw;
     setDice(value);
+    setDiceHistory((d) => [...d, value]);
     setTotalRolls((n) => n + 1);
     play("roll");
     addMsg(`🎲 Бросок: ${value}${value !== raw ? " (милость)" : ""}`, "player");
