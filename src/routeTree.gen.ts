@@ -17,6 +17,7 @@ import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as ApiPublicHealthcheckRouteImport } from './routes/api/public/healthcheck'
 import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
 import { Route as ApiAuthTelegramRouteImport } from './routes/api/auth.telegram'
+import { Route as ApiPublicWeeklySendDigestRouteImport } from './routes/api/public/weekly/send-digest'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as ApiPublicPracticeSendRemindersRouteImport } from './routes/api/public/practice/send-reminders'
 
@@ -60,6 +61,12 @@ const ApiAuthTelegramRoute = ApiAuthTelegramRouteImport.update({
   path: '/api/auth/telegram',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWeeklySendDigestRoute =
+  ApiPublicWeeklySendDigestRouteImport.update({
+    id: '/api/public/weekly/send-digest',
+    path: '/api/public/weekly/send-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTelegramWebhookRoute =
   ApiPublicTelegramWebhookRouteImport.update({
     id: '/api/public/telegram/webhook',
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/weekly/send-digest': typeof ApiPublicWeeklySendDigestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,6 +104,7 @@ export interface FileRoutesByTo {
   '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/weekly/send-digest': typeof ApiPublicWeeklySendDigestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,6 +118,7 @@ export interface FileRoutesById {
   '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/weekly/send-digest': typeof ApiPublicWeeklySendDigestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/api/public/healthcheck'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
+    | '/api/public/weekly/send-digest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/api/public/healthcheck'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
+    | '/api/public/weekly/send-digest'
   id:
     | '__root__'
     | '/'
@@ -147,6 +159,7 @@ export interface FileRouteTypes {
     | '/api/public/healthcheck'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
+    | '/api/public/weekly/send-digest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -160,6 +173,7 @@ export interface RootRouteChildren {
   ApiPublicHealthcheckRoute: typeof ApiPublicHealthcheckRoute
   ApiPublicPracticeSendRemindersRoute: typeof ApiPublicPracticeSendRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
+  ApiPublicWeeklySendDigestRoute: typeof ApiPublicWeeklySendDigestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -220,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthTelegramRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/weekly/send-digest': {
+      id: '/api/public/weekly/send-digest'
+      path: '/api/public/weekly/send-digest'
+      fullPath: '/api/public/weekly/send-digest'
+      preLoaderRoute: typeof ApiPublicWeeklySendDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/telegram/webhook': {
       id: '/api/public/telegram/webhook'
       path: '/api/public/telegram/webhook'
@@ -248,6 +269,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthcheckRoute: ApiPublicHealthcheckRoute,
   ApiPublicPracticeSendRemindersRoute: ApiPublicPracticeSendRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
+  ApiPublicWeeklySendDigestRoute: ApiPublicWeeklySendDigestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
