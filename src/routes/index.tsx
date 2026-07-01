@@ -966,9 +966,8 @@ function Index() {
   );
 
 
-  if (!authReady) {
-    return <PathLoadingSkeleton />;
-  }
+  // Не блокируем UI на auth: WelcomeScreen не требует userId,
+  // а сохранение сессии само подождёт готовности anon-auth в фоне.
 
   if (!started) {
     return (
