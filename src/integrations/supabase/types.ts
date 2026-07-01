@@ -109,6 +109,45 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          is_premium: boolean
+          language_code: string | null
+          last_name: string | null
+          photo_url: string | null
+          telegram_id: number | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id: string
+          is_premium?: boolean
+          language_code?: string | null
+          last_name?: string | null
+          photo_url?: string | null
+          telegram_id?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          is_premium?: boolean
+          language_code?: string | null
+          last_name?: string | null
+          photo_url?: string | null
+          telegram_id?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       weekly_recommendations: {
         Row: {
           created_at: string

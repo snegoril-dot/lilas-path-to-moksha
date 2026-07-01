@@ -19,6 +19,7 @@ import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
 import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
+import { useTelegramAuth } from "@/hooks/use-telegram-auth";
 import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/lib/guru.functions";
 import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
@@ -77,7 +78,8 @@ function Index() {
     cellVisits: Record<number, number>;
   } | null>(null);
   const resumeCheckedRef = useRef(false);
-  useAuth(); // ensures anonymous session
+  const { ready: authReady } = useAuth(); // ensures anonymous session
+  const tgAuth = useTelegramAuth(authReady);
   const persistSession = useServerFn(saveSession);
   const persistUpsert = useServerFn(upsertSession);
   const persistAbandon = useServerFn(abandonSession);
@@ -704,6 +706,16 @@ function Index() {
         onToggleDebug={() => setDebug((d) => !d)}
       />
       <SaveIndicator state={saveState} />
+      {tgAuth.status === "dev_mode" && (
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg">
+          Dev-режим: откройте игру в Telegram для входа по Telegram ID
+        </div>
+      )}
+      {tgAuth.status === "error" && (
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-red-500/90 text-white text-xs px-3 py-1 shadow-lg">
+          Ошибка входа Telegram: {tgAuth.error}
+        </div>
+      )}
     </div>
   );
 }
