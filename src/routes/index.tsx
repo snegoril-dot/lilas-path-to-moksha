@@ -6,7 +6,7 @@ import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { PathLoadingSkeleton } from "@/components/lila/PathLoadingSkeleton";
 import { CellModal } from "@/components/lila/CellModal";
-import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
+import { BOARD, computeNewPosition, resolveJump, applySixRule, canExitCell, exitHint } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import type { GuruChatContext } from "@/components/lila/GuruChatSheet";
