@@ -25,9 +25,18 @@ export function WelcomeScreen({
     if (!hasSeenOnboarding()) setOnbOpen(true);
   }, []);
 
+  const [touched, setTouched] = useState(false);
+  const trimmed = sankalpa.trim();
+  const canStart = trimmed.length > 0;
+
   const handleStart = () => {
+    if (!canStart) {
+      setTouched(true);
+      haptic("light");
+      return;
+    }
     haptic("medium");
-    onStart(sankalpa.trim(), mode);
+    onStart(trimmed, mode);
   };
 
   useTelegramMainButton({
