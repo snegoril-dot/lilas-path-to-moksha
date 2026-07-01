@@ -77,6 +77,27 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [aspectH, setAspectH] = useState(ROWS);
   const [gapPct, setGapPct] = useState(0.5);
   const [padPct, setPadPct] = useState(0.6);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [sizePct, setSizePct] = useState(100); // ширина в % от контейнера
+  const [dragging, setDragging] = useState(false);
+
+  function onDragStart(e: React.PointerEvent) {
+    if (!debug) return;
+    if ((e.target as HTMLElement).closest("[data-cell-id]")) return;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDragging(true);
+    (e.currentTarget as any)._drag = { startX: e.clientX, startY: e.clientY, ox: offset.x, oy: offset.y };
+  }
+  function onDragMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    const d = (e.currentTarget as any)._drag;
+    if (!d) return;
+    setOffset({ x: d.ox + (e.clientX - d.startX), y: d.oy + (e.clientY - d.startY) });
+  }
+  function onDragEnd(e: React.PointerEvent) {
+    setDragging(false);
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  }
 
 
   useEffect(() => {
@@ -105,16 +126,22 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
         </div>
       )}
 
-      <div className={debug && zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : ""}>
+      <div className={debug ? "overflow-auto max-h-[80dvh] rounded-2xl" : (zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : "")}>
         <div
           data-lila-board
-          className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING}`}
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+          className={`relative rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING} ${debug ? (dragging ? "cursor-grabbing" : "cursor-grab") : "w-full"}`}
           style={{
+            width: debug ? `${sizePct}%` : undefined,
             aspectRatio: debug ? `${aspectW} / ${aspectH}` : `${COLS} / ${ROWS}`,
             background: BOARD_BG,
-            transform: debug && zoom !== 1 ? `scale(${zoom})` : undefined,
+            transform: debug ? `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` : undefined,
             transformOrigin: "top left",
-            transition: debug ? "transform 120ms ease-out" : undefined,
+            transition: debug && !dragging ? "transform 120ms ease-out" : undefined,
+            touchAction: debug ? "none" : undefined,
           }}
         >
           {/* Космический фон */}
@@ -398,8 +425,18 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
               className="w-16" />
             <span className="tabular-nums w-8 text-right">{padPct.toFixed(1)}%</span>
           </label>
+          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <span className="opacity-70">size</span>
+            <input type="range" min={40} max={200} step={1} value={sizePct}
+              onChange={(e) => setSizePct(parseFloat(e.target.value))}
+              className="w-24" />
+            <span className="tabular-nums w-10 text-right">{sizePct}%</span>
+          </label>
+          <span className="px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20 opacity-70">
+            drag: {offset.x | 0},{offset.y | 0}
+          </span>
           <button
-            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); }}
+            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
           >
             Сброс
