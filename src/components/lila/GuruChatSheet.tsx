@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
+import { CellContextChip } from "./CellContextChip";
+
 
 
 export type GuruEventKind = "normal" | "snake" | "ladder" | "moksha" | "waiting";
