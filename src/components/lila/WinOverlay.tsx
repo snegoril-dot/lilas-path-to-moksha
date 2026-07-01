@@ -131,7 +131,7 @@ export function WinOverlay({
             transition={{ delay: 0.4 }}
             className="mt-1 text-amber-100/90 text-lg"
           >
-            Ты достиг Мокши
+            Ты дошёл до Мокши
           </motion.p>
           <motion.p
             initial={{ y: 20, opacity: 0 }}
@@ -139,7 +139,8 @@ export function WinOverlay({
             transition={{ delay: 0.45 }}
             className="mt-3 max-w-sm text-amber-100/70 text-sm leading-relaxed"
           >
-            Игра прошла до конца. Ниже — тихий взгляд на пройденный путь.
+            Игра прошла до конца. Ниже — тихий взгляд на пройденный путь. Можно
+            побыть здесь столько, сколько нужно.
           </motion.p>
 
           <motion.div
