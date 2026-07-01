@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Menu, Sparkles, Eye, Route as RouteIcon } from "lucide-react";
+import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, Pause, Menu, Sparkles, Eye, Route as RouteIcon } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
