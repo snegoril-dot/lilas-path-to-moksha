@@ -636,6 +636,7 @@ export type Database = {
           new_count: number
         }[]
       }
+      trigger_practice_reminders: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
