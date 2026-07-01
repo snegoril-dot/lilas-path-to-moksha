@@ -87,11 +87,40 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+  const [cellSizes, setCellSizes] = useState<Record<number, { w: number; h: number }>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem("lila:debug:cell-sizes");
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem("lila:debug:cell-offsets", JSON.stringify(cellOffsets)); } catch {}
   }, [cellOffsets]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem("lila:debug:cell-sizes", JSON.stringify(cellSizes)); } catch {}
+  }, [cellSizes]);
+
+  function onCellResizeStart(e: React.PointerEvent, id: number) {
+    if (!debug) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const cur = cellSizes[id] ?? { w: 0, h: 0 };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, w: cur.w, h: cur.h };
+  }
+  function onCellResizeMove(e: React.PointerEvent) {
+    const r = (e.currentTarget as any)._resize;
+    if (!r) return;
+    setCellSizes((prev) => ({ ...prev, [r.id]: { w: r.w + (e.clientX - r.startX), h: r.h + (e.clientY - r.startY) } }));
+  }
+  function onCellResizeEnd(e: React.PointerEvent) {
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+    delete (e.currentTarget as any)._resize;
+  }
 
   function onDragStart(e: React.PointerEvent) {
     if (!debug) return;
