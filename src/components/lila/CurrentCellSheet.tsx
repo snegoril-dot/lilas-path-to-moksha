@@ -131,6 +131,9 @@ export function CurrentCellSheet({
                       {lokaName}
                     </span>
                   )}
+                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/5 ring-1 ring-white/10 opacity-70">
+                    {TONE_LABEL[tone]}
+                  </span>
                   {cell.type === "snake" && (
                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-500/20 ring-1 ring-rose-300/40 text-rose-100">
                       🐍 Змея
