@@ -155,6 +155,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>(() => loadLayout());
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const visitedSet = useMemo(() => {
     if (!visited) return new Set<number>();
     return visited instanceof Set ? visited : new Set(visited);
