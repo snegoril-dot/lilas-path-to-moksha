@@ -54,8 +54,7 @@ export function PathAnalysisSheet({ ctx, onClose }: Props) {
       trackEvent("guru_path_analysis_requested", {
         cell: ctx.currentCell,
         sessionId: ctx.sessionId ?? null,
-        includeNotes,
-        moves: ctx.path.length,
+        extra: { includeNotes, moves: ctx.path.length },
       });
       const res = await analyze({
         data: {
