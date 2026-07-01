@@ -66,6 +66,10 @@ function Index() {
   const pendingResume = useRef<(() => void) | null>(null);
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [pauseOpen, setPauseOpen] = useState(false);
+  // "Landed" experience — focused card shown after each successful move.
+  const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
+  const [landedOpen, setLandedOpen] = useState(false);
+  const [winOpen, setWinOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
