@@ -40,7 +40,8 @@ export type AnalyticsEventName =
   | "morning_sankalpa_shown"
   | "morning_sankalpa_saved"
   | "sankalpa_history_opened"
-  | "quiet_mode_toggled";
+  | "quiet_mode_toggled"
+  | "deep_link_opened";
 
 
 export interface TrackMeta {
