@@ -88,20 +88,86 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
   const [sizePct, setSizePct] = useState<number>(debugInit?.sizePct ?? 100);
   const [dragging, setDragging] = useState(false);
-  const [cellOffsets, setCellOffsets] = useState<Record<number, { x: number; y: number }>>(() => {
+
+  // Смещения и размеры клеток храним в ПРОЦЕНТАХ от размера доски —
+  // так одна и та же разметка корректно работает и на десктопе, и на мобильном.
+  // {xPct, yPct} — сдвиг в % от ширины/высоты доски.
+  // {wPct, hPct} — прибавка к ширине/высоте клетки в % от ширины/высоты доски.
+  const [cellOffsets, setCellOffsets] = useState<Record<number, { xPct: number; yPct: number }>>(() => {
     if (typeof window === "undefined") return {};
     try {
       const raw = window.localStorage.getItem("lila:debug:cell-offsets");
-      return raw ? JSON.parse(raw) : {};
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      // Миграция: старый формат {x, y} в px → пересчитаем при первом рендере через ResizeObserver.
+      const out: Record<number, { xPct: number; yPct: number }> = {};
+      Object.entries(parsed).forEach(([k, v]: [string, any]) => {
+        if (typeof v?.xPct === "number") out[+k] = { xPct: v.xPct, yPct: v.yPct ?? 0 };
+        else if (typeof v?.x === "number") out[+k] = { xPct: v.x, yPct: v.y ?? 0, _legacyPx: true } as any;
+      });
+      return out;
     } catch { return {}; }
   });
-  const [cellSizes, setCellSizes] = useState<Record<number, { w: number; h: number }>>(() => {
+  const [cellSizes, setCellSizes] = useState<Record<number, { wPct: number; hPct: number }>>(() => {
     if (typeof window === "undefined") return {};
     try {
       const raw = window.localStorage.getItem("lila:debug:cell-sizes");
-      return raw ? JSON.parse(raw) : {};
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      const out: Record<number, { wPct: number; hPct: number }> = {};
+      Object.entries(parsed).forEach(([k, v]: [string, any]) => {
+        if (typeof v?.wPct === "number") out[+k] = { wPct: v.wPct, hPct: v.hPct ?? 0 };
+        else if (typeof v?.w === "number") out[+k] = { wPct: v.w, hPct: v.h ?? 0, _legacyPx: true } as any;
+      });
+      return out;
     } catch { return {}; }
   });
+
+  // Живой размер доски — нужен, чтобы конвертировать px-жесты в проценты
+  // и рендерить сохранённые проценты обратно в px.
+  const boardRef = useRef<HTMLDivElement | null>(null);
+  const [boardSize, setBoardSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = boardRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setBoardSize({ w: r.width, h: r.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Однократная миграция legacy px → %, как только известен размер доски.
+  useEffect(() => {
+    if (!boardSize.w || !boardSize.h) return;
+    setCellOffsets((prev) => {
+      let changed = false;
+      const next: Record<number, { xPct: number; yPct: number }> = {};
+      Object.entries(prev).forEach(([k, v]: [string, any]) => {
+        if (v?._legacyPx) {
+          changed = true;
+          next[+k] = { xPct: (v.xPct / boardSize.w) * 100, yPct: (v.yPct / boardSize.h) * 100 };
+        } else next[+k] = v;
+      });
+      return changed ? next : prev;
+    });
+    setCellSizes((prev) => {
+      let changed = false;
+      const next: Record<number, { wPct: number; hPct: number }> = {};
+      Object.entries(prev).forEach(([k, v]: [string, any]) => {
+        if (v?._legacyPx) {
+          changed = true;
+          next[+k] = { wPct: (v.wPct / boardSize.w) * 100, hPct: (v.hPct / boardSize.h) * 100 };
+        } else next[+k] = v;
+      });
+      return changed ? next : prev;
+    });
+    // one-shot
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardSize.w > 0 && boardSize.h > 0]);
 
   // ref для подавления клика по клетке сразу после её перетаскивания
   const suppressClickRef = useRef<number | null>(null);
@@ -124,18 +190,23 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     } catch {}
   }, [aspectW, aspectH, gapPct, padPct, offset, sizePct]);
 
+
   function onCellResizeStart(e: React.PointerEvent, id: number) {
     if (!debug) return;
     e.stopPropagation();
     e.preventDefault();
-    const cur = cellSizes[id] ?? { w: 0, h: 0 };
+    const cur = cellSizes[id] ?? { wPct: 0, hPct: 0 };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, w: cur.w, h: cur.h };
+    (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, wPct: cur.wPct, hPct: cur.hPct };
   }
   function onCellResizeMove(e: React.PointerEvent) {
     const r = (e.currentTarget as any)._resize;
     if (!r) return;
-    setCellSizes((prev) => ({ ...prev, [r.id]: { w: r.w + (e.clientX - r.startX), h: r.h + (e.clientY - r.startY) } }));
+    const bw = boardSize.w || 1;
+    const bh = boardSize.h || 1;
+    const dxPct = ((e.clientX - r.startX) / bw) * 100;
+    const dyPct = ((e.clientY - r.startY) / bh) * 100;
+    setCellSizes((prev) => ({ ...prev, [r.id]: { wPct: r.wPct + dxPct, hPct: r.hPct + dyPct } }));
   }
   function onCellResizeEnd(e: React.PointerEvent) {
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
@@ -149,9 +220,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       e.stopPropagation();
       e.preventDefault();
       const id = Number(cellEl.dataset.cellId);
-      const cur = cellOffsets[id] ?? { x: 0, y: 0 };
+      const cur = cellOffsets[id] ?? { xPct: 0, yPct: 0 };
       cellEl.setPointerCapture(e.pointerId);
-      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, ox: cur.x, oy: cur.y, moved: false };
+      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, oxPct: cur.xPct, oyPct: cur.yPct, moved: false };
       return;
     }
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -163,10 +234,12 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     const cellEl = (e.target as HTMLElement).closest("[data-cell-id]") as HTMLElement | null;
     const cd = cellEl && (cellEl as any)._cellDrag;
     if (cd) {
-      const nx = cd.ox + (e.clientX - cd.startX);
-      const ny = cd.oy + (e.clientY - cd.startY);
-      if (Math.abs(nx - cd.ox) + Math.abs(ny - cd.oy) > 3) cd.moved = true;
-      setCellOffsets((prev) => ({ ...prev, [cd.id]: { x: nx, y: ny } }));
+      const bw = boardSize.w || 1;
+      const bh = boardSize.h || 1;
+      const nxPct = cd.oxPct + ((e.clientX - cd.startX) / bw) * 100;
+      const nyPct = cd.oyPct + ((e.clientY - cd.startY) / bh) * 100;
+      if (Math.abs(nxPct - cd.oxPct) + Math.abs(nyPct - cd.oyPct) > 0.5) cd.moved = true;
+      setCellOffsets((prev) => ({ ...prev, [cd.id]: { xPct: nxPct, yPct: nyPct } }));
       return;
     }
     if (!dragging) return;
@@ -198,8 +271,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   /** Shift+двойной клик по клетке в debug — выровнять весь её ряд по этой клетке. */
   function alignRowTo(id: number) {
     const { row } = rowColForId(id);
-    const size = cellSizes[id] ?? { w: 0, h: 0 };
-    const off = cellOffsets[id] ?? { x: 0, y: 0 };
+    const size = cellSizes[id] ?? { wPct: 0, hPct: 0 };
+    const off = cellOffsets[id] ?? { xPct: 0, yPct: 0 };
     const rowIds: number[] = [];
     for (let c = 0; c < COLS; c++) rowIds.push(idForRowCol(row, c));
     setCellSizes((prev) => {
@@ -210,10 +283,11 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     setCellOffsets((prev) => {
       const next = { ...prev };
       // выравниваем по вертикали (y), горизонталь оставляем сеточную (x=0)
-      rowIds.forEach((cid) => { next[cid] = { x: 0, y: off.y }; });
+      rowIds.forEach((cid) => { next[cid] = { xPct: 0, yPct: off.yPct }; });
       return next;
     });
   }
+
 
   useEffect(() => {
     purgeLegacyLayoutStorage();
@@ -243,6 +317,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
 
       <div className={debug ? "overflow-auto max-h-[80dvh] rounded-2xl" : (zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : "")}>
         <div
+          ref={boardRef}
           data-lila-board
           onPointerDown={onDragStart}
           onPointerMove={onDragMove}
@@ -355,11 +430,11 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   style={{
                     gridColumn: col + 1,
                     gridRow: visualRow + 1,
-                    transform: co ? `translate(${co.x}px, ${co.y}px)` : undefined,
+                    transform: co ? `translate(${(co.xPct * boardSize.w) / 100}px, ${(co.yPct * boardSize.h) / 100}px)` : undefined,
                     touchAction: debug ? "none" : undefined,
                     zIndex: co || cs ? 15 : undefined,
-                    width: cs ? `calc(100% + ${cs.w}px)` : undefined,
-                    height: cs ? `calc(100% + ${cs.h}px)` : undefined,
+                    width: cs ? `calc(100% + ${(cs.wPct * boardSize.w) / 100}px)` : undefined,
+                    height: cs ? `calc(100% + ${(cs.hPct * boardSize.h) / 100}px)` : undefined,
                   }}
                   className={`relative flex items-end justify-center rounded-[6px] p-0.5 text-center select-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 cursor-pointer hover:brightness-125 ${tint} ${stateRing} ${
                     isVisited ? "brightness-110" : ""
