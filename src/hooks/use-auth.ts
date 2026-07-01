@@ -9,21 +9,27 @@ export function useAuth() {
     let cancelled = false;
 
     const ensureSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.user) {
+          if (!cancelled) {
+            setUserId(data.session.user.id);
+            setReady(true);
+          }
+          return;
+        }
+        const { data: signed, error } = await supabase.auth.signInAnonymously();
         if (!cancelled) {
-          setUserId(data.session.user.id);
+          if (error) console.error("[auth] anonymous sign-in failed", error);
+          setUserId(signed?.user?.id ?? null);
           setReady(true);
         }
-        return;
-      }
-      const { data: signed, error } = await supabase.auth.signInAnonymously();
-      if (!cancelled) {
-        if (error) {
-          console.error("[auth] anonymous sign-in failed", error);
-        }
-        setUserId(signed.user?.id ?? null);
-        setReady(true);
+      } catch (e) {
+        // Telegram iOS WKWebView может блокировать localStorage/куки —
+        // в этом случае supabase-клиент кидает исключение. Не блокируем UI:
+        // отпускаем ready=true, приложение будет работать без сессии.
+        console.error("[auth] session init failed", e);
+        if (!cancelled) setReady(true);
       }
     };
 
