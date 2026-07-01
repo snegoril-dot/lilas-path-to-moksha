@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Share2, Save, BookOpen, Clipboard, AlertTriangle } from "lucide-react";
+import { Share2, Save, BookOpen, Clipboard, AlertTriangle, MessageSquarePlus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection, getJournal } from "@/lib/guru.functions";
