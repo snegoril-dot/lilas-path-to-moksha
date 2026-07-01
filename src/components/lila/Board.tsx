@@ -892,8 +892,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           </button>
           <button
             onClick={() => {
-              setAspectW(COLS);
-              setAspectH(ROWS);
+              setAspectW(IMAGE_ASPECT_W);
+              setAspectH(IMAGE_ASPECT_H);
               setGapPct(DEFAULT_GAP_PCT);
               setPadPct(DEFAULT_PAD_PCT);
               setOffset({x:0,y:0});
