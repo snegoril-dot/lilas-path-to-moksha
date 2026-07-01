@@ -198,6 +198,43 @@ service role после успешной проверки. Никакие ток
 [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) — безопасность,
 геймплей, Telegram, мобильный UX, приватность, контент, тесты, запуск.
 
+### Известные ограничения беты
+
+- Ручной smoke-тест на всех клиентах Telegram (iOS / Android / Desktop / Web) —
+  предстоит пройти на реальных устройствах.
+- Скриншоты и промо-GIF для анонса — в работе.
+- `VITE_SUPPORT_TG_USERNAME` по умолчанию `lila_support` — замените на боевой
+  @username поддержки до открытия беты.
+- `send-reminders` cron нужно активировать вручную через `pg_cron`
+  (см. миграцию/SQL ниже) — по умолчанию напоминания не рассылаются.
+
+### Cron: напоминания о практиках
+
+Endpoint: `POST /api/public/practice/send-reminders`, защищён shared-secret
+заголовком `x-cron-secret` (`PRACTICE_CRON_SECRET`). Регистрация в `pg_cron`:
+
+```sql
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select cron.schedule(
+  'lila-practice-reminders',
+  '*/5 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://<PROD_DOMAIN>/api/public/practice/send-reminders',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-cron-secret', '<PRACTICE_CRON_SECRET>'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
+
+Проверка: `select * from cron.job_run_details order by start_time desc limit 10;`.
+
 ## Обратная связь и бета-тестирование
 
 Мы собираем два вида обратной связи:

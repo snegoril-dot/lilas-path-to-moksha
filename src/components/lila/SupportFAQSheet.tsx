@@ -7,7 +7,12 @@ interface Props {
   onClose: () => void;
 }
 
-const SUPPORT_URL = "https://t.me/support_bot";
+// Реальный @username поддержки задаётся через `VITE_SUPPORT_TG_USERNAME` в .env.
+// Плейсхолдер `lila_support` — замени на продовый до открытия беты.
+const SUPPORT_USERNAME =
+  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SUPPORT_TG_USERNAME ??
+  "lila_support";
+const SUPPORT_URL = `https://t.me/${SUPPORT_USERNAME}`;
 
 const FAQ: { q: string; a: string }[] = [
   {
@@ -60,7 +65,7 @@ export function SupportFAQSheet({ open, onClose }: Props) {
             <span className="flex items-center gap-2 text-sm font-medium">
               <MessageCircle size={16} /> Написать в поддержку
             </span>
-            <span className="text-xs opacity-70">@support_bot</span>
+            <span className="text-xs opacity-70">@{SUPPORT_USERNAME}</span>
           </a>
 
           <div>
