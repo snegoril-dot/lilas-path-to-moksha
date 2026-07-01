@@ -45,13 +45,15 @@ export function useIsAdmin() {
 
     check();
     const { data: sub } = supabase.auth.onAuthStateChange(() => check());
-    window.addEventListener("lila:admin-role-refresh", check);
-    document.addEventListener("visibilitychange", () => {
+    const onVisible = () => {
       if (document.visibilityState === "visible") check();
-    });
+    };
+    window.addEventListener("lila:admin-role-refresh", check);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       window.removeEventListener("lila:admin-role-refresh", check);
+      document.removeEventListener("visibilitychange", onVisible);
       sub.subscription.unsubscribe();
     };
   }, []);
