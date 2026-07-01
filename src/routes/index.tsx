@@ -26,6 +26,7 @@ import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
+import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
