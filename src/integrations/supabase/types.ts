@@ -637,6 +637,7 @@ export type Database = {
         }[]
       }
       trigger_practice_reminders: { Args: never; Returns: number }
+      trigger_weekly_digest: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
