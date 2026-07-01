@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
+import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 
