@@ -109,6 +109,9 @@ export function SettingsSheet(props: Props) {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
 
+  useEffect(() => onPaywallOpen(() => setPaywallOpen(true)), []);
+
+
   const isBeta = true;
   const cellInfo = currentCell > 0 ? BOARD[currentCell - 1] : null;
   const statusText = won
