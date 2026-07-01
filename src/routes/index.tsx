@@ -792,7 +792,7 @@ function Index() {
         onSkip={() => closeReflection(null)}
       />
       <WinOverlay
-        open={won}
+        open={won && winOpen}
         onRestart={doRestart}
         sankalpa={sankalpa}
         keyCells={keyCells}
@@ -801,6 +801,23 @@ function Index() {
         startedAt={startedAt}
         sessionId={sessionIdRef.current}
         currentCell={pos}
+      />
+      <CurrentCellSheet
+        cellId={landedOpen ? landed?.cell ?? null : null}
+        fromCellId={landed?.from ?? null}
+        jumpKind={landed?.kind ?? null}
+        sankalpa={sankalpa}
+        sessionId={sessionIdRef.current}
+        onContinue={() => setLandedOpen(false)}
+        onAskGuru={(cellId) => {
+          setLandedOpen(false);
+          setGuruCtx({
+            cell: cellId,
+            cellName: (BOARD[cellId - 1] ?? BOARD[0]).name,
+            sankalpa,
+            recentPath: pathLog.slice(-8),
+          });
+        }}
       />
       <PauseSheet
         open={pauseOpen}
