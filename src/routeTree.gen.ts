@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
 import { Route as ApiAuthTelegramRouteImport } from './routes/api/auth.telegram'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
+import { Route as ApiPublicPracticeSendRemindersRouteImport } from './routes/api/public/practice/send-reminders'
 
 const JournalRoute = JournalRouteImport.update({
   id: '/journal',
@@ -47,6 +48,12 @@ const ApiPublicTelegramWebhookRoute =
     path: '/api/public/telegram/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPracticeSendRemindersRoute =
+  ApiPublicPracticeSendRemindersRouteImport.update({
+    id: '/api/public/practice/send-reminders',
+    path: '/api/public/practice/send-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/journal': typeof JournalRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
+  '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/journal': typeof JournalRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
+  '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRoutesById {
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/journal': typeof JournalRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
+  '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRouteTypes {
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/api/auth/telegram'
     | '/api/guru/chat'
+    | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -89,6 +100,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/api/auth/telegram'
     | '/api/guru/chat'
+    | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
   id:
     | '__root__'
@@ -97,6 +109,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/api/auth/telegram'
     | '/api/guru/chat'
+    | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -106,6 +119,7 @@ export interface RootRouteChildren {
   JournalRoute: typeof JournalRoute
   ApiAuthTelegramRoute: typeof ApiAuthTelegramRoute
   ApiGuruChatRoute: typeof ApiGuruChatRoute
+  ApiPublicPracticeSendRemindersRoute: typeof ApiPublicPracticeSendRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
 }
 
@@ -153,6 +167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/practice/send-reminders': {
+      id: '/api/public/practice/send-reminders'
+      path: '/api/public/practice/send-reminders'
+      fullPath: '/api/public/practice/send-reminders'
+      preLoaderRoute: typeof ApiPublicPracticeSendRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,6 +183,7 @@ const rootRouteChildren: RootRouteChildren = {
   JournalRoute: JournalRoute,
   ApiAuthTelegramRoute: ApiAuthTelegramRoute,
   ApiGuruChatRoute: ApiGuruChatRoute,
+  ApiPublicPracticeSendRemindersRoute: ApiPublicPracticeSendRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
 }
 export const routeTree = rootRouteImport

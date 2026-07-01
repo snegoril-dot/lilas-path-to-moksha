@@ -1,0 +1,2 @@
+ALTER TABLE public.practice_sessions ADD COLUMN IF NOT EXISTS reminder_sent_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_practice_sessions_due_reminder ON public.practice_sessions (status, due_at) WHERE status = 'active' AND reminder_sent_at IS NULL;

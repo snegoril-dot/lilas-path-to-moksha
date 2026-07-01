@@ -11,7 +11,9 @@ import { BOARD } from "@/lib/lila-board";
 import { OnboardingModal } from "./OnboardingModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
+import { RemindersToggles } from "./RemindersToggles";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { BellRing } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -293,6 +295,10 @@ export function SettingsSheet(props: Props) {
               >
                 <Sparkles size={14} /> Показать вступление ещё раз
               </button>
+            </Section>
+
+            <Section title="Напоминания" icon={<BellRing size={16} />}>
+              <RemindersToggles />
             </Section>
 
             <Section title="Приватность" icon={<Shield size={16} />}>
