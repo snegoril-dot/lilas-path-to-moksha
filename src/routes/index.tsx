@@ -318,6 +318,7 @@ function Index() {
         data: {
           id: sessionIdRef.current,
           sankalpa: sankalpa || undefined,
+          mode,
           result: "moksha",
           currentCell: pos,
           movesCount: totalRolls,
@@ -342,7 +343,7 @@ function Index() {
         },
       }).catch((e) => console.error("[saveSession]", e));
     }
-  }, [won, sankalpa, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
+  }, [won, sankalpa, mode, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
 
 
   const animateStep = useCallback(
