@@ -712,6 +712,7 @@ function Index() {
         debug={debug}
         onToggleDebug={() => setDebug((d) => !d)}
       />
+      <SaveIndicator state={saveState} />
     </div>
   );
 }
