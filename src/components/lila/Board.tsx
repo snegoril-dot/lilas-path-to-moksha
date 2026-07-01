@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
 import boardBgAsset from "@/assets/lila-board-cosmos.png.asset.json";
 const boardBg = boardBgAsset.url;
