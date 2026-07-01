@@ -167,6 +167,7 @@ function JournalPage() {
                 const meta = KIND_META[kind];
                 const open = openId === e.id;
                 const text = e.user_text ?? "";
+                const exp = e.cell ? getCellExperience(e.cell) : null;
                 return (
                   <li
                     key={e.id}
@@ -181,9 +182,14 @@ function JournalPage() {
                         {meta.emoji}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-[11px] opacity-70">
+                        <div className="flex items-center gap-2 text-[11px] opacity-70 flex-wrap">
                           <span className="font-medium">{meta.label}</span>
-                          {e.cell && <span>· Клетка {e.cell}</span>}
+                          {e.cell && (
+                            <span>
+                              · Клетка {e.cell}
+                              {exp ? ` · ${exp.cell.name}` : ""}
+                            </span>
+                          )}
                           <span className="ml-auto">{fmtTime(e.created_at)}</span>
                         </div>
                         <div className="mt-1 text-sm text-amber-50/90 leading-snug">
@@ -204,6 +210,15 @@ function JournalPage() {
                           <p className="text-sm leading-relaxed whitespace-pre-line text-amber-50/95">
                             {text}
                           </p>
+                        )}
+                        {exp && (
+                          <div className="rounded-xl bg-white/5 ring-1 ring-white/10 px-3 py-2 space-y-1.5 text-xs">
+                            <div className="text-amber-100/90">{exp.shortMeaning}</div>
+                            <div className="opacity-70">
+                              <span className="opacity-60">Вопрос: </span>
+                              {exp.reflectionQuestion}
+                            </div>
+                          </div>
                         )}
                         {e.ai_reflection && (
                           <div className="text-xs leading-relaxed text-amber-100/90 bg-amber-300/5 ring-1 ring-amber-300/20 rounded-xl px-3 py-2 whitespace-pre-line">
