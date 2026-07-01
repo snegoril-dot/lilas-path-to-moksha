@@ -644,7 +644,16 @@ function Index() {
             }
             // Рефлексия: пауза с заметкой о связи с Санкальпой.
             pendingResume.current = doJump;
+            trackEvent("reflection_opened", { cell: landed.id, sessionId: sessionIdRef.current });
             setReflection({
+              fromId: landed.id,
+              fromName: landed.name,
+              toId: final,
+              toName: dest.name,
+              kind,
+            });
+          }, reduceMotion ? 500 : 1300);
+
               fromId: landed.id,
               fromName: landed.name,
               toId: final,
