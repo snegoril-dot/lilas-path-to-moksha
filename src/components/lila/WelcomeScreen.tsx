@@ -18,7 +18,12 @@ export function WelcomeScreen({
   const [mode, setMode] = useState<GameMode>("classic");
 
   const [achOpen, setAchOpen] = useState(false);
+  const [onbOpen, setOnbOpen] = useState(false);
   const inTg = isInTelegram();
+
+  useEffect(() => {
+    if (!hasSeenOnboarding()) setOnbOpen(true);
+  }, []);
 
   const handleStart = () => {
     haptic("medium");
