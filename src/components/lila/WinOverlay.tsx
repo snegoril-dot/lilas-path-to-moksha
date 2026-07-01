@@ -123,16 +123,23 @@ export function WinOverlay({
             transition={{ delay: 0.3 }}
             className="text-3xl font-bold bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent"
           >
-            Мокша
+            Путь завершён
           </motion.h1>
           <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.45 }}
-            className="mt-3 max-w-sm text-amber-100/90 leading-relaxed"
+            transition={{ delay: 0.4 }}
+            className="mt-1 text-amber-100/90 text-lg"
           >
-            Ты достиг Кайласа. Игра окончена — ибо тот, кто играл, растворился
-            в Том, кто всегда был.
+            Ты достиг Мокши
+          </motion.p>
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.45 }}
+            className="mt-3 max-w-sm text-amber-100/70 text-sm leading-relaxed"
+          >
+            Игра прошла до конца. Ниже — тихий взгляд на пройденный путь.
           </motion.p>
 
           <motion.div
@@ -149,6 +156,7 @@ export function WinOverlay({
               totalRolls={totalRolls ?? 0}
               keyCells={keyCells}
               sessionId={sessionId}
+              pathLog={pathLog}
             />
             {mode && (
               <div className="mt-2 text-[10px] uppercase tracking-wider opacity-50 text-center">
@@ -156,6 +164,7 @@ export function WinOverlay({
               </div>
             )}
           </motion.div>
+
 
           {newAch.length > 0 && (
             <motion.div
