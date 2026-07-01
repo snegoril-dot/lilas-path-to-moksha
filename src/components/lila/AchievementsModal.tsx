@@ -19,6 +19,7 @@ export function AchievementsModal({
   onClose: () => void;
 }) {
   const { initialRef } = useDialogA11y(open, onClose);
+  useTelegramBackButton(open, onClose);
   const load = useServerFn(getMySessions);
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
