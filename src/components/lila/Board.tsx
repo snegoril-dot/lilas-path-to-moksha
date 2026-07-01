@@ -162,7 +162,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     const cd = cellEl && (cellEl as any)._cellDrag;
     if (cd) {
       try { cellEl!.releasePointerCapture(e.pointerId); } catch {}
-      if (cd.moved) { e.stopPropagation(); e.preventDefault(); }
+      if (cd.moved) {
+        e.stopPropagation();
+        e.preventDefault();
+        // подавляем ближайший click по этой клетке, чтобы модалка не открывалась
+        suppressClickRef.current = cd.id;
+        window.setTimeout(() => {
+          if (suppressClickRef.current === cd.id) suppressClickRef.current = null;
+        }, 300);
+      }
       delete (cellEl as any)._cellDrag;
       return;
     }
@@ -170,8 +178,25 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
   }
 
-
-  useEffect(() => {
+  /** Shift+двойной клик по клетке в debug — выровнять весь её ряд по этой клетке. */
+  function alignRowTo(id: number) {
+    const { row } = rowColForId(id);
+    const size = cellSizes[id] ?? { w: 0, h: 0 };
+    const off = cellOffsets[id] ?? { x: 0, y: 0 };
+    const rowIds: number[] = [];
+    for (let c = 0; c < COLS; c++) rowIds.push(idForRowCol(row, c));
+    setCellSizes((prev) => {
+      const next = { ...prev };
+      rowIds.forEach((cid) => { next[cid] = { ...size }; });
+      return next;
+    });
+    setCellOffsets((prev) => {
+      const next = { ...prev };
+      // выравниваем по вертикали (y), горизонталь оставляем сеточную (x=0)
+      rowIds.forEach((cid) => { next[cid] = { x: 0, y: off.y }; });
+      return next;
+    });
+  }
     purgeLegacyLayoutStorage();
   }, []);
 
