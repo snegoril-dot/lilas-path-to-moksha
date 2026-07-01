@@ -63,32 +63,32 @@ async function sendMessage(
   }
 }
 
-const WELCOME = `🕉 <b>Намасте, странник.</b>
+const WELCOME = `🕉 <b>Добро пожаловать в Lila’s Path to Moksha.</b>
 
-Это <b>Лила</b> — древняя игра самопознания.
-Здесь кубик — не случай, а зеркало твоей жизни.
+Это цифровой путь Лилы — игра-созерцание, где клетки, змеи, лестницы и твои собственные инсайты помогают взглянуть на Санкальпу глубже.
 
-Сформулируй <i>Санкальпу</i> — вопрос или намерение, с которым ты входишь в игру, и путь души даст на него ответ.
+Нажми кнопку ниже, чтобы войти в путь.`;
 
-Нажми кнопку ниже, чтобы открыть игру.`;
+const CONTINUE = `🌿 Если путь уже начат, ты можешь вернуться к нему и продолжить с того места, где остановился.`;
 
-const CONTINUE = `🌿 Путь ждёт тебя.
+const JOURNAL = `📓 <b>Дневник пути</b>
 
-Каждый бросок — шаг внутрь. Каждая клетка — послание.
-Открой Лилу и продолжи там, где остановился.`;
+В дневнике собираются твои инсайты — заметки, которые ты оставляешь на ключевых клетках. Открой Мини-приложение, чтобы посмотреть их.`;
 
 const HELP = `📜 <b>Как играть в Лилу</b>
 
-• <b>Что это</b> — классическая индийская игра-медитация (Джнана Лила) о пути души через 72 состояния сознания к Мокше.
-• <b>Как начать</b> — открой Мини-приложение кнопкой «Открыть Лилу», сформулируй Санкальпу и брось кубик. В игру ты входишь, выбросив шестёрку.
-• <b>Санкальпа</b> — намерение или вопрос. Чем честнее вопрос, тем яснее ответ.
+• <b>Что это</b> — классическая индийская игра-медитация (Джнана Лила): путь души через 72 состояния сознания к Мокше.
+• <b>Санкальпа</b> — намерение или вопрос, с которым ты входишь в игру. Чем честнее вопрос, тем яснее ответ.
+• <b>Кубик и клетки</b> — каждый бросок ведёт на новую клетку. В игру ты входишь, выбросив шестёрку. Каждая клетка — маленькое зеркало и приглашение к размышлению.
+• <b>Змеи и лестницы</b> — не наказание и не награда, а мягкие подсказки: что тянет вниз и что поднимает выше.
 
 Команды:
 /start — начать заново
 /continue — продолжить путь
+/journal — открыть дневник
 /help — эта справка
 
-⚠️ Лила — это <b>рефлексивная практика</b>, а не медицинская, психологическая или психотерапевтическая помощь. Если тебе тяжело — обратись к специалисту.`;
+⚠️ Лила — это <b>рефлексивная практика</b>, а не гадание и не замена медицинской, психологической или психотерапевтической помощи. Если тебе тяжело — обратись к специалисту.`;
 
 async function handleCommand(
   token: string,
@@ -98,17 +98,29 @@ async function handleCommand(
   const text = (msg.text ?? "").trim();
   // Strip @botname suffix that Telegram appends in groups.
   const cmd = text.split(/\s+/)[0].split("@")[0].toLowerCase();
-  const kb = miniAppKeyboard(miniAppUrl);
 
   switch (cmd) {
     case "/start":
-      await sendMessage(token, msg.chat.id, WELCOME, kb);
+      await sendMessage(token, msg.chat.id, WELCOME, miniAppKeyboard(miniAppUrl));
       return;
     case "/continue":
-      await sendMessage(token, msg.chat.id, CONTINUE, kb);
+      await sendMessage(
+        token,
+        msg.chat.id,
+        CONTINUE,
+        miniAppKeyboard(miniAppUrl, "▶️ Продолжить путь"),
+      );
+      return;
+    case "/journal":
+      await sendMessage(
+        token,
+        msg.chat.id,
+        JOURNAL,
+        miniAppKeyboard(miniAppUrl, "📓 Открыть дневник", "journal"),
+      );
       return;
     case "/help":
-      await sendMessage(token, msg.chat.id, HELP, kb);
+      await sendMessage(token, msg.chat.id, HELP, miniAppKeyboard(miniAppUrl));
       return;
     default:
       // Any other text: gently redirect to the Mini App.
@@ -116,7 +128,7 @@ async function handleCommand(
         token,
         msg.chat.id,
         "Открой игру кнопкой ниже или используй /help.",
-        kb,
+        miniAppKeyboard(miniAppUrl),
       );
   }
 }
