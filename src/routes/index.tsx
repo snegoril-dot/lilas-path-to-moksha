@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Menu } from "lucide-react";
+import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Menu, Sparkles, Eye } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
@@ -26,6 +26,7 @@ import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
+import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -65,6 +66,10 @@ function Index() {
   const pendingResume = useRef<(() => void) | null>(null);
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [pauseOpen, setPauseOpen] = useState(false);
+  // "Landed" experience — focused card shown after each successful move.
+  const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
+  const [landedOpen, setLandedOpen] = useState(false);
+  const [winOpen, setWinOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -228,6 +233,9 @@ function Index() {
     setSankalpa("");
     setMode("classic");
     setStartedAt(null);
+    setLanded(null);
+    setLandedOpen(false);
+    setWinOpen(false);
   }, [persistAbandon]);
 
   // Клик по «Начать заново» посреди игры → открываем итог сессии,
@@ -365,6 +373,11 @@ function Index() {
   }, [won, sankalpa, mode, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
 
 
+  // Открывать оверлей победы, когда игрок достиг Мокши.
+  useEffect(() => {
+    if (won) setWinOpen(true);
+  }, [won]);
+
   const animateStep = useCallback(
     (from: number, to: number, onDone: () => void) => {
       if (from === to) {
@@ -387,8 +400,19 @@ function Index() {
     [reduceMotion]
   );
 
+  const openLanded = useCallback(
+    (cell: number, opts?: { from?: number; kind?: "snake" | "ladder" }) => {
+      setLanded({ cell, from: opts?.from, kind: opts?.kind });
+      setLandedOpen(true);
+    },
+    []
+  );
+
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
+    // New roll → hide any previous landed sheet.
+    setLandedOpen(false);
+    setLanded(null);
     setRolling(true);
     // Классическое правило: игрок должен сам выбросить шестёрку, чтобы войти в игру.
     const value = rollDice(getRuntimeRng());
@@ -436,6 +460,7 @@ function Index() {
           if (!entry.mercy) {
             addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
           }
+          openLanded(1);
           setRolling(false);
         });
       }, diceDelay);
@@ -549,6 +574,7 @@ function Index() {
                 }, 600);
               } else {
                 addMsg(`Ты постигаешь «${dest.name}». ${dest.wisdom}`, "guru");
+                openLanded(final, { from: landed.id, kind });
                 finishTurn();
               }
             });
@@ -572,11 +598,12 @@ function Index() {
         } else {
           addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
+          openLanded(landed.id);
           finishTurn();
         }
       });
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
@@ -699,15 +726,35 @@ function Index() {
       <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[var(--lila-surface)]/90 backdrop-blur-md border-t border-white/10">
         <div className="flex items-center gap-2">
           <Dice value={dice} rolling={rolling} />
-          <button
-            onClick={() => { haptic("medium"); handleRoll(); }}
-            disabled={rolling || won}
-            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Бросить кубик"
-          >
-            <DiceIcon size={20} />
-            Бросить
-          </button>
+          {won ? (
+            <button
+              onClick={() => { haptic("medium"); setWinOpen(true); }}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition"
+              aria-label="Посмотреть итог пути"
+            >
+              <Eye size={20} />
+              Посмотреть итог пути
+            </button>
+          ) : landed && !landedOpen ? (
+            <button
+              onClick={() => { haptic("light"); setLandedOpen(true); }}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition"
+              aria-label="Осмыслить клетку"
+            >
+              <Sparkles size={20} />
+              Осмыслить клетку
+            </button>
+          ) : (
+            <button
+              onClick={() => { haptic("medium"); handleRoll(); }}
+              disabled={rolling}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Бросить кубик"
+            >
+              <DiceIcon size={20} />
+              Бросить кубик
+            </button>
+          )}
           <button
             onClick={() => { haptic("light"); setCellOpen(pos === 0 ? 1 : pos); }}
             className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
@@ -745,7 +792,7 @@ function Index() {
         onSkip={() => closeReflection(null)}
       />
       <WinOverlay
-        open={won}
+        open={won && winOpen}
         onRestart={doRestart}
         sankalpa={sankalpa}
         keyCells={keyCells}
@@ -754,6 +801,23 @@ function Index() {
         startedAt={startedAt}
         sessionId={sessionIdRef.current}
         currentCell={pos}
+      />
+      <CurrentCellSheet
+        cellId={landedOpen ? landed?.cell ?? null : null}
+        fromCellId={landed?.from ?? null}
+        jumpKind={landed?.kind ?? null}
+        sankalpa={sankalpa}
+        sessionId={sessionIdRef.current}
+        onContinue={() => setLandedOpen(false)}
+        onAskGuru={(cellId) => {
+          setLandedOpen(false);
+          setGuruCtx({
+            cell: cellId,
+            cellName: (BOARD[cellId - 1] ?? BOARD[0]).name,
+            sankalpa,
+            recentPath: pathLog.slice(-8),
+          });
+        }}
       />
       <PauseSheet
         open={pauseOpen}
