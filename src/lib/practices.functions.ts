@@ -218,7 +218,6 @@ export const listJournalEntries = createServerFn({ method: "GET" })
       .object({
         limit: z.number().int().min(1).max(100).default(30),
       })
-      .default({})
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
