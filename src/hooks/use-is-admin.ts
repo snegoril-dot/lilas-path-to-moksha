@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { checkIsAdmin } from "@/lib/admin.functions";
 
 /**
- * Возвращает { isAdmin, loading }. Роль хранится в отдельной таблице
- * public.user_roles и проверяется через has_role (SECURITY DEFINER).
+ * Возвращает { isAdmin, loading }.
+ * Двухуровневая проверка (defense-in-depth):
+ * 1) Серверная функция checkIsAdmin — авторитетный источник (SECURITY DEFINER has_role).
+ * 2) Клиентское чтение user_roles с RLS — как fallback при недоступности сервера.
+ * Роль admin выдаётся только через service_role (INSERT в user_roles закрыт RLS).
  */
 export function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -23,15 +27,15 @@ export function useIsAdmin() {
         }
         return;
       }
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (cancelled) return;
-      setIsAdmin(!error && !!data);
-      setLoading(false);
+      try {
+        const res = await checkIsAdmin();
+        if (cancelled) return;
+        setIsAdmin(res.isAdmin === true);
+      } catch {
+        if (!cancelled) setIsAdmin(false);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
 
     check();
