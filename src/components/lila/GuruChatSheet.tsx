@@ -1,18 +1,60 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Check, Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
-import { useTelegramBackButton } from "@/hooks/use-telegram";
+import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { supabase } from "@/integrations/supabase/client";
+import { saveReflection } from "@/lib/guru.functions";
+
+export type GuruEventKind = "normal" | "snake" | "ladder" | "moksha" | "waiting";
 
 export interface GuruChatContext {
   cell: number;
   cellName?: string;
   sankalpa?: string;
+  sessionId?: string | null;
+  eventKind?: GuruEventKind;
+  /** Passed once when opening from a note the user chose to include. */
+  includeLastReflection?: string;
+  /** Auto-sent as the first user message when the sheet opens (e.g. quick prompt). */
+  initialPrompt?: string;
   recentPath?: Array<{ cell: number; kind: string; to?: number }>;
 }
+
+const QUICK_PROMPTS: Record<GuruEventKind, string[]> = {
+  normal: [
+    "Что эта клетка показывает в моей Санкальпе?",
+    "Какой вопрос мне стоит себе задать?",
+    "Что здесь является тенью, а что даром?",
+  ],
+  snake: [
+    "Что эта змея возвращает мне для осознания?",
+    "Какое качество я не хочу видеть в себе сейчас?",
+  ],
+  ladder: [
+    "Какое качество помогло мне подняться?",
+    "Как удержать это состояние в жизни?",
+  ],
+  moksha: [
+    "Что я забираю с этого пути?",
+    "Что во мне освободилось?",
+  ],
+  waiting: [
+    "Что означает моё ожидание входа в игру?",
+    "Как я обычно встречаю неопределённость?",
+  ],
+};
+
+const EVENT_BADGE: Record<GuruEventKind, { label: string; cls: string } | null> = {
+  normal: null,
+  snake: { label: "🐍 Змея", cls: "bg-rose-500/20 ring-rose-300/40 text-rose-100" },
+  ladder: { label: "🪜 Стрела", cls: "bg-emerald-500/20 ring-emerald-300/40 text-emerald-100" },
+  moksha: { label: "✨ Мокша", cls: "bg-amber-400/25 ring-amber-200/50 text-amber-100" },
+  waiting: { label: "⏳ Ожидание", cls: "bg-sky-500/20 ring-sky-300/40 text-sky-100" },
+};
 
 export function GuruChatSheet({
   ctx,
@@ -25,7 +67,11 @@ export function GuruChatSheet({
   const { initialRef } = useDialogA11y(open, onClose);
   useTelegramBackButton(open, onClose);
   const [input, setInput] = useState("");
+  const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
+  const [saveErr, setSaveErr] = useState<string | null>(null);
+  const persist = useServerFn(saveReflection);
   const titleId = "guru-chat-title";
+  const eventKind: GuruEventKind = ctx?.eventKind ?? "normal";
 
   const transport = useMemo(
     () =>
@@ -43,20 +89,37 @@ export function GuruChatSheet({
             messages,
             cell: ctx?.cell,
             sankalpa: ctx?.sankalpa,
+            eventKind: ctx?.eventKind,
+            includeLastReflection: ctx?.includeLastReflection,
             recentPath: ctx?.recentPath,
           },
         }),
       }),
-    [ctx?.cell, ctx?.sankalpa, ctx?.recentPath]
+    [ctx?.cell, ctx?.sankalpa, ctx?.eventKind, ctx?.includeLastReflection, ctx?.recentPath]
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { messages, sendMessage, status, error, setMessages } = useChat({ transport: transport as any });
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoSentKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!open) setMessages([]);
+    if (!open) {
+      setMessages([]);
+      setSavedMsgIds(new Set());
+      setSaveErr(null);
+      autoSentKey.current = null;
+    }
   }, [open, ctx?.cell, setMessages]);
+
+  // Auto-send initial prompt once per open
+  useEffect(() => {
+    if (!open || !ctx?.initialPrompt) return;
+    const key = `${ctx.cell}:${ctx.initialPrompt}`;
+    if (autoSentKey.current === key) return;
+    autoSentKey.current = key;
+    sendMessage({ text: ctx.initialPrompt });
+  }, [open, ctx?.cell, ctx?.initialPrompt, sendMessage]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -71,6 +134,38 @@ export function GuruChatSheet({
     setInput("");
     sendMessage({ text });
   };
+
+  const sendQuick = (text: string) => {
+    if (busy) return;
+    haptic("light");
+    sendMessage({ text });
+  };
+
+  const saveAnswerToJournal = async (msgId: string, text: string) => {
+    if (!ctx || savedMsgIds.has(msgId) || !text.trim()) return;
+    setSaveErr(null);
+    try {
+      await persist({
+        data: {
+          sessionId: ctx.sessionId ?? null,
+          cell: ctx.cell,
+          userText: text.slice(0, 1200),
+          withAi: false,
+          prompt: "Ответ ИИ-Гуру",
+          sankalpa: ctx.sankalpa || undefined,
+          kind: "guru_note",
+        },
+      });
+      hapticNotify("success");
+      setSavedMsgIds((prev) => new Set(prev).add(msgId));
+    } catch (e) {
+      hapticNotify("error");
+      setSaveErr(e instanceof Error ? e.message : "Не удалось сохранить");
+    }
+  };
+
+  const badge = EVENT_BADGE[eventKind];
+  const prompts = QUICK_PROMPTS[eventKind];
 
   return (
     <AnimatePresence>
@@ -93,26 +188,36 @@ export function GuruChatSheet({
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md h-[85dvh] sm:h-[640px] rounded-t-3xl sm:rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] shadow-2xl ring-1 ring-white/10 flex flex-col"
           >
-            <div className="flex items-start justify-between p-4 border-b border-white/5 shrink-0">
-              <div>
+            <div className="flex items-start justify-between p-4 border-b border-white/5 shrink-0 gap-2">
+              <div className="min-w-0 flex-1">
                 <h3 id={titleId} className="text-base font-semibold flex items-center gap-2">
-                  <span className="inline-block h-7 w-7 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-sm">
+                  <span className="inline-block h-7 w-7 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-sm shrink-0">
                     🕉
                   </span>
                   ИИ-Гуру
                 </h3>
-                <div className="text-[11px] opacity-60 mt-0.5">
-                  Контекст: клетка {ctx.cell}
-                  {ctx.cellName ? ` · ${ctx.cellName}` : ""}
+                <div className="text-[11px] opacity-70 mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span>
+                    Отвечает на клетке {ctx.cell}
+                    {ctx.cellName ? ` · ${ctx.cellName}` : ""}
+                  </span>
+                  {badge && (
+                    <span className={`px-1.5 py-0.5 rounded-full ring-1 text-[10px] ${badge.cls}`}>
+                      {badge.label}
+                    </span>
+                  )}
                 </div>
               </div>
               <button
                 ref={initialRef}
                 onClick={onClose}
-                aria-label="Закрыть"
-                className="p-1 rounded-full hover:bg-white/10"
+                aria-label="Вернуться к клетке"
+                title="Вернуться к клетке"
+                className="p-1 rounded-full hover:bg-white/10 inline-flex items-center gap-1 text-xs opacity-80"
               >
-                <X size={20} />
+                <ArrowLeft size={16} />
+                <span className="hidden sm:inline">К клетке</span>
+                <X size={18} className="sm:hidden" />
               </button>
             </div>
 
@@ -123,33 +228,75 @@ export function GuruChatSheet({
               aria-live="polite"
             >
               {messages.length === 0 && (
-                <div className="text-sm opacity-60 leading-relaxed">
-                  Спроси Гуру о текущей клетке, своей Санкальпе или о том, что зеркалит твоя
-                  жизнь сейчас. Это AI-ассистент, а не духовный учитель — используй ответы как
-                  повод для размышления.
-                </div>
-              )}
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug whitespace-pre-wrap ${
-                      m.role === "user"
-                        ? "bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] rounded-br-md"
-                        : "bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] rounded-bl-md"
-                    }`}
-                  >
-                    {m.parts
-                      ?.map((p) => (p.type === "text" ? p.text : ""))
-                      .join("") ||
-                      ("content" in m ? String((m as { content?: string }).content ?? "") : "")}
+                <div className="space-y-3">
+                  <div className="text-sm opacity-70 leading-relaxed">
+                    Гуру — это зеркало, а не оракул. Ответы стоит воспринимать как повод для
+                    размышления, а не как истину в последней инстанции.
+                  </div>
+                  <div className="text-[11px] uppercase tracking-wider opacity-50">
+                    Быстрые вопросы
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {prompts.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => sendQuick(p)}
+                        disabled={busy}
+                        className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-50"
+                      >
+                        {p}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+              {messages.map((m) => {
+                const text =
+                  m.parts?.map((p) => (p.type === "text" ? p.text : "")).join("") ||
+                  ("content" in m ? String((m as { content?: string }).content ?? "") : "");
+                const isUser = m.role === "user";
+                const isSaved = savedMsgIds.has(m.id);
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug whitespace-pre-wrap ${
+                        isUser
+                          ? "bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] rounded-br-md"
+                          : "bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] rounded-bl-md"
+                      }`}
+                    >
+                      {text}
+                    </div>
+                    {!isUser && text.trim() && !busy && (
+                      <button
+                        onClick={() => saveAnswerToJournal(m.id, text)}
+                        disabled={isSaved}
+                        className="mt-1 ml-1 inline-flex items-center gap-1 text-[11px] text-amber-200/80 hover:text-amber-100 disabled:opacity-70"
+                      >
+                        {isSaved ? (
+                          <>
+                            <Check size={12} /> Сохранено в дневник
+                          </>
+                        ) : (
+                          <>
+                            <BookmarkPlus size={12} /> Сохранить ответ в дневник
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
               {busy && (
                 <div className="text-xs opacity-50 italic">Гуру размышляет…</div>
+              )}
+              {saveErr && (
+                <div className="text-xs text-rose-300 bg-rose-500/10 rounded-xl px-3 py-2">
+                  {saveErr}
+                </div>
               )}
               {error && (
                 <div className="text-xs text-rose-300 bg-rose-500/10 rounded-xl px-3 py-2">
