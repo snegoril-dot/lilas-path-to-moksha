@@ -572,12 +572,15 @@ function Index() {
           play("moksha"); hapticNotify("success");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
+          trackEvent("cell_landed", { cell: 68, sessionId: sessionIdRef.current });
+          trackEvent("moksha_reached", { cell: 68, sessionId: sessionIdRef.current, extra: { rolls: totalRolls } });
           setTimeout(() => {
             setWon(true);
             setRolling(false);
           }, 600);
           return;
         }
+
 
         if (jumped) {
           const dest = BOARD[final - 1];
