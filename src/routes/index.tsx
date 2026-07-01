@@ -19,6 +19,7 @@ import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
 import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
+import { useTelegramAuth } from "@/hooks/use-telegram-auth";
 import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/lib/guru.functions";
 import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
