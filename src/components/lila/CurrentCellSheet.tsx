@@ -213,6 +213,20 @@ export function CurrentCellSheet({
 
               <p className="whitespace-pre-line opacity-90">{cell.wisdom}</p>
 
+              {sankalpa && (
+                <div className="rounded-2xl bg-amber-300/10 ring-1 ring-amber-300/25 p-3 space-y-1">
+                  <div className="text-[11px] uppercase tracking-wider text-amber-100/80">
+                    В контексте твоей Санкальпы
+                  </div>
+                  <div className="text-[12px] text-amber-100/90 opacity-90 italic">
+                    «{sankalpa}»
+                  </div>
+                  <div className="text-amber-50 text-sm">
+                    Посмотри, как тема этой клетки откликается в твоём вопросе. Гуру может помочь увидеть связь точнее.
+                  </div>
+                </div>
+              )}
+
 
               <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-3 space-y-1">
                 <div className="text-[11px] uppercase tracking-wider opacity-60">

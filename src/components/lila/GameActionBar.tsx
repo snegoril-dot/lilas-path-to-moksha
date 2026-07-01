@@ -1,4 +1,5 @@
-import { Dice5 as DiceIcon, Eye, Map as MapIcon, MessageCircle, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Dice5 as DiceIcon, Eye, Map as MapIcon, MessageCircle, Sparkles } from "lucide-react";
 import { Dice } from "@/components/lila/Dice";
 import { haptic } from "@/hooks/use-telegram";
 import type { MoveEvent } from "@/lib/game-types";
@@ -39,16 +40,30 @@ export function GameActionBar({
 }: GameActionBarProps) {
   const showSankalpaHint =
     !rolling && !won && !(landed && !landedOpen) && !!sankalpa && sankalpa.trim().length > 0;
+  const [expanded, setExpanded] = useState(false);
+  const isLong = (sankalpa?.trim().length ?? 0) > 60;
   return (
     <div className="sticky bottom-0 shrink-0 z-30 px-3 pt-2 pb-safe bg-[var(--lila-surface)]/95 backdrop-blur-md border-t border-white/10">
       {showSankalpaHint && (
-        <div
-          className="mb-2 mx-0.5 px-3 py-1.5 rounded-full bg-amber-300/10 ring-1 ring-amber-300/25 text-[11px] text-amber-100/90 truncate"
-          title={sankalpa}
+        <button
+          type="button"
+          onClick={() => isLong && setExpanded((v) => !v)}
+          className={`w-full mb-2 mx-0.5 px-3 py-1.5 rounded-2xl bg-amber-300/10 ring-1 ring-amber-300/25 text-[11px] text-amber-100/90 text-left flex items-start gap-1.5 ${isLong ? "cursor-pointer" : "cursor-default"}`}
+          aria-expanded={isLong ? expanded : undefined}
+          aria-label={isLong ? (expanded ? "Свернуть Санкальпу" : "Развернуть Санкальпу") : undefined}
         >
-          <span className="opacity-60 mr-1">Санкальпа:</span>«{sankalpa}»
-        </div>
+          <span className={`flex-1 ${expanded ? "whitespace-pre-wrap break-words" : "truncate"}`}>
+            <span className="opacity-60 mr-1">Твоя Санкальпа:</span>«{sankalpa}»
+          </span>
+          {isLong && (
+            <ChevronDown
+              size={14}
+              className={`shrink-0 mt-0.5 opacity-70 transition-transform ${expanded ? "rotate-180" : ""}`}
+            />
+          )}
+        </button>
       )}
+
 
       <div className="flex items-center gap-2">
         <Dice value={dice} rolling={rolling} />
