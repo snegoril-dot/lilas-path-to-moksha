@@ -56,6 +56,57 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_feedback: {
+        Row: {
+          anon_id: string | null
+          app_version: string | null
+          cell: number | null
+          confused: string | null
+          context: string | null
+          created_at: string
+          id: string
+          improve: string | null
+          platform: string | null
+          rating: number | null
+          resonated: string | null
+          session_id: string | null
+          understood: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anon_id?: string | null
+          app_version?: string | null
+          cell?: number | null
+          confused?: string | null
+          context?: string | null
+          created_at?: string
+          id?: string
+          improve?: string | null
+          platform?: string | null
+          rating?: number | null
+          resonated?: string | null
+          session_id?: string | null
+          understood?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anon_id?: string | null
+          app_version?: string | null
+          cell?: number | null
+          confused?: string | null
+          context?: string | null
+          created_at?: string
+          id?: string
+          improve?: string | null
+          platform?: string | null
+          rating?: number | null
+          resonated?: string | null
+          session_id?: string | null
+          understood?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       game_sessions: {
         Row: {
           current_cell: number
