@@ -219,6 +219,24 @@ export const abandonSession = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// --- Last journal entry for a cell (used by return banner) ---
+export const getLastCellNote = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ cell: z.number().int().min(1).max(72) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("journal_entries")
+      .select("user_text, ai_reflection, created_at, kind")
+      .eq("cell", data.cell)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return null;
+    return row ?? null;
+  });
+
 
 // --- All sessions of the current user (for achievements) ---
 export const getMySessions = createServerFn({ method: "GET" })
