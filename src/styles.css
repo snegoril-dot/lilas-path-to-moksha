@@ -156,6 +156,9 @@
     /* Prevent horizontal scroll on narrow Telegram viewports. */
     overflow-x: hidden;
     max-width: 100vw;
+    /* Improve legibility on small mobile screens. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -165,5 +168,21 @@
     /* Ensure app fills the Telegram viewport when SDK reports it. */
     min-height: var(--tg-viewport-height, 100dvh);
   }
+
+  /* Ensure form controls don't trigger iOS zoom (font-size >= 16px). */
+  input, textarea, select {
+    font-size: 16px;
+  }
+}
+
+/* Reusable mobile helpers. */
+@utility h-app {
+  height: var(--tg-viewport-height, 100dvh);
+}
+@utility min-h-app {
+  min-height: var(--tg-viewport-height, 100dvh);
+}
+@utility pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 

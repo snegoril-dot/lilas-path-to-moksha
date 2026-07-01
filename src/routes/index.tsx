@@ -668,16 +668,19 @@ function Index() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
+    <div className="flex flex-col h-app min-h-app bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2.5 bg-[var(--lila-surface)]/80 backdrop-blur-md border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-lg shadow">
+      <div
+        className="shrink-0 flex items-center justify-between gap-2 px-3 py-2 bg-[var(--lila-surface)]/85 backdrop-blur-md border-b border-white/5"
+        style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-lg shadow">
             🕉
           </div>
-          <div className="leading-tight">
-            <div className="text-sm font-semibold flex items-center gap-2">
-              Гуру
+          <div className="leading-tight min-w-0">
+            <div className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
+              <span className="truncate">Гуру</span>
               {currentLoka && (
                 <span
                   className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r ${currentLoka.color} text-stone-900 font-bold shadow-sm`}
@@ -686,23 +689,17 @@ function Index() {
                   {currentLoka.name.split("·")[0].trim()}
                 </span>
               )}
-              <span
-                className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 ring-1 ring-white/15 opacity-80"
-                title={mode === "soft" ? "После 3 промахов шестёрка приходит сама" : "Врата открывает только настоящая 6"}
-              >
-                {mode === "soft" ? "🌿 Мягкий" : "🕉 Классика"}
-              </span>
             </div>
-            <div className="text-[11px] opacity-60">
+            <div className="text-[11px] opacity-70 truncate">
               {currentCell
                 ? `Клетка ${pos} · ${currentCell.name}`
                 : mode === "soft"
-                  ? `Душа ждёт своего часа · попытка ${entryMisses + 1}/4`
-                  : "Душа ждёт своего часа · нужна 🎲 6"}
+                  ? `Душа ждёт · попытка ${entryMisses + 1}/4`
+                  : "Душа ждёт своего часа · 🎲 6"}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={() => { haptic("light"); setTimelineOpen(true); }}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
@@ -738,16 +735,19 @@ function Index() {
         </div>
       </div>
 
-      {/* Board */}
-      <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
+      {/* Board — capped so chat stays visible on short phones. */}
+      <div className="relative z-20 shrink-0 px-2 pt-2 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
+        <div className="mx-auto w-full" style={{ maxHeight: "48dvh", maxWidth: "min(100%, calc((48dvh) * 9 / 8))" }}>
+          <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
+        </div>
       </div>
 
       {/* Chat */}
       <ChatFeed messages={messages} />
 
-      {/* Action bar */}
-      <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[var(--lila-surface)]/90 backdrop-blur-md border-t border-white/10">
+      {/* Sticky action bar — primary CTA reachable by thumb, safe-area aware. */}
+      <div className="sticky bottom-0 shrink-0 z-30 px-3 pt-2 pb-safe bg-[var(--lila-surface)]/95 backdrop-blur-md border-t border-white/10">
+
         <div className="flex items-center gap-2">
           <Dice value={dice} rolling={rolling} />
           {won ? (

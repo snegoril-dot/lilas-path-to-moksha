@@ -383,8 +383,9 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
           const isPlayer = id === playerPos;
           const isKailas = id === 68;
           const tint = PLANE_TINTS[cell.plane] ?? "bg-black/30";
-          const typeClass =
-            cell.type === "snake"
+          const typeClass = isPlayer
+            ? "ring-2 ring-emerald-300 shadow-[0_0_14px_rgba(110,231,183,0.75)]"
+            : cell.type === "snake"
               ? "ring-2 ring-rose-300/80 shadow-[inset_0_0_8px_rgba(244,63,94,0.3)]"
               : cell.type === "ladder"
                 ? "ring-2 ring-amber-200/80 shadow-[inset_0_0_8px_rgba(252,211,77,0.35)]"
@@ -428,7 +429,7 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
               ) : (
                 <>
                   <span
-                    className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-sm font-bold ${NUMBER_CLASS}`}
+                    className={`absolute inset-0 flex items-center justify-center text-[15px] sm:text-base font-extrabold ${NUMBER_CLASS}`}
                     aria-label={cell.name}
                     title={cell.name}
                   >

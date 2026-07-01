@@ -26,7 +26,7 @@ export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
       aria-live="polite"
       aria-relevant="additions"
       aria-label="Сообщения Гуру"
-      className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 bg-[var(--lila-bg)]"
+      className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 bg-[var(--lila-bg)] [scroll-padding-bottom:5rem]"
     >
       <AnimatePresence initial={false}>
         {messages.map((m) => (
@@ -45,11 +45,11 @@ export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug shadow-sm whitespace-pre-line ${
+              className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm whitespace-pre-line ${
                 m.kind === "player"
                   ? "bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#ffffff)] rounded-br-md"
                   : m.kind === "system"
-                    ? "bg-amber-400/10 text-amber-200 ring-1 ring-amber-400/30 rounded-bl-md"
+                    ? "bg-amber-400/10 text-amber-200 ring-1 ring-amber-400/30 rounded-bl-md text-sm"
                     : "bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] rounded-bl-md"
               }`}
             >
