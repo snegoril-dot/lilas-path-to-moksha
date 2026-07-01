@@ -6,10 +6,11 @@ import { z } from "zod";
 const SaveReflectionInput = z.object({
   sessionId: z.string().uuid().nullable().optional(),
   cell: z.number().int().min(1).max(72),
-  userText: z.string().max(800),
+  userText: z.string().max(1200),
   withAi: z.boolean().default(false),
   prompt: z.string().max(400).optional(),
   sankalpa: z.string().max(400).optional(),
+  kind: z.enum(["reflection", "insight", "guru"]).default("reflection"),
 });
 
 export const saveReflection = createServerFn({ method: "POST" })
