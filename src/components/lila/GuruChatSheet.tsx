@@ -146,6 +146,24 @@ export function GuruChatSheet({
     sendMessage({ text });
   };
 
+  /** Insert a pre-written Q&A locally, without hitting the AI. */
+  const sendCanned = (q: string, a: string) => {
+    if (busy) return;
+    haptic("light");
+    trackEvent("guru_message_sent", {
+      cell: ctx?.cell ?? null,
+      sessionId: ctx?.sessionId ?? null,
+      extra: { length: q.length, quick: true, canned: true },
+    });
+    const now = Date.now();
+    setMessages((prev) => [
+      ...prev,
+      { id: `canned-q-${now}`, role: "user", parts: [{ type: "text", text: q }] },
+      { id: `canned-a-${now}`, role: "assistant", parts: [{ type: "text", text: a }] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ] as any);
+  };
+
 
   const saveAnswerToJournal = async (msgId: string, text: string) => {
     if (!ctx || savedMsgIds.has(msgId) || !text.trim()) return;
