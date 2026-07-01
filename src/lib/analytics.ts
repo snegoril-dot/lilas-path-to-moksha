@@ -29,7 +29,15 @@ export type AnalyticsEventName =
   | "feedback_opened"
   | "feedback_submitted"
   | "guru_path_analysis_requested"
-  | "guru_path_analysis_saved";
+  | "guru_path_analysis_saved"
+  | "practice_started"
+  | "practice_step_checked"
+  | "practice_completed"
+  | "practice_abandoned"
+  | "journal_entry_added"
+  | "weekly_review_opened"
+  | "sankalpa_history_opened"
+  | "quiet_mode_toggled";
 
 
 export interface TrackMeta {
