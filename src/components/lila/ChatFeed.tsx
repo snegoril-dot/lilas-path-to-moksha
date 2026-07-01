@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+import { Glyph } from "./Glyph";
 
 export interface ChatMessage {
   id: string;
@@ -40,8 +41,8 @@ export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
             className={`flex ${m.kind === "player" ? "justify-end" : "justify-start"}`}
           >
             {m.kind !== "player" && (
-              <div className="mr-2 mt-1 h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-base shadow-md">
-                🕉
+              <div className="mr-2 mt-1 h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center shadow-md">
+                <Glyph name="om" size={18} alt="Гуру" />
               </div>
             )}
             <div

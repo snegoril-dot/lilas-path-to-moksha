@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Dice5 } from "lucide-react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, haptic } from "@/hooks/use-telegram";
+import { Glyph } from "./Glyph";
 
 /**
  * Короткая интро-карточка «Рождение», которая появляется после ввода
@@ -45,7 +46,7 @@ export function BirthIntroCard({
             className="w-full max-w-md rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] p-6 shadow-2xl ring-1 ring-white/10"
           >
             <div className="text-center">
-              <div className="text-5xl mb-3">🪷</div>
+              <div className="mb-3 flex justify-center"><Glyph name="lotus" size={56} /></div>
               <h2 id={titleId} className="text-lg font-semibold text-amber-100">
                 Твоя Санкальпа принята
               </h2>

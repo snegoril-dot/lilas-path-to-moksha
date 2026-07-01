@@ -13,6 +13,7 @@ import {
   type SessionSummary as SessionSummaryData,
 } from "@/lib/achievements";
 import { SessionSummary, type PathStep } from "./SessionSummary";
+import { Glyph } from "./Glyph";
 
 // Share logic lives in SessionSummary now.
 
@@ -113,9 +114,9 @@ export function WinOverlay({
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, type: "spring" }}
-            className="text-6xl mt-6 mb-2"
+            className="mt-6 mb-2"
           >
-            🕉
+            <Glyph name="om" size={80} alt="Ом" />
           </motion.div>
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
@@ -160,8 +161,8 @@ export function WinOverlay({
               pathLog={pathLog}
             />
             {mode && (
-              <div className="mt-2 text-[10px] uppercase tracking-wider opacity-50 text-center">
-                Режим: {mode === "soft" ? "🌿 Мягкий путь" : "🕉 Классика"}
+              <div className="mt-2 text-[10px] uppercase tracking-wider opacity-50 text-center inline-flex items-center gap-1.5 justify-center w-full">
+                Режим: {mode === "soft" ? <><Glyph name="lotus" size={12} /> Мягкий путь</> : <><Glyph name="om" size={12} /> Классика</>}
               </div>
             )}
           </motion.div>
@@ -217,9 +218,9 @@ export function WinOverlay({
           >
             <button
               onClick={onRestart}
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-xl hover:brightness-110 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-amber-200 focus:outline-none"
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold shadow-xl hover:brightness-110 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-amber-200 focus:outline-none inline-flex items-center gap-2"
             >
-              🪷 Начать новый путь
+              <Glyph name="lotus" size={18} /> Начать новый путь
             </button>
             <button
               onClick={onSaveCard}

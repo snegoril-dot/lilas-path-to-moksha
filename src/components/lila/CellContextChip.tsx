@@ -1,4 +1,5 @@
 import { BOARD, LADDERS, SNAKES, getLoka } from "@/lib/lila-board";
+import { Glyph, type GlyphName } from "./Glyph";
 
 /**
  * Компактный контекст-виджет: показывает, к какой клетке относится сообщение
@@ -18,10 +19,10 @@ export function CellContextChip({
   const ladderTo = LADDERS[cell];
   const snakeTo = SNAKES[cell];
 
-  const marker = ladderTo
-    ? { icon: "🪜", text: `Стрела → ${ladderTo}`, cls: "text-emerald-200/90" }
+  const marker: { icon: GlyphName; text: string; cls: string } | null = ladderTo
+    ? { icon: "ladder", text: `Стрела → ${ladderTo}`, cls: "text-emerald-200/90" }
     : snakeTo
-      ? { icon: "🐍", text: `Змея → ${snakeTo}`, cls: "text-rose-200/90" }
+      ? { icon: "snake", text: `Змея → ${snakeTo}`, cls: "text-rose-200/90" }
       : null;
 
   const align = variant === "user" ? "self-end" : "self-start";
@@ -47,8 +48,9 @@ export function CellContextChip({
       {marker && (
         <>
           <span className="opacity-40">·</span>
-          <span className={marker.cls}>
-            {marker.icon} {marker.text}
+          <span className={`${marker.cls} inline-flex items-center gap-1`}>
+            <Glyph name={marker.icon} size={12} />
+            {marker.text}
           </span>
         </>
       )}
