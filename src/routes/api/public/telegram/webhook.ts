@@ -30,10 +30,13 @@ function ok(extra: Record<string, unknown> = {}) {
   return Response.json({ ok: true, ...extra });
 }
 
-function miniAppKeyboard(miniAppUrl: string) {
+function miniAppKeyboard(miniAppUrl: string, label = "🕉 Открыть Лилу", extraParam?: string) {
+  const url = extraParam
+    ? `${miniAppUrl}${miniAppUrl.includes("?") ? "&" : "?"}startapp=${encodeURIComponent(extraParam)}`
+    : miniAppUrl;
   // `web_app` opens inside Telegram as a Mini App.
   return {
-    inline_keyboard: [[{ text: "🕉 Открыть Лилу", web_app: { url: miniAppUrl } }]],
+    inline_keyboard: [[{ text: label, web_app: { url } }]],
   };
 }
 
