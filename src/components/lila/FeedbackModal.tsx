@@ -3,6 +3,7 @@ import { Star, X, Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, hapticNotify } from "@/hooks/use-telegram";
+import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 
@@ -34,6 +35,7 @@ export function FeedbackModal({ open, onClose, context, cell, sessionId }: Feedb
   useTelegramBackButton(open, onClose);
   const ref = useRef<HTMLDivElement>(null);
   useDialogA11y(open, onClose);
+  const kbInset = useKeyboardInset(open);
 
   const [rating, setRating] = useState<number | null>(null);
   const [understood, setUnderstood] = useState("");
@@ -127,7 +129,8 @@ export function FeedbackModal({ open, onClose, context, cell, sessionId }: Feedb
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-[var(--tg-theme-bg-color,#0f172a)] text-[var(--tg-theme-text-color,#fff)] p-5 pb-safe shadow-2xl"
+            className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-3xl sm:rounded-3xl bg-[var(--tg-theme-bg-color,#0f172a)] text-[var(--tg-theme-text-color,#fff)] p-5 pb-safe shadow-2xl"
+            style={{ paddingBottom: kbInset ? kbInset + 16 : undefined }}
             tabIndex={-1}
           >
             <div className="flex items-start justify-between mb-2">
