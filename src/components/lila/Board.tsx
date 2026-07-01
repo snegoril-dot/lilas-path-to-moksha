@@ -87,11 +87,40 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+  const [cellSizes, setCellSizes] = useState<Record<number, { w: number; h: number }>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem("lila:debug:cell-sizes");
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem("lila:debug:cell-offsets", JSON.stringify(cellOffsets)); } catch {}
   }, [cellOffsets]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem("lila:debug:cell-sizes", JSON.stringify(cellSizes)); } catch {}
+  }, [cellSizes]);
+
+  function onCellResizeStart(e: React.PointerEvent, id: number) {
+    if (!debug) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const cur = cellSizes[id] ?? { w: 0, h: 0 };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as any)._resize = { id, startX: e.clientX, startY: e.clientY, w: cur.w, h: cur.h };
+  }
+  function onCellResizeMove(e: React.PointerEvent) {
+    const r = (e.currentTarget as any)._resize;
+    if (!r) return;
+    setCellSizes((prev) => ({ ...prev, [r.id]: { w: r.w + (e.clientX - r.startX), h: r.h + (e.clientY - r.startY) } }));
+  }
+  function onCellResizeEnd(e: React.PointerEvent) {
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+    delete (e.currentTarget as any)._resize;
+  }
 
   function onDragStart(e: React.PointerEvent) {
     if (!debug) return;
@@ -252,6 +281,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 : "ring-1 ring-white/10";
 
               const co = cellOffsets[id];
+              const cs = cellSizes[id];
               return (
                 <button
                   key={id}
@@ -265,12 +295,27 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                     gridRow: visualRow + 1,
                     transform: co ? `translate(${co.x}px, ${co.y}px)` : undefined,
                     touchAction: debug ? "none" : undefined,
-                    zIndex: co ? 15 : undefined,
+                    zIndex: co || cs ? 15 : undefined,
+                    width: cs ? `calc(100% + ${cs.w}px)` : undefined,
+                    height: cs ? `calc(100% + ${cs.h}px)` : undefined,
                   }}
                   className={`relative flex items-end justify-center rounded-[6px] p-0.5 text-center select-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 cursor-pointer hover:brightness-125 ${tint} ${stateRing} ${
                     isVisited ? "brightness-110" : ""
                   }`}
                 >
+                  {debug && (
+                    <span
+                      role="presentation"
+                      onPointerDown={(e) => onCellResizeStart(e, id)}
+                      onPointerMove={onCellResizeMove}
+                      onPointerUp={onCellResizeEnd}
+                      onPointerCancel={onCellResizeEnd}
+                      onClick={(e) => { e.stopPropagation(); }}
+                      className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-sm bg-fuchsia-400/80 ring-1 ring-white/70 cursor-nwse-resize z-40"
+                      style={{ touchAction: "none" }}
+                      aria-hidden
+                    />
+                  )}
                   <span
                     className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-[15px] font-extrabold ${NUMBER_CLASS}`}
                     aria-hidden
@@ -479,14 +524,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             drag: {offset.x | 0},{offset.y | 0} · cells: {Object.keys(cellOffsets).length}
           </span>
           <button
-            onClick={() => setCellOffsets({})}
+            onClick={() => { setCellOffsets({}); setCellSizes({}); }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
-            title="Сбросить позиции клеток"
+            title="Сбросить позиции и размеры клеток"
           >
             Сброс клеток
           </button>
           <button
-            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); setCellOffsets({}); }}
+            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); setCellOffsets({}); setCellSizes({}); }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
           >
             Сброс
