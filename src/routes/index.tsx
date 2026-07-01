@@ -542,6 +542,7 @@ function Index() {
           }
           trackEvent("entered_board", { cell: 1, dice: value, sessionId: sessionIdRef.current, extra: { mercy: !!entry.mercy } });
           trackEvent("cell_landed", { cell: 1, sessionId: sessionIdRef.current });
+          showHint("first_board", "Теперь каждая клетка — зеркало для твоей Санкальпы.");
           openLanded(1);
           setRolling(false);
         });
