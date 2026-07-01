@@ -490,6 +490,12 @@ function Index() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       setSaveState("saving");
+      let settled = false;
+      const failSafe = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        setSaveState("idle");
+      }, 6000);
       persistUpsert({
         data: {
           id: sessionIdRef.current,
@@ -506,12 +512,18 @@ function Index() {
         },
       })
         .then((row) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(failSafe);
           if (row?.id) sessionIdRef.current = row.id as string;
           setSaveState("saved");
           if (savedIndicatorTimerRef.current) clearTimeout(savedIndicatorTimerRef.current);
           savedIndicatorTimerRef.current = setTimeout(() => setSaveState("idle"), 1400);
         })
         .catch((e) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(failSafe);
           console.error("[upsertSession]", e);
           setSaveState("error");
           if (savedIndicatorTimerRef.current) clearTimeout(savedIndicatorTimerRef.current);
