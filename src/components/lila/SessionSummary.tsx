@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Share2, Save, BookOpen, Clipboard, AlertTriangle } from "lucide-react";
+import { Share2, Save, BookOpen, Clipboard, AlertTriangle, MessageSquarePlus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection, getJournal } from "@/lib/guru.functions";
@@ -7,6 +7,8 @@ import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
 import { buildShareText as buildShareTextLib, shareToTelegram, type ShareResult } from "@/lib/share";
 import type { KeyCell } from "./WinOverlay";
+import { FeedbackModal } from "./FeedbackModal";
+
 
 export type SessionResult = "in_progress" | "moksha" | "paused";
 
@@ -84,6 +86,8 @@ export function SessionSummary({
   const [includeSankalpa, setIncludeSankalpa] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [savedInsights, setSavedInsights] = useState<JournalRow[]>([]);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
 
   const isMoksha = result === "moksha";
   const cell = currentCell > 0 ? BOARD[currentCell - 1] : null;
@@ -602,8 +606,25 @@ export function SessionSummary({
           <BookOpen size={15} />
           Открыть дневник
         </Link>
+
+        <button
+          type="button"
+          onClick={() => setFeedbackOpen(true)}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-transparent ring-1 ring-white/10 text-amber-100/70 text-xs font-medium active:scale-95 transition"
+        >
+          <MessageSquarePlus size={14} />
+          Оставить отзыв о бете
+        </button>
       </div>
 
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        context={`summary:${result}`}
+        cell={currentCell > 0 ? currentCell : null}
+        sessionId={sessionId}
+      />
     </div>
   );
 }
+

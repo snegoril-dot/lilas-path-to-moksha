@@ -25,7 +25,10 @@ export type AnalyticsEventName =
   | "moksha_reached"
   | "share_preview_opened"
   | "share_completed"
-  | "new_session_started";
+  | "new_session_started"
+  | "feedback_opened"
+  | "feedback_submitted";
+
 
 export interface TrackMeta {
   cell?: number | null;

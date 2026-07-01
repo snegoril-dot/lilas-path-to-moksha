@@ -40,6 +40,12 @@ export function GameHeader({
         <div className="leading-tight min-w-0">
           <div className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
             <span className="truncate">Гуру</span>
+            <span
+              className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/70 font-medium"
+              title="Приложение в бета-версии"
+            >
+              бета
+            </span>
             {currentLoka && (
               <span
                 className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r ${currentLoka.color} text-stone-900 font-bold shadow-sm`}
@@ -49,6 +55,7 @@ export function GameHeader({
               </span>
             )}
           </div>
+
           <div className="text-[11px] opacity-70 truncate">
             {currentCell
               ? `Клетка ${pos} · ${currentCell.name}`

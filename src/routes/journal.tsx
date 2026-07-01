@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronDown, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
+import { ArrowLeft, ChevronDown, MessageSquarePlus, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
+import { FeedbackModal } from "@/components/lila/FeedbackModal";
+
 import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
@@ -77,6 +79,8 @@ function JournalPage() {
   const [err, setErr] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Kind>("all");
+  const [fbOpen, setFbOpen] = useState(false);
+
 
   useEffect(() => { trackEvent("journal_opened"); }, []);
 
@@ -242,7 +246,19 @@ function JournalPage() {
             </ul>
           </section>
         ))}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setFbOpen(true)}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 ring-1 ring-white/10 text-amber-100/80 text-xs font-medium active:scale-95 transition"
+          >
+            <MessageSquarePlus size={14} />
+            Оставить отзыв о бете
+          </button>
+        </div>
       </main>
+      <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="journal" />
     </div>
   );
 }
+
