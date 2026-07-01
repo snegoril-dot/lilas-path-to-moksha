@@ -590,6 +590,13 @@ function Index() {
           setCellVisits((m) => ({ ...m, [landed.id]: visitCount }));
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
           setPathLog((p) => [...p, { cell: landed.id, kind, to: final }]);
+          trackEvent("cell_landed", { cell: landed.id, sessionId: sessionIdRef.current });
+          trackEvent(kind === "snake" ? "snake_triggered" : "ladder_triggered", {
+            cell: landed.id,
+            sessionId: sessionIdRef.current,
+            extra: { to: final, visit: visitCount },
+          });
+
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
