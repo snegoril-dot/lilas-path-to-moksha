@@ -117,11 +117,14 @@ function defaultLayout(): Layout {
 }
 
 
-// v6: полностью удалены темы/нарисованные карты; раскладка одна, 9×8.
+// v7: миграция раскладки. Чистим все прошлые ключи (в т.ч. v6), кроме текущего,
+// чтобы старая битая раскладка (27→35 в верхнем ряду) не всплывала у пользователей.
 function purgeLegacyLayoutKeys() {
   if (typeof window === "undefined") return;
   safeRemove("lila.boardTheme");
-  safeKeys("lila.layout.").forEach((key) => safeRemove(key));
+  safeKeys("lila.layout.").forEach((key) => {
+    if (key !== LAYOUT_STORAGE_KEY) safeRemove(key);
+  });
 }
 
 function loadLayout(): Layout {
