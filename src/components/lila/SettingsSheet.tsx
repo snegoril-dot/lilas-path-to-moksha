@@ -423,6 +423,7 @@ export function SettingsSheet(props: Props) {
       <WeeklyReviewSheet open={weeklyOpen} onClose={() => setWeeklyOpen(false)} />
       <PaywallSheet open={paywallOpen} onClose={() => setPaywallOpen(false)} />
       <MyPurchasesSheet open={purchasesOpen} onClose={() => setPurchasesOpen(false)} />
+      <SupportFAQSheet open={supportOpen} onClose={() => setSupportOpen(false)} />
     </>
   );
 }
