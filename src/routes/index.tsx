@@ -581,7 +581,7 @@ function Index() {
                   setRolling(false);
                 }, 600);
               } else {
-                addMsg(`Ты постигаешь «${dest.name}». ${dest.wisdom}`, "guru");
+                addMsg(`Клетка «${dest.name}». ${dest.wisdom}`, "guru");
                 openLanded(final, { from: landed.id, kind });
                 finishTurn();
               }
