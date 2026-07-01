@@ -230,6 +230,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       );
     } catch { return base; }
   });
+  const hadSavedRectsRef = useRef(
+    typeof window !== "undefined" ? !!safeGet(CELL_RECTS_KEY) : false,
+  );
 
   // Живой размер доски — нужен, чтобы конвертировать px-жесты в проценты
   // и рендерить сохранённые проценты обратно в px.
@@ -277,6 +280,18 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     // one-shot
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardSize.w > 0 && boardSize.h > 0]);
+
+  // Если на устройстве ещё лежал старый формат разметки, после миграции px→%
+  // переносим его в новый абсолютный формат rects. Это позволяет старой ПК-
+  // разметке стать одинаковой на мобильном без повторной ручной настройки.
+  useEffect(() => {
+    if (hadSavedRectsRef.current) return;
+    if (!Object.keys(cellOffsets).length && !Object.keys(cellSizes).length) return;
+    const hasLegacyPx = [...Object.values(cellOffsets), ...Object.values(cellSizes)].some((v) => v?._legacyPx);
+    if (hasLegacyPx) return;
+    setCellRects(mergeLegacyLayoutIntoRects(cellOffsets, cellSizes, padPct, gapPct));
+    hadSavedRectsRef.current = true;
+  }, [cellOffsets, cellSizes, gapPct, padPct]);
 
   // ref для подавления клика по клетке сразу после её перетаскивания
   const suppressClickRef = useRef<number | null>(null);
