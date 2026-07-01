@@ -88,20 +88,86 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
   const [sizePct, setSizePct] = useState<number>(debugInit?.sizePct ?? 100);
   const [dragging, setDragging] = useState(false);
-  const [cellOffsets, setCellOffsets] = useState<Record<number, { x: number; y: number }>>(() => {
+
+  // Смещения и размеры клеток храним в ПРОЦЕНТАХ от размера доски —
+  // так одна и та же разметка корректно работает и на десктопе, и на мобильном.
+  // {xPct, yPct} — сдвиг в % от ширины/высоты доски.
+  // {wPct, hPct} — прибавка к ширине/высоте клетки в % от ширины/высоты доски.
+  const [cellOffsets, setCellOffsets] = useState<Record<number, { xPct: number; yPct: number }>>(() => {
     if (typeof window === "undefined") return {};
     try {
       const raw = window.localStorage.getItem("lila:debug:cell-offsets");
-      return raw ? JSON.parse(raw) : {};
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      // Миграция: старый формат {x, y} в px → пересчитаем при первом рендере через ResizeObserver.
+      const out: Record<number, { xPct: number; yPct: number }> = {};
+      Object.entries(parsed).forEach(([k, v]: [string, any]) => {
+        if (typeof v?.xPct === "number") out[+k] = { xPct: v.xPct, yPct: v.yPct ?? 0 };
+        else if (typeof v?.x === "number") out[+k] = { xPct: v.x, yPct: v.y ?? 0, _legacyPx: true } as any;
+      });
+      return out;
     } catch { return {}; }
   });
-  const [cellSizes, setCellSizes] = useState<Record<number, { w: number; h: number }>>(() => {
+  const [cellSizes, setCellSizes] = useState<Record<number, { wPct: number; hPct: number }>>(() => {
     if (typeof window === "undefined") return {};
     try {
       const raw = window.localStorage.getItem("lila:debug:cell-sizes");
-      return raw ? JSON.parse(raw) : {};
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      const out: Record<number, { wPct: number; hPct: number }> = {};
+      Object.entries(parsed).forEach(([k, v]: [string, any]) => {
+        if (typeof v?.wPct === "number") out[+k] = { wPct: v.wPct, hPct: v.hPct ?? 0 };
+        else if (typeof v?.w === "number") out[+k] = { wPct: v.w, hPct: v.h ?? 0, _legacyPx: true } as any;
+      });
+      return out;
     } catch { return {}; }
   });
+
+  // Живой размер доски — нужен, чтобы конвертировать px-жесты в проценты
+  // и рендерить сохранённые проценты обратно в px.
+  const boardRef = useRef<HTMLDivElement | null>(null);
+  const [boardSize, setBoardSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = boardRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setBoardSize({ w: r.width, h: r.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Однократная миграция legacy px → %, как только известен размер доски.
+  useEffect(() => {
+    if (!boardSize.w || !boardSize.h) return;
+    setCellOffsets((prev) => {
+      let changed = false;
+      const next: Record<number, { xPct: number; yPct: number }> = {};
+      Object.entries(prev).forEach(([k, v]: [string, any]) => {
+        if (v?._legacyPx) {
+          changed = true;
+          next[+k] = { xPct: (v.xPct / boardSize.w) * 100, yPct: (v.yPct / boardSize.h) * 100 };
+        } else next[+k] = v;
+      });
+      return changed ? next : prev;
+    });
+    setCellSizes((prev) => {
+      let changed = false;
+      const next: Record<number, { wPct: number; hPct: number }> = {};
+      Object.entries(prev).forEach(([k, v]: [string, any]) => {
+        if (v?._legacyPx) {
+          changed = true;
+          next[+k] = { wPct: (v.wPct / boardSize.w) * 100, hPct: (v.hPct / boardSize.h) * 100 };
+        } else next[+k] = v;
+      });
+      return changed ? next : prev;
+    });
+    // one-shot
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardSize.w > 0 && boardSize.h > 0]);
 
   // ref для подавления клика по клетке сразу после её перетаскивания
   const suppressClickRef = useRef<number | null>(null);
@@ -123,6 +189,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       );
     } catch {}
   }, [aspectW, aspectH, gapPct, padPct, offset, sizePct]);
+
 
   function onCellResizeStart(e: React.PointerEvent, id: number) {
     if (!debug) return;
