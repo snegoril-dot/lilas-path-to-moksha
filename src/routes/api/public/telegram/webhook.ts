@@ -18,13 +18,41 @@
  *     -d "secret_token=<your-secret>"
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { findProductById } from "@/lib/entitlements";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
 interface TgChat { id: number; type: string }
 interface TgUser { id: number; first_name?: string; language_code?: string }
-interface TgMessage { message_id: number; chat: TgChat; from?: TgUser; text?: string }
-interface TgUpdate { update_id: number; message?: TgMessage; edited_message?: TgMessage }
+interface TgSuccessfulPayment {
+  currency: string;
+  total_amount: number;
+  invoice_payload: string;
+  telegram_payment_charge_id: string;
+  provider_payment_charge_id?: string;
+}
+interface TgMessage {
+  message_id: number;
+  chat: TgChat;
+  from?: TgUser;
+  text?: string;
+  successful_payment?: TgSuccessfulPayment;
+}
+interface TgPreCheckoutQuery {
+  id: string;
+  from: TgUser;
+  currency: string;
+  total_amount: number;
+  invoice_payload: string;
+}
+interface TgUpdate {
+  update_id: number;
+  message?: TgMessage;
+  edited_message?: TgMessage;
+  pre_checkout_query?: TgPreCheckoutQuery;
+}
+
 
 function ok(extra: Record<string, unknown> = {}) {
   return Response.json({ ok: true, ...extra });
