@@ -12,6 +12,7 @@ import { OnboardingModal } from "./OnboardingModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
 import { RemindersToggles } from "./RemindersToggles";
+import { PaywallSheet } from "./PaywallSheet";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { BellRing } from "lucide-react";
 
