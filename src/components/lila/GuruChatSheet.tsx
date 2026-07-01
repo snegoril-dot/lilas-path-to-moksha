@@ -356,6 +356,40 @@ export function GuruChatSheet({
                   </div>
                 );
               })}
+              {messages.length > 0 && cellPack && !busy && (() => {
+                const remaining = cellPack.prompts.filter((p) => !askedCanned.has(p.q));
+                if (remaining.length === 0) return null;
+                return (
+                  <div className="pt-1">
+                    {!showMorePrompts ? (
+                      <button
+                        onClick={() => setShowMorePrompts(true)}
+                        className="text-[11px] uppercase tracking-wider text-amber-200/70 hover:text-amber-100"
+                      >
+                        Ещё вопросы по клетке {ctx.cell} ({remaining.length})
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-[11px] uppercase tracking-wider text-amber-200/70">
+                          Вопросы по клетке {ctx.cell}
+                          {ctx.cellName ? ` · ${ctx.cellName}` : ""}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {remaining.map((p) => (
+                            <button
+                              key={p.q}
+                              onClick={() => sendCanned(p.q, p.a)}
+                              className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition"
+                            >
+                              {p.q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {busy && (
                 <div className="text-xs opacity-50 italic">Гуру размышляет…</div>
               )}
