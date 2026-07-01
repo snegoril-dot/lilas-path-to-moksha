@@ -828,12 +828,14 @@ function Index() {
         landed={landed}
         landedOpen={landedOpen}
         pos={pos}
+        sankalpa={sankalpa}
         onRoll={handleRoll}
         onOpenWin={() => setWinOpen(true)}
         onOpenLanded={() => setLandedOpen(true)}
         onOpenCell={() => setCellOpen(pos === 0 ? 1 : pos)}
         onAskGuru={() => { trackEvent("guru_opened", { cell: pos, sessionId: sessionIdRef.current }); setGuruCtx(buildGuruCtx()); }}
       />
+
 
 
       <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
