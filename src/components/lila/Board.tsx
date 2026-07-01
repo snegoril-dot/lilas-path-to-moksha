@@ -10,6 +10,7 @@ import {
   verifyLayoutGeometry,
   verifyBoardMapping,
 } from "@/lib/board-layout";
+import { safeGet, safeKeys, safeRemove, safeSet } from "@/lib/safe-storage";
 
 import type { PlayerToken } from "@/lib/player-tokens";
 
@@ -119,20 +120,15 @@ function defaultLayout(): Layout {
 // v6: полностью удалены темы/нарисованные карты; раскладка одна, 9×8.
 function purgeLegacyLayoutKeys() {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem("lila.boardTheme");
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < window.localStorage.length; i += 1) {
-    const key = window.localStorage.key(i);
-    if (key?.startsWith("lila.layout.")) keysToRemove.push(key);
-  }
-  keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+  safeRemove("lila.boardTheme");
+  safeKeys("lila.layout.").forEach((key) => safeRemove(key));
 }
 
 function loadLayout(): Layout {
   if (typeof window === "undefined") return defaultLayout();
   try {
     purgeLegacyLayoutKeys();
-    const raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
+    const raw = safeGet(LAYOUT_STORAGE_KEY);
     if (!raw) return defaultLayout();
     const parsed = JSON.parse(raw) as Layout;
     // fill missing ids
@@ -142,7 +138,7 @@ function loadLayout(): Layout {
     if (layoutIssues.length > 0) {
       // eslint-disable-next-line no-console
       console.error("[Lila board] saved layout invalid, resetting to v6 default:", layoutIssues);
-      window.localStorage.removeItem(LAYOUT_STORAGE_KEY);
+      safeRemove(LAYOUT_STORAGE_KEY);
       return def;
     }
     return parsed;
@@ -157,13 +153,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [layout, setLayout] = useState<Layout>(() => loadLayout());
   const [zoom, setZoom] = useState<number>(() => {
     if (typeof window === "undefined") return 1;
-    const v = Number(window.localStorage.getItem("lila:debug-zoom"));
+    const v = Number(safeGet("lila:debug-zoom"));
     return Number.isFinite(v) && v >= 0.5 && v <= 4 ? v : 1;
   });
   const [pan, setPan] = useState<{ x: number; y: number }>(() => {
     if (typeof window === "undefined") return { x: 0, y: 0 };
     try {
-      const raw = window.localStorage.getItem("lila:debug-pan");
+      const raw = safeGet("lila:debug-pan");
       if (!raw) return { x: 0, y: 0 };
       const p = JSON.parse(raw);
       if (typeof p?.x === "number" && typeof p?.y === "number") return p;
@@ -171,10 +167,10 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     return { x: 0, y: 0 };
   });
   useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem("lila:debug-zoom", String(zoom));
+    safeSet("lila:debug-zoom", String(zoom));
   }, [zoom]);
   useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem("lila:debug-pan", JSON.stringify(pan));
+    safeSet("lila:debug-pan", JSON.stringify(pan));
   }, [pan]);
   const visitedSet = useMemo(() => {
     if (!visited) return new Set<number>();
@@ -220,7 +216,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     (next: Layout) => {
       setLayout(next);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(next));
+        safeSet(LAYOUT_STORAGE_KEY, JSON.stringify(next));
       }
     },
     []
@@ -231,7 +227,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       setLayout((prev) => {
         const next = { ...prev, [id]: { ...prev[id], ...patch } };
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(next));
+          safeSet(LAYOUT_STORAGE_KEY, JSON.stringify(next));
         }
         return next;
       });

@@ -1,3 +1,5 @@
+import { safeGet, safeSet } from "@/lib/safe-storage";
+
 // Очередь заметок для оффлайн/слабой сети.
 // Заметки складываются в localStorage под ключом lila:pending-notes и
 // отправляются через переданный save-fn при появлении сети или на старте.
@@ -18,7 +20,7 @@ const KEY = "lila:pending-notes";
 function read(): PendingNote[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = safeGet(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as PendingNote[]) : [];
@@ -30,7 +32,7 @@ function read(): PendingNote[] {
 function write(items: PendingNote[]) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(items));
+    safeSet(KEY, JSON.stringify(items));
   } catch {}
 }
 

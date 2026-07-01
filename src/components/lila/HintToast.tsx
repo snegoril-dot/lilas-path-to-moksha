@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, X } from "lucide-react";
+import { safeGet, safeRemove, safeSet } from "@/lib/safe-storage";
 
 const STORAGE_KEY = "lila.hints.v1";
 
@@ -14,7 +15,7 @@ export type HintId =
 function readSeen(): Record<string, true> {
   if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+    return JSON.parse(safeGet(STORAGE_KEY) ?? "{}");
   } catch {
     return {};
   }
@@ -29,7 +30,7 @@ export function markHintSeen(id: HintId): void {
   const cur = readSeen();
   cur[id] = true;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cur));
+    safeSet(STORAGE_KEY, JSON.stringify(cur));
   } catch {
     /* ignore */
   }
@@ -38,7 +39,7 @@ export function markHintSeen(id: HintId): void {
 export function resetHints(): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    safeRemove(STORAGE_KEY);
   } catch {
     /* ignore */
   }

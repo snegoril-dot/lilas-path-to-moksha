@@ -2,7 +2,8 @@
 // Fires and forgets — must never throw or block gameplay.
 // NEVER pass Sankalpa text, reflections, Guru replies, or journal content.
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-safe-client";
+import { safeGet, safeSet, safeSessionGet, safeSessionSet } from "@/lib/safe-storage";
 
 export type AnalyticsEventName =
   | "app_opened"
@@ -74,10 +75,10 @@ function safeUUID(): string {
 function getAnonId(): string {
   if (typeof window === "undefined") return "ssr";
   try {
-    let id = window.localStorage.getItem(ANON_KEY);
+    let id = safeGet(ANON_KEY);
     if (!id) {
       id = safeUUID();
-      window.localStorage.setItem(ANON_KEY, id);
+      safeSet(ANON_KEY, id);
     }
     return id;
   } catch {
@@ -88,10 +89,10 @@ function getAnonId(): string {
 function getSessionId(): string {
   if (typeof window === "undefined") return "ssr";
   try {
-    let id = window.sessionStorage.getItem(SESSION_MEM_KEY);
+    let id = safeSessionGet(SESSION_MEM_KEY);
     if (!id) {
       id = safeUUID();
-      window.sessionStorage.setItem(SESSION_MEM_KEY, id);
+      safeSessionSet(SESSION_MEM_KEY, id);
     }
     return id;
   } catch {

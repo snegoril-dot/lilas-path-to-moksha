@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-safe-client";
 
 function tgLog(message: string) {
   try {
@@ -28,6 +28,12 @@ export function useAuth() {
   useEffect(() => {
     let cancelled = false;
     tgLog("init");
+    const releaseTimer = window.setTimeout(() => {
+      if (!cancelled) {
+        tgLog("auth timeout — continue without blocking UI");
+        setReady(true);
+      }
+    }, 3500);
 
     const ensureSession = async () => {
       try {
@@ -38,6 +44,7 @@ export function useAuth() {
             setUserId(data.session.user.id);
             setReady(true);
           }
+          window.clearTimeout(releaseTimer);
           return;
         }
         tgLog("no session — signing in anonymously");
@@ -52,6 +59,7 @@ export function useAuth() {
           setUserId(signed?.user?.id ?? null);
           setReady(true);
         }
+        window.clearTimeout(releaseTimer);
       } catch (e) {
         // Telegram iOS WKWebView может блокировать localStorage/куки —
         // в этом случае supabase-клиент кидает исключение. Не блокируем UI:
@@ -63,6 +71,7 @@ export function useAuth() {
             : `init failed: ${(e as Error)?.message ?? "unknown"}`,
         );
         if (!cancelled) setReady(true);
+        window.clearTimeout(releaseTimer);
       }
     };
 
@@ -74,6 +83,7 @@ export function useAuth() {
     });
     return () => {
       cancelled = true;
+      window.clearTimeout(releaseTimer);
       sub.subscription.unsubscribe();
     };
   }, []);

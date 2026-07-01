@@ -7,6 +7,7 @@
  */
 
 const memory = new Map<string, string>();
+const sessionMemory = new Map<string, string>();
 
 function hasWindow() {
   return typeof window !== "undefined";
@@ -38,3 +39,42 @@ export function safeRemove(key: string): void {
     memory.delete(key);
   }
 }
+
+export function safeSessionGet(key: string): string | null {
+  if (!hasWindow()) return null;
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return sessionMemory.get(key) ?? null;
+  }
+}
+
+export function safeSessionSet(key: string, value: string): void {
+  if (!hasWindow()) return;
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    sessionMemory.set(key, value);
+  }
+}
+
+export function safeKeys(prefix?: string): string[] {
+  if (!hasWindow()) return [];
+  const keys = new Set<string>(memory.keys());
+  try {
+    const storage = window.localStorage;
+    for (let i = 0; i < storage.length; i += 1) {
+      const key = storage.key(i);
+      if (key) keys.add(key);
+    }
+  } catch {
+    // memory fallback only
+  }
+  return [...keys].filter((key) => (prefix ? key.startsWith(prefix) : true));
+}
+
+export const safeStorageAdapter = {
+  getItem: safeGet,
+  setItem: safeSet,
+  removeItem: safeRemove,
+};

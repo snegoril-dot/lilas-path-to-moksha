@@ -19,12 +19,17 @@ export interface ActivePracticeRow {
  * ручной `refresh()`. Не поллит слишком часто — только при mount
  * и по явному запросу (после старта/завершения).
  */
-export function useActivePractice() {
+export function useActivePractice(enabled = true) {
   const load = useServerFn(getActivePractice);
   const [session, setSession] = useState<ActivePracticeRow | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
+    if (!enabled) {
+      setSession(null);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await load({ data: {} });
       setSession((res?.session as ActivePracticeRow | null) ?? null);
@@ -33,7 +38,7 @@ export function useActivePractice() {
     } finally {
       setLoading(false);
     }
-  }, [load]);
+  }, [enabled, load]);
 
   useEffect(() => {
     void refresh();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-safe-client";
 import { checkIsAdmin } from "@/lib/admin.functions";
 
 /**
@@ -18,8 +18,13 @@ export function useIsAdmin() {
 
     const check = async () => {
       setLoading(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user.id;
+      let userId: string | undefined;
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        userId = sessionData.session?.user.id;
+      } catch {
+        userId = undefined;
+      }
       if (!userId) {
         if (!cancelled) {
           setIsAdmin(false);

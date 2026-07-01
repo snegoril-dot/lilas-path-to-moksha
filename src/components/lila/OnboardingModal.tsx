@@ -3,26 +3,19 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { useTelegramBackButton } from "@/hooks/use-telegram";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 
 
 const STORAGE_KEY = "lila.onboarding.v1";
 
 export function hasSeenOnboarding(): boolean {
-  if (typeof localStorage === "undefined") return true;
-  try {
-    return localStorage.getItem(STORAGE_KEY) === "1";
-  } catch {
-    return true;
-  }
+  if (typeof window === "undefined") return true;
+  return safeGet(STORAGE_KEY) === "1";
 }
 
 function markSeen() {
-  try {
-    localStorage.setItem(STORAGE_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  safeSet(STORAGE_KEY, "1");
 }
 
 interface Screen {

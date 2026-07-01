@@ -114,7 +114,6 @@ function Index() {
   const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
   const [landedOpen, setLandedOpen] = useState(false);
   // Практики: активная сессия + открытые sheets
-  const activePractice = useActivePractice();
   const [practiceChooserCell, setPracticeChooserCell] = useState<number | null>(null);
   const [practiceReturnOpen, setPracticeReturnOpen] = useState(false);
   const [practiceJournalOpen, setPracticeJournalOpen] = useState(false);
@@ -141,7 +140,8 @@ function Index() {
     cellVisits: Record<number, number>;
   } | null>(null);
   const resumeCheckedRef = useRef(false);
-  const { ready: authReady } = useAuth(); // ensures anonymous session
+  const { ready: authReady, userId } = useAuth(); // ensures anonymous session when storage/network allow it
+  const activePractice = useActivePractice(authReady && !!userId);
   const tgAuth = useTelegramAuth(authReady);
   const persistSession = useServerFn(saveSession);
   const persistUpsert = useServerFn(upsertSession);
@@ -234,6 +234,7 @@ function Index() {
 
   // Global online-listener: чистим очередь отложенных заметок при появлении сети.
   useEffect(() => {
+    if (!authReady || !userId) return;
     const unsub = registerOnlineFlush(async (n) => {
       await sendReflection({
         data: {
@@ -248,7 +249,7 @@ function Index() {
       });
     });
     return unsub;
-  }, [sendReflection]);
+  }, [authReady, userId, sendReflection]);
 
   // Кешируем последнюю клетку — чтобы оффлайн-открытие показало осмысленный контент.
   useEffect(() => {
@@ -445,6 +446,7 @@ function Index() {
 
   // On mount: check for an active in-progress session and offer to resume.
   useEffect(() => {
+    if (!authReady || !userId) return;
     if (resumeCheckedRef.current) return;
     resumeCheckedRef.current = true;
     fetchActiveSession()
@@ -474,13 +476,13 @@ function Index() {
         setResumeOpen(true);
       })
       .catch((e) => console.error("[getActiveSession]", e));
-  }, [fetchActiveSession]);
+  }, [authReady, userId, fetchActiveSession]);
 
   // Debounced autosave of in-progress state (skips the initial idle mount).
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedIndicatorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!started || won) return;
+    if (!started || won || !userId) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       setSaveState("saving");
@@ -528,11 +530,12 @@ function Index() {
     sankalpa,
     mode,
     persistUpsert,
+    userId,
   ]);
 
   // Persist the game session when player reaches Moksha.
   useEffect(() => {
-    if (!won || sessionSavedRef.current) return;
+    if (!won || sessionSavedRef.current || !userId) return;
     sessionSavedRef.current = true;
     // Prefer updating the existing session row if we have one, otherwise insert.
     if (sessionIdRef.current) {
@@ -565,7 +568,7 @@ function Index() {
         },
       }).catch((e) => console.error("[saveSession]", e));
     }
-  }, [won, sankalpa, mode, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
+  }, [won, sankalpa, mode, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert, userId]);
 
 
   // Открывать оверлей победы, когда игрок достиг Мокши.
