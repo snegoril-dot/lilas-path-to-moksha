@@ -77,7 +77,8 @@ function Index() {
     cellVisits: Record<number, number>;
   } | null>(null);
   const resumeCheckedRef = useRef(false);
-  useAuth(); // ensures anonymous session
+  const { ready: authReady } = useAuth(); // ensures anonymous session
+  const tgAuth = useTelegramAuth(authReady);
   const persistSession = useServerFn(saveSession);
   const persistUpsert = useServerFn(upsertSession);
   const persistAbandon = useServerFn(abandonSession);
