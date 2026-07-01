@@ -8,6 +8,8 @@ import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReflection } from "@/lib/guru.functions";
+import { trackEvent } from "@/lib/analytics";
+
 
 export type GuruEventKind = "normal" | "snake" | "ladder" | "moksha" | "waiting";
 
@@ -132,14 +134,17 @@ export function GuruChatSheet({
     const text = input.trim();
     if (!text || busy) return;
     setInput("");
+    trackEvent("guru_message_sent", { cell: ctx?.cell ?? null, sessionId: ctx?.sessionId ?? null, extra: { length: text.length, quick: false } });
     sendMessage({ text });
   };
 
   const sendQuick = (text: string) => {
     if (busy) return;
     haptic("light");
+    trackEvent("guru_message_sent", { cell: ctx?.cell ?? null, sessionId: ctx?.sessionId ?? null, extra: { length: text.length, quick: true } });
     sendMessage({ text });
   };
+
 
   const saveAnswerToJournal = async (msgId: string, text: string) => {
     if (!ctx || savedMsgIds.has(msgId) || !text.trim()) return;

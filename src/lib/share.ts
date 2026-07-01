@@ -99,11 +99,16 @@ async function copyToClipboard(text: string): Promise<boolean> {
  * Attempt native Telegram sharing; fall back to clipboard for non-Telegram or unsupported clients.
  */
 export async function shareToTelegram(text: string): Promise<ShareOutcome> {
+  const { trackEvent } = await import("./analytics").catch(() => ({ trackEvent: (() => {}) as (n: string) => void }));
   const tg = getTg();
+  const finish = (outcome: ShareOutcome): ShareOutcome => {
+    try { (trackEvent as (n: string, m?: unknown) => void)("share_completed", { extra: { outcome } }); } catch {}
+    return outcome;
+  };
   if (tg?.switchInlineQuery) {
     try {
       tg.switchInlineQuery(text, ["users", "groups"]);
-      return "shared";
+      return finish("shared");
     } catch {
       /* fall through */
     }
@@ -114,11 +119,12 @@ export async function shareToTelegram(text: string): Promise<ShareOutcome> {
         typeof window !== "undefined" ? window.location.href : "https://t.me"
       )}&text=${encodeURIComponent(text)}`;
       tg.openTelegramLink(url);
-      return "shared";
+      return finish("shared");
     } catch {
       /* fall through */
     }
   }
   const copied = await copyToClipboard(text);
-  return copied ? "clipboard" : "failed";
+  return finish(copied ? "clipboard" : "failed");
 }
+

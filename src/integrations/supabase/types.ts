@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          anon_id: string | null
+          app_version: string | null
+          cell: number | null
+          created_at: string
+          dice: number | null
+          event_name: string
+          id: string
+          metadata: Json
+          platform: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anon_id?: string | null
+          app_version?: string | null
+          cell?: number | null
+          created_at?: string
+          dice?: number | null
+          event_name: string
+          id?: string
+          metadata?: Json
+          platform?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anon_id?: string | null
+          app_version?: string | null
+          cell?: number | null
+          created_at?: string
+          dice?: number | null
+          event_name?: string
+          id?: string
+          metadata?: Json
+          platform?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       game_sessions: {
         Row: {
           current_cell: number

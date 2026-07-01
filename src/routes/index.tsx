@@ -38,6 +38,9 @@ import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
 import { GameHeader } from "@/components/lila/GameHeader";
 import { GameActionBar } from "@/components/lila/GameActionBar";
+import { trackEvent } from "@/lib/analytics";
+
+
 
 
 export const Route = createFileRoute("/")({
@@ -134,6 +137,13 @@ function Index() {
   // Init Telegram SDK
   useTelegramInit();
 
+  // Fire once on mount.
+  useEffect(() => {
+    trackEvent("app_opened");
+  }, []);
+
+
+
   const startGame = useCallback(
     (userSankalpa: string, chosenMode: GameMode = "classic") => {
       setStarted(true);
@@ -154,8 +164,11 @@ function Index() {
       setMode(chosenMode);
       setStartedAt(new Date().toISOString());
       setBirthIntroOpen(true);
+      trackEvent("new_session_started", { extra: { has_sankalpa: !!userSankalpa } });
+      if (userSankalpa) trackEvent("sankalpa_submitted", { extra: { length: userSankalpa.length } });
       setTimeout(() => {
         if (userSankalpa) {
+
           addMsg(
             `🙏 Намасте. Твоя Санкальпа принята:\n«${userSankalpa}»\n\nПусть путь даст на неё ответ.`
           );
@@ -184,6 +197,8 @@ function Index() {
 
   const resumeGame = useCallback(() => {
     if (!resumeData) return;
+    trackEvent("session_resumed", { cell: resumeData.currentCell, sessionId: resumeData.id });
+
     sessionIdRef.current = resumeData.id;
     setSankalpa(resumeData.sankalpa ?? "");
     setMode(resumeData.mode);
@@ -260,11 +275,13 @@ function Index() {
   // чтобы игрок мог зафиксировать инсайт и решить.
   const restart = useCallback(() => {
     if (started && !won) {
+      trackEvent("session_paused", { cell: pos, sessionId: sessionIdRef.current });
       setPauseOpen(true);
     } else {
       doRestart();
     }
-  }, [started, won, doRestart]);
+  }, [started, won, pos, doRestart]);
+
 
   // On mount: check for an active in-progress session and offer to resume.
   useEffect(() => {
@@ -436,9 +453,15 @@ function Index() {
     const value = rollDice(getRuntimeRng());
     setDice(value);
     setDiceHistory((d) => [...d, value]);
-    setTotalRolls((n) => n + 1);
+    setTotalRolls((n) => {
+      const next = n + 1;
+      if (next === 1) trackEvent("first_roll", { dice: value, sessionId: sessionIdRef.current });
+      return next;
+    });
+    trackEvent("dice_rolled", { dice: value, cell: pos, sessionId: sessionIdRef.current });
     play("roll");
     addMsg(`🎲 Бросок: ${value}`, "player");
+
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
@@ -478,9 +501,12 @@ function Index() {
           if (!entry.mercy) {
             addMsg("🎲 Шестёрка даёт ещё один бросок.", "system");
           }
+          trackEvent("entered_board", { cell: 1, dice: value, sessionId: sessionIdRef.current, extra: { mercy: !!entry.mercy } });
+          trackEvent("cell_landed", { cell: 1, sessionId: sessionIdRef.current });
           openLanded(1);
           setRolling(false);
         });
+
       }, diceDelay);
       return;
     }
@@ -546,12 +572,15 @@ function Index() {
           play("moksha"); hapticNotify("success");
           addMsg(`✨ Ты достиг Кайласа.\n\n${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: 68, kind: "moksha" }]);
+          trackEvent("cell_landed", { cell: 68, sessionId: sessionIdRef.current });
+          trackEvent("moksha_reached", { cell: 68, sessionId: sessionIdRef.current, extra: { rolls: totalRolls } });
           setTimeout(() => {
             setWon(true);
             setRolling(false);
           }, 600);
           return;
         }
+
 
         if (jumped) {
           const dest = BOARD[final - 1];
@@ -561,6 +590,13 @@ function Index() {
           setCellVisits((m) => ({ ...m, [landed.id]: visitCount }));
           setKeyCells((arr) => [...arr, { id: landed.id, name: landed.name, kind, visitCount }]);
           setPathLog((p) => [...p, { cell: landed.id, kind, to: final }]);
+          trackEvent("cell_landed", { cell: landed.id, sessionId: sessionIdRef.current });
+          trackEvent(kind === "snake" ? "snake_triggered" : "ladder_triggered", {
+            cell: landed.id,
+            sessionId: sessionIdRef.current,
+            extra: { to: final, visit: visitCount },
+          });
+
           if (kind === "snake") {
             play("snake"); hapticNotify("warning");
             addMsg(
@@ -608,6 +644,7 @@ function Index() {
             }
             // Рефлексия: пауза с заметкой о связи с Санкальпой.
             pendingResume.current = doJump;
+            trackEvent("reflection_opened", { cell: landed.id, sessionId: sessionIdRef.current });
             setReflection({
               fromId: landed.id,
               fromName: landed.name,
@@ -619,10 +656,12 @@ function Index() {
         } else {
           addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
+          trackEvent("cell_landed", { cell: landed.id, sessionId: sessionIdRef.current });
           openLanded(landed.id);
           finishTurn();
         }
       });
+
     }, diceDelay);
   }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded]);
 
@@ -759,7 +798,7 @@ function Index() {
         onOpenWin={() => setWinOpen(true)}
         onOpenLanded={() => setLandedOpen(true)}
         onOpenCell={() => setCellOpen(pos === 0 ? 1 : pos)}
-        onAskGuru={() => setGuruCtx(buildGuruCtx())}
+        onAskGuru={() => { trackEvent("guru_opened", { cell: pos, sessionId: sessionIdRef.current }); setGuruCtx(buildGuruCtx()); }}
       />
 
 
@@ -794,7 +833,9 @@ function Index() {
           setLandedOpen(false);
           const landedCell = BOARD[cellId - 1] ?? BOARD[0];
           const kind = landed?.kind;
+          trackEvent("guru_opened", { cell: cellId, sessionId: sessionIdRef.current });
           setGuruCtx({
+
             cell: cellId,
             cellName: landedCell.name,
             sankalpa,

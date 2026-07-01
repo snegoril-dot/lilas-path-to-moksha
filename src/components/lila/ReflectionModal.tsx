@@ -5,6 +5,8 @@ import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
 import { useTelegramBackButton, hapticNotify, haptic } from "@/hooks/use-telegram";
+import { trackEvent } from "@/lib/analytics";
+
 
 export interface ReflectionPayload {
   fromId: number;
@@ -104,8 +106,12 @@ export function ReflectionModal({
         } catch {}
       }
     }
+    if (trimmed.length > 0) {
+      trackEvent("reflection_saved", { cell: data.fromId, sessionId: sessionId ?? null, extra: { length: trimmed.length } });
+    }
     onSubmit(trimmed);
   };
+
 
   return (
     <AnimatePresence>

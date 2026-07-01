@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
+
 
 const STORAGE_KEY = "lila.onboarding.v1";
 
@@ -87,13 +89,18 @@ export function OnboardingModal({
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (open) setStep(0);
+    if (open) {
+      setStep(0);
+      trackEvent("onboarding_started");
+    }
   }, [open]);
 
   const finish = () => {
     markSeen();
+    trackEvent("onboarding_completed", { extra: { last_step: step } });
     onClose();
   };
+
 
   const screen = SCREENS[step];
   const isLast = step === SCREENS.length - 1;

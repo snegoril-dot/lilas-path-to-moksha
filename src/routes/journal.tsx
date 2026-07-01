@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { getCellExperience } from "@/lib/cell-experience";
+import { trackEvent } from "@/lib/analytics";
+
 
 export const Route = createFileRoute("/journal")({
   component: JournalPage,
@@ -75,6 +77,9 @@ function JournalPage() {
   const [err, setErr] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Kind>("all");
+
+  useEffect(() => { trackEvent("journal_opened"); }, []);
+
 
   useEffect(() => {
     if (!ready || !userId) return;
