@@ -239,6 +239,23 @@ export function GuruChatSheet({
                     Гуру здесь — это зеркало, а не оракул. Его ответы — повод
                     задать себе более честный вопрос, а не готовая истина.
                   </div>
+                  {ctx && (() => {
+                    const a = getGuruCellAnswer(ctx.cell);
+                    return (
+                      <div className="rounded-2xl bg-amber-300/5 ring-1 ring-amber-300/20 px-3.5 py-3 space-y-2">
+                        <div className="text-[10px] uppercase tracking-wider text-amber-200/70">
+                          Слово Гуру · клетка {ctx.cell}
+                          {ctx.cellName ? ` · ${ctx.cellName}` : ""}
+                        </div>
+                        <p className="text-sm leading-relaxed text-amber-50/90 whitespace-pre-wrap">
+                          {a.mirror}
+                        </p>
+                        <p className="text-sm leading-relaxed text-amber-100 italic">
+                          {a.question}
+                        </p>
+                      </div>
+                    );
+                  })()}
                   <div className="text-[11px] uppercase tracking-wider opacity-50">
                     С чего можно начать
                   </div>
