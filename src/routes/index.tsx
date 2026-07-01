@@ -914,13 +914,13 @@ function Index() {
       />
       <SaveIndicator state={saveState} />
       {tgAuth.status === "dev_mode" && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg">
-          Dev-режим: откройте игру в Telegram для входа по Telegram ID
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
+          Приложение открыто вне Telegram. Некоторые функции могут быть недоступны.
         </div>
       )}
       {tgAuth.status === "error" && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-red-500/90 text-white text-xs px-3 py-1 shadow-lg">
-          Ошибка входа Telegram: {tgAuth.error}
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-rose-500/90 text-white text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
+          Не удалось подтвердить вход через Telegram. Попробуй открыть игру из бота ещё раз.
         </div>
       )}
     </div>
