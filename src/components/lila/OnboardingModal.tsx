@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
+
 
 
 const STORAGE_KEY = "lila.onboarding.v1";
@@ -94,6 +96,12 @@ export function OnboardingModal({
       trackEvent("onboarding_started");
     }
   }, [open]);
+
+  useTelegramBackButton(open, () => {
+    if (step > 0) setStep((s) => s - 1);
+    else onClose();
+  });
+
 
   const finish = () => {
     markSeen();
