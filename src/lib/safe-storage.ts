@@ -73,6 +73,22 @@ export function safeKeys(prefix?: string): string[] {
   return [...keys].filter((key) => (prefix ? key.startsWith(prefix) : true));
 }
 
+export function safeClear(): void {
+  memory.clear();
+  sessionMemory.clear();
+  if (!hasWindow()) return;
+  try {
+    window.localStorage.clear();
+  } catch {
+    // memory fallback already cleared
+  }
+  try {
+    window.sessionStorage.clear();
+  } catch {
+    // memory fallback already cleared
+  }
+}
+
 export const safeStorageAdapter = {
   getItem: safeGet,
   setItem: safeSet,
