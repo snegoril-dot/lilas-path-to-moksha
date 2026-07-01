@@ -187,7 +187,7 @@ async function handleSuccessfulPayment(token: string, msg: TgMessage): Promise<v
     telegram_payment_charge_id: pay.telegram_payment_charge_id,
     provider_payment_charge_id: pay.provider_payment_charge_id ?? null,
     invoice_payload: pay.invoice_payload,
-    raw_payload: pay as unknown as Record<string, unknown>,
+    raw_payload: JSON.parse(JSON.stringify(pay)),
   });
   if (payErr) {
     console.error("stars payment insert failed", payErr);
