@@ -182,7 +182,21 @@ export function CurrentCellSheet({
 
               <p className="text-amber-100/95 font-medium">{shortMeaning}</p>
 
+              {keywords.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 -mt-1">
+                  {keywords.map((k) => (
+                    <span
+                      key={k}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 ring-1 ring-white/10 opacity-80"
+                    >
+                      #{k}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <p className="whitespace-pre-line opacity-90">{cell.wisdom}</p>
+
 
               <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-3 space-y-1">
                 <div className="text-[11px] uppercase tracking-wider opacity-60">
