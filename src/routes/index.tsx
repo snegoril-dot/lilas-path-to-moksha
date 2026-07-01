@@ -55,6 +55,11 @@ const SettingsSheet = lazy(() => import("@/components/lila/SettingsSheet").then(
 const PauseSheet = lazy(() => import("@/components/lila/PauseSheet").then(m => ({ default: m.PauseSheet })));
 const PathTimelineSheet = lazy(() => import("@/components/lila/PathTimelineSheet").then(m => ({ default: m.PathTimelineSheet })));
 const PathAnalysisSheet = lazy(() => import("@/components/lila/PathAnalysisSheet").then(m => ({ default: m.PathAnalysisSheet })));
+const PracticeChooserSheet = lazy(() => import("@/components/lila/PracticeChooserSheet").then(m => ({ default: m.PracticeChooserSheet })));
+const PracticeReturnSheet = lazy(() => import("@/components/lila/PracticeReturnSheet").then(m => ({ default: m.PracticeReturnSheet })));
+const PracticeJournalSheet = lazy(() => import("@/components/lila/PracticeJournalSheet").then(m => ({ default: m.PracticeJournalSheet })));
+import { ActivePracticeBanner } from "@/components/lila/ActivePracticeBanner";
+import { useActivePractice } from "@/hooks/useActivePractice";
 
 
 
