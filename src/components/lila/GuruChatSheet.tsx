@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface GuruChatContext {
   cell: number;
