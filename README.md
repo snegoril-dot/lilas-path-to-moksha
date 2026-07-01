@@ -1,127 +1,155 @@
-# Lila's Path to Moksha
+# Lila’s Path to Moksha
 
-Telegram Mini App implementation of the classical Indian self-knowledge game **Leela / Gyan Chaupar** (72 cells, snakes and arrows) with an AI Guru companion.
+Telegram Mini App inspired by the classical Indian self-knowledge game **Лила (Jnana Lila)** — a 72-cell board where each roll of the dice is a small mirror of your life.
 
-## Features
+> **Статус:** публичная бета. Игра играбельна от начала (клетка 6) до Мокши (68), но текст, аналитика и AI-Гуру продолжают дорабатываться на основе обратной связи.
 
-- 9×8 board (72 cells) with authentic Harish Johari layout, 8 arrows and 9 snakes
-- 3D dice with entry-by-six rule, three-sixes cancellation and "grace six" after 3 failed tries
-- Sankalpa (intention) input and reflection prompts after every snake/arrow
-- AI Guru chat (Lovable AI Gateway) aware of your current cell, loka and Sankalpa
-- Daily card, achievements, karma journal, shareable result art card
-- Telegram Web App SDK integration: theme, haptics, MainButton, `switchInlineQuery` sharing
-- Sound (WebAudio gong), accessibility (aria-live, focus trap), reduced-motion support
-- Anonymous auth + per-user game history stored in Lovable Cloud
+---
 
-## Tech stack
+## Что делает приложение
 
-- Vite 7 + React 19 + TypeScript
-- TanStack Start / Router (file-based routing, server functions)
-- Tailwind CSS v4, shadcn/ui, Framer Motion, Lucide icons
-- Lovable Cloud (Supabase: Postgres + Auth + RLS)
-- Lovable AI Gateway (Gemini) via Vercel AI SDK
-- Vitest + Playwright for tests
+- Проводит игрока по классическому пути Лилы (правила Хариша Джохари): 72 клетки, 8 стрел, 9 змей, вход на «шестёрке», выход на Мокше.
+- Помогает сформулировать **Санкальпу** (намерение) и удерживать её в фокусе всего пути.
+- После каждой клетки предлагает **краткую мудрость, вопрос для рефлексии и практику дня**.
+- Ведёт **дневник инсайтов** и сохраняет прогресс между сессиями.
+- Подключает **AI-Гуру** — мягкого собеседника, который отвечает в контексте текущей клетки и Санкальпы (без медицинских / юридических / финансовых советов).
+- Оформлен под Telegram: нативные темы, BackButton, MainButton, Haptic, safe-area.
 
-## Run locally
+## Основные возможности
+
+- Игровое поле 8×9 с анимацией фишки и змеями/стрелами.
+- 3D-кубик с честным `Math.random` (в dev-режиме доступен seed).
+- Онбординг из 4 экранов для новых игроков.
+- Пауза / продолжение / новый путь.
+- Автосохранение сессии в Lovable Cloud (Supabase) с HMAC-подписью.
+- Секция помощи/настроек: правила, приватность, бета-обратная связь.
+- Приватная продуктовая аналитика (без содержимого Санкальпы, рефлексий и сообщений Гуру).
+- Форма обратной связи для беты.
+
+## Технологический стек
+
+- **Frontend:** React 19, TypeScript, Vite 7, Tailwind CSS v4, Framer Motion, Lucide.
+- **Роутинг / SSR:** TanStack Start + TanStack Router.
+- **Backend:** Lovable Cloud (Supabase) — Postgres, Auth, RLS, server-функции.
+- **AI:** Lovable AI Gateway (`LOVABLE_API_KEY`), стриминговые ответы.
+- **Тесты:** Vitest.
+- **Платформа:** Telegram Web App SDK.
+
+## Локальная разработка
 
 ```bash
 bun install
-cp .env.example .env      # fill values, see below
-bun dev                   # http://localhost:8080
+cp .env.example .env   # заполните значения
+bun run dev            # http://localhost:8080
 ```
 
-Other scripts: `bun run build`, `bun run test`, `bunx playwright test`.
+Дополнительно:
 
-## Environment variables
+```bash
+bun run build      # продакшен-сборка
+bun run preview    # предпросмотр сборки
+bun run lint       # ESLint
+bun run format     # Prettier
+bun run test       # Vitest один прогон
+bun run test:watch # Vitest watch
+bun run check      # тесты + сборка (CI-гейт)
+```
 
-See [`.env.example`](./.env.example).
+## Переменные окружения
 
-| Variable | Where | Purpose |
+Смотрите `.env.example`. Никогда не коммитьте реальные значения.
+
+| Переменная | Где используется | Заметки |
 | --- | --- | --- |
-| `VITE_SUPABASE_URL` | client | Backend URL exposed to the browser |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | client | Publishable (anon) key |
-| `SUPABASE_URL` | server | Same URL, used by SSR / server functions |
-| `SUPABASE_PUBLISHABLE_KEY` | server | Same publishable key for SSR |
-| `LOVABLE_API_KEY` | server | AI Gateway auth (auto-provisioned on Lovable Cloud) |
-| `TELEGRAM_BOT_TOKEN` | server | Bot token from @BotFather (webhook auth) |
-| `MINI_APP_URL` | server | HTTPS URL of the deployed Mini App |
-| `TELEGRAM_WEBHOOK_SECRET` | server | Optional shared secret verified on the webhook |
+| `VITE_SUPABASE_URL` | клиент | публичный URL проекта |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | клиент | публикуемый ключ (не service role) |
+| `SUPABASE_URL` | сервер (SSR / server fn) | зеркало клиентского |
+| `SUPABASE_PUBLISHABLE_KEY` | сервер | зеркало клиентского |
+| `LOVABLE_API_KEY` | сервер | ключ AI-шлюза, только для server-функций |
+| `TELEGRAM_BOT_TOKEN` | сервер (webhook) | никогда не в браузере |
+| `MINI_APP_URL` | сервер | HTTPS-адрес опубликованного мини-приложения |
+| `TELEGRAM_WEBHOOK_SECRET` | сервер (опц.) | shared secret для `setWebhook` |
 
-On Lovable Cloud these are injected automatically — you do not need a local `.env` when developing inside the platform.
+`SUPABASE_SERVICE_ROLE_KEY` в Lovable Cloud недоступен и не требуется.
 
-## Telegram Mini App setup
+## Telegram Mini App
 
-1. Create a bot with [@BotFather](https://t.me/BotFather) and copy the token.
-2. `/newapp` → attach the bot → set the Web App URL to your published site (e.g. `https://<your-project>.lovable.app`).
-3. Set a menu button: `/setmenubutton` → your bot → same URL.
-4. Open the bot in Telegram → tap the menu button. The app reads `window.Telegram.WebApp` for theme, viewport, haptics and sharing.
+1. Создайте бота у [@BotFather](https://t.me/BotFather), получите `TELEGRAM_BOT_TOKEN`.
+2. `/newapp` → привяжите Web App URL к опубликованному домену (`MINI_APP_URL`).
+3. Установите webhook на `POST /api/public/telegram-webhook` (в этом репозитории), при желании с `secret_token`.
+4. Внутри Telegram открывайте мини-приложение — SDK и тема применятся автоматически. В обычном браузере игра тоже работает (без нативных кнопок).
 
-## Telegram bot (`/start`, `/continue`, `/help`)
+## Supabase (Lovable Cloud)
 
-The bot is a **stateless webhook** — no long-lived process is needed, which
-fits the serverless runtime of this project. The handler lives at
-[`src/routes/api/public/telegram/webhook.ts`](src/routes/api/public/telegram/webhook.ts)
-and answers three commands with a "Открыть Лилу" button that launches the Mini App.
+- Backend подключён через Lovable Cloud, миграции лежат в `supabase/migrations`.
+- Все пользовательские таблицы (`sessions`, `journal_entries`, `analytics_events`, `beta_feedback`, `guru_usage`) защищены RLS и `GRANT`-ами.
+- Для клиента используйте только `@/integrations/supabase/client` с publishable-ключом.
+- Серверные функции (`createServerFn`) валидируют пользователя через `requireSupabaseAuth`.
 
-### Configure
+## AI Guru
 
-Store as **server** secrets (never expose to the client):
+- Живёт в server-функции `src/routes/api/guru.chat.ts` + `src/lib/ai-gateway.server.ts`.
+- Использует модель через Lovable AI Gateway; ключ `LOVABLE_API_KEY` читается только на сервере.
+- Дневной лимит на пользователя (`guru_usage` + RPC `increment_guru_usage`).
+- Системный промпт задаёт роль «зеркала», запрещает медицинские, юридические и финансовые советы, перенаправляет кризисные ситуации к специалистам.
+- Контекст запроса: клетка, тип события (змея/стрела), краткая мудрость, вопрос рефлексии, Санкальпа. Тексты пользователя не логируются.
 
-- `TELEGRAM_BOT_TOKEN` — from @BotFather
-- `MINI_APP_URL` — e.g. `https://lilas-path-to-moksha.lovable.app`
-- `TELEGRAM_WEBHOOK_SECRET` — optional; any random string
+## Безопасность
 
-### Register the webhook (one-time)
+- Никаких реальных секретов в репозитории — только `.env.example`.
+- Service role key недоступен в Lovable Cloud и **не должен** попадать во фронт.
+- `TELEGRAM_BOT_TOKEN` используется только в серверных обработчиках.
+- AI-эндпоинт защищён `requireSupabaseAuth` и rate-limit'ом.
+- RLS включён для всех приватных таблиц; политики привязаны к `auth.uid()`.
+- Telegram `initData` проверяется на сервере (HMAC от `bot_token`).
+- Санитайзинг ошибок AI — пользователю не показываются технические детали.
+
+### Чеклист публичного репозитория
+
+- [x] нет реальных секретов в коммите
+- [x] нет service role key во фронтенде
+- [x] нет Telegram bot token в браузерном коде
+- [x] AI-эндпоинт защищён авторизацией и лимитом
+- [x] RLS включён для приватных таблиц
+- [x] Telegram `initData` валидируется на сервере
+
+## Приватность
+
+- Санкальпа, рефлексии и диалоги с Гуру хранятся только в рамках аккаунта пользователя.
+- Аналитика собирает события (роллы, посадки на клетки, открытия модалок), **не** содержимое.
+- Пользователь может очистить сессию и дневник из экрана «Помощь / Настройки».
+- Данные хранятся в Lovable Cloud (регион и провайдер — см. настройки проекта).
+
+## Тесты
 
 ```bash
-# Pick a random secret and remember it
-SECRET="$(openssl rand -hex 24)"
-
-curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-  --data-urlencode "url=https://<your-project>.lovable.app/api/public/telegram/webhook" \
-  --data-urlencode "secret_token=${SECRET}" \
-  --data-urlencode 'allowed_updates=["message"]'
-
-# Verify
-curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+bun run test        # один прогон
+bun run test:watch  # dev-режим
+bun run check       # тесты + сборка
 ```
 
-Then save `SECRET` as `TELEGRAM_WEBHOOK_SECRET`.
+Ключевые сьюты: `src/lib/gameplay-integrity.test.ts`, `src/lib/cell-experience.test.ts`, `src/lib/session-shape.test.ts`.
 
-### Set command hints in Telegram
+## Деплой
 
-```bash
-curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" \
-  -H 'Content-Type: application/json' \
-  -d '{"commands":[
-    {"command":"start","description":"Начать путь"},
-    {"command":"continue","description":"Продолжить путь"},
-    {"command":"help","description":"Как играть"}
-  ]}'
-```
+- Публикация через Lovable (кнопка **Publish**). Бэкенд деплоится автоматически, фронт — по кнопке **Update** в диалоге публикации.
+- Кастомный домен подключается после первой публикации (Project Settings → Domains).
+- Пути `/api/public/*` доступны без авторизации — используются для Telegram webhook.
 
+## Скриншоты
+
+_Screenshots coming soon._ Поместите изображения в `docs/screenshots/` (например `welcome.png`, `board.png`, `guru.png`, `journal.png`) и добавьте сюда ссылки.
 
 ## Roadmap
 
-- PDF export of a played game (path + Guru commentary)
-- Realtime multiplayer rooms (2–4 players) via Lovable Cloud channels
-- Voice Guru (TTS) and voice questions (STT)
-- Paid tier: extended Guru sessions, weekly reflections, printable art card
-- Localisation beyond RU/EN
+- [ ] Полноценная Telegram-аутентификация (проверка `initData` + матчинг с Supabase user)
+- [ ] Улучшенная персистентность сессии между устройствами
+- [ ] Расширенный дневник (теги, фильтры, экспорт)
+- [ ] Итог пути: визуальная карта пройденных клеток и инсайтов
+- [ ] Безопасный шаринг результата (без личных заметок)
+- [ ] Расширенная бета-обратная связь и NPS
+- [ ] Позже: Telegram Stars для поддержки проекта
 
-## Security
+## Лицензия
 
-Never commit secrets. In particular:
-
-- `.env` and any `.env.*` file (they are gitignored)
-- Telegram bot token
-- Supabase **service role** key (not used by this app; do not add it)
-- Any AI provider key, including `LOVABLE_API_KEY`
-
-Only the `VITE_*` publishable keys are safe in the client bundle — everything else must stay server-side. If a secret is ever pushed by accident, rotate it immediately.
-
-## Privacy: analytics
-
-The app records lightweight product-analytics events (see `src/lib/analytics.ts`) such as `app_opened`, `dice_rolled`, `cell_landed`, `snake_triggered`, `ladder_triggered`, `moksha_reached`, `guru_opened`, `session_paused/resumed`, `share_completed`, etc. Events are written to the `analytics_events` table via RLS-restricted inserts and fail silently — analytics never blocks gameplay.
-
-**We never store** your Sankalpa text, reflection notes, Guru chat messages, or journal entries in analytics. Only non-sensitive metadata is captured: event name, current cell id, dice value, session/anon id, platform (telegram/browser), and app version.
+Проприетарный прототип на этапе беты. Свяжитесь с автором перед повторным использованием.
