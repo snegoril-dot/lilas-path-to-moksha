@@ -10,6 +10,12 @@ import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 import { getProfileSummary } from "@/lib/profile-summary.functions";
+import {
+  validateSankalpa,
+  type SankalpaValidation,
+  GOOD_EXAMPLES,
+  BAD_EXAMPLES,
+} from "@/lib/sankalpa-validation";
 
 export function WelcomeScreen({
   onStart,
@@ -44,8 +50,10 @@ export function WelcomeScreen({
 
 
   const [touched, setTouched] = useState(false);
+  const [showRewrite, setShowRewrite] = useState(false);
   const trimmed = sankalpa.trim();
-  const canStart = trimmed.length > 0;
+  const validation: SankalpaValidation = validateSankalpa(trimmed);
+  const canStart = trimmed.length > 0 && validation.ok;
 
   const startedRef = useRef(false);
   const handleStart = () => {
@@ -58,6 +66,12 @@ export function WelcomeScreen({
     startedRef.current = true;
     haptic("medium");
     onStart(trimmed, mode);
+  };
+
+  const applySuggestion = (s: string) => {
+    setSankalpa(s);
+    setTouched(false);
+    setShowRewrite(false);
   };
 
   useTelegramMainButton({
@@ -105,11 +119,18 @@ export function WelcomeScreen({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-5 max-w-sm rounded-2xl bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] px-4 py-3 text-sm leading-relaxed text-left shadow-md ring-1 ring-white/5"
+        className="mt-5 max-w-sm rounded-2xl bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] px-4 py-3 text-sm leading-relaxed text-left shadow-md ring-1 ring-white/5 space-y-2"
       >
-        <b>Намасте, странник.</b> 🙏<br />
-        <b>Санкальпа</b> — это вопрос или намерение, с которым ты входишь в
-        путь. Чем честнее формулировка, тем глубже откликается игра.
+        <div><b>Намасте, странник.</b> 🙏</div>
+        <div>
+          <b>Санкальпа</b> — это вопрос или намерение, с которым ты входишь в путь.
+          Она помогает посмотреть внутрь себя: что я сейчас не вижу, где теряю опору,
+          какой урок проходит через эту ситуацию, какой честный шаг мне доступен.
+        </div>
+        <div className="opacity-90">
+          Лила лучше работает не как предсказание, а как зеркало. Сформулируй Санкальпу так,
+          чтобы она возвращала внимание к тебе, твоему выбору и твоему пути.
+        </div>
       </motion.div>
 
       <div className="mt-4 w-full max-w-sm">
@@ -160,7 +181,7 @@ export function WelcomeScreen({
           <span>Можно написать коротко. Главное — честно.</span>
           <span>{sankalpa.length}/240</span>
         </div>
-        {touched && !canStart && (
+        {touched && trimmed.length === 0 && (
           <div className="mt-1 text-[11px] text-amber-200/90 leading-snug">
             Сформулируй вопрос или намерение, чтобы войти в путь.
           </div>
@@ -168,6 +189,41 @@ export function WelcomeScreen({
         {touched && sankalpa.length >= 240 && (
           <div className="mt-1 text-[11px] text-amber-200/90 leading-snug">
             Попробуй оставить главное — один вопрос или одно намерение.
+          </div>
+        )}
+
+        {touched && !validation.ok && (
+          <div className="mt-2 rounded-2xl bg-amber-400/10 ring-1 ring-amber-300/40 px-3 py-2 text-[12px] leading-relaxed text-amber-100">
+            <div>{validation.message}</div>
+            <div className="mt-2 text-[11px] uppercase tracking-wider opacity-70">
+              Попробуй так
+            </div>
+            <ul className="mt-1 space-y-1">
+              {validation.suggestions.map((s) => (
+                <li key={s}>
+                  <button
+                    type="button"
+                    onClick={() => applySuggestion(s)}
+                    className="text-left w-full rounded-lg px-2 py-1 hover:bg-white/5 transition"
+                  >
+                    «{s}»
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => setShowRewrite((v) => !v)}
+              className="mt-2 text-[11px] underline opacity-80 hover:opacity-100"
+            >
+              {showRewrite ? "Скрыть подсказки" : "Помочь переформулировать"}
+            </button>
+            {showRewrite && (
+              <div className="mt-2 text-[11px] opacity-90 leading-snug">
+                Поверни вопрос к себе: не «что случится» или «что сделает другой»,
+                а «что я хочу увидеть в себе» и «какой честный шаг мне доступен».
+              </div>
+            )}
           </div>
         )}
 
@@ -181,30 +237,41 @@ export function WelcomeScreen({
                 Что откликается глубже
               </div>
               <ul className="list-disc pl-5 space-y-0.5">
-                <li>«Что мне важно понять о себе сейчас?»</li>
-                <li>«Где я теряю внутреннюю опору?»</li>
-                <li>«Что я не хочу видеть в этой ситуации?»</li>
-                <li>«Какой следующий честный шаг мне доступен?»</li>
+                {GOOD_EXAMPLES.map((e) => (
+                  <li key={e}>
+                    <button
+                      type="button"
+                      onClick={() => applySuggestion(e)}
+                      className="text-left hover:underline"
+                    >
+                      «{e}»
+                    </button>
+                  </li>
+                ))}
               </ul>
-            </div>
-            <div>
-              <div className="text-[11px] uppercase tracking-wider opacity-60 mb-1">
-                Меньше подходят
-              </div>
-              <ul className="list-disc pl-5 space-y-0.5 opacity-80">
-                <li>«Когда я стану богатым?»</li>
-                <li>«Любит ли меня конкретный человек?»</li>
-                <li>«Что точно случится в будущем?»</li>
-              </ul>
-              <div className="mt-1 opacity-70">
-                Лила лучше работает не как предсказание, а как зеркало.
-              </div>
             </div>
           </div>
         </details>
 
-        <div className="mt-2 text-[10px] opacity-50 leading-snug">
-          Санкальпа приватна и не попадёт в шаринг без твоего выбора.
+        <details className="mt-2 rounded-2xl bg-white/5 ring-1 ring-white/10 px-3 py-2 text-[12px] leading-relaxed">
+          <summary className="cursor-pointer opacity-80 select-none">
+            Какие формулировки не подходят
+          </summary>
+          <div className="mt-2 space-y-2 opacity-90">
+            <ul className="list-disc pl-5 space-y-0.5 opacity-80">
+              {BAD_EXAMPLES.map((e) => (
+                <li key={e}>«{e}»</li>
+              ))}
+            </ul>
+            <div className="opacity-70">
+              Такие вопросы уводят внимание во внешний контроль или предсказание.
+              Для Лилы лучше повернуть вопрос к себе.
+            </div>
+          </div>
+        </details>
+
+        <div className="mt-2 text-[10px] opacity-60 leading-snug">
+          Санкальпа приватна и не попадёт в шаринг без твоего отдельного выбора.
         </div>
       </motion.div>
 
