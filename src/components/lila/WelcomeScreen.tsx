@@ -80,10 +80,7 @@ export function WelcomeScreen({
     setStep((s) => (Math.max(0, s - 1) as Step));
   };
 
-  const goBack = () => {
-    haptic("light");
-    setStep((s) => (Math.max(0, s - 1) as Step));
-  };
+
 
   const applySuggestion = (s: string) => {
     setSankalpa(s);
