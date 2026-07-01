@@ -789,6 +789,30 @@ function Index() {
       {/* Chat */}
       <ChatFeed messages={messages} />
 
+      {started && !won && totalRolls >= 5 && (
+        <div className="shrink-0 px-3 pt-2 bg-[var(--lila-surface)]/70 backdrop-blur-md">
+          <button
+            onClick={() => {
+              hapticNotify("success");
+              trackEvent("guru_path_analysis_requested", {
+                cell: pos,
+                sessionId: sessionIdRef.current,
+                extra: { stage: "opened" },
+              });
+              setPathAnalysisCtx({
+                sankalpa,
+                currentCell: pos,
+                path: pathLog,
+                sessionId: sessionIdRef.current,
+              });
+            }}
+            className="w-full h-11 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-100 text-sm font-medium inline-flex items-center justify-center gap-2 active:scale-[0.99] transition"
+            aria-label="Разобрать путь с Гуру"
+          >
+            ✨ Разобрать путь с Гуру
+          </button>
+        </div>
+      )}
       <GameActionBar
         dice={dice}
         rolling={rolling}
