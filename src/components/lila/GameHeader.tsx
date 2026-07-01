@@ -39,7 +39,7 @@ export function GameHeader({
         </div>
         <div className="leading-tight min-w-0">
           <div className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
-            <span className="truncate">Гуру</span>
+            <span className="truncate">Лила</span>
             <span
               className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/70 font-medium"
               title="Приложение в бета-версии"
@@ -79,7 +79,7 @@ export function GameHeader({
         </button>
         <Link
           to="/journal"
-          className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+          className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
           aria-label="Дневник"
           title="Дневник пути"
         >
