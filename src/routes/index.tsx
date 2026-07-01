@@ -233,6 +233,9 @@ function Index() {
     setSankalpa("");
     setMode("classic");
     setStartedAt(null);
+    setLanded(null);
+    setLandedOpen(false);
+    setWinOpen(false);
   }, [persistAbandon]);
 
   // Клик по «Начать заново» посреди игры → открываем итог сессии,
