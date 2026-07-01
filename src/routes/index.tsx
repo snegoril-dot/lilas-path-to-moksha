@@ -643,6 +643,17 @@ function Index() {
     return s;
   }, [pathLog]);
 
+  if (!authReady) {
+    return (
+      <div className="min-h-app flex flex-col items-center justify-center gap-3 text-center p-6 bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
+        <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-2xl shadow-[0_0_40px_rgba(251,191,36,0.35)] animate-pulse">
+          🕉
+        </div>
+        <div className="text-sm opacity-80">Открываю путь…</div>
+      </div>
+    );
+  }
+
   if (!started) {
     return (
       <>
@@ -914,13 +925,13 @@ function Index() {
       />
       <SaveIndicator state={saveState} />
       {tgAuth.status === "dev_mode" && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg">
-          Dev-режим: откройте игру в Telegram для входа по Telegram ID
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
+          Приложение открыто вне Telegram. Некоторые функции могут быть недоступны.
         </div>
       )}
       {tgAuth.status === "error" && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-red-500/90 text-white text-xs px-3 py-1 shadow-lg">
-          Ошибка входа Telegram: {tgAuth.error}
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-rose-500/90 text-white text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
+          Не удалось подтвердить вход через Telegram. Попробуй открыть игру из бота ещё раз.
         </div>
       )}
     </div>
