@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
 import {
   ACHIEVEMENTS,
   computeUnlocked,
