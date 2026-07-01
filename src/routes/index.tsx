@@ -30,7 +30,7 @@ import { saveSession, upsertSession, getActiveSession, abandonSession, saveRefle
 import { registerOnlineFlush } from "@/lib/note-queue";
 import { saveLastCell } from "@/lib/last-cell-cache";
 import { ReturnBanner } from "@/components/lila/ReturnBanner";
-import { useTelegramInit, hapticNotify, isInTelegram } from "@/hooks/use-telegram";
+import { useTelegramInit, hapticNotify, isInTelegram, getTg } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
@@ -172,9 +172,31 @@ function Index() {
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
   const { isAdmin } = useIsAdmin();
+  const [telegramAdminHint, setTelegramAdminHint] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const check = () => {
+      const user = (getTg() as unknown as {
+        initDataUnsafe?: { user?: { id?: number; username?: string | null } };
+      } | undefined)?.initDataUnsafe?.user;
+      const allowed = user?.id === 253752301 || user?.username?.toLowerCase() === "snegoril";
+      if (allowed && !cancelled) setTelegramAdminHint(true);
+      return !!allowed;
+    };
+    if (check()) return;
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      if (check() || Date.now() - startedAt > 3000) window.clearInterval(timer);
+    }, 150);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
   const isTelegramSnegoril =
-    tgAuth.status === "authenticated" &&
-    (tgAuth.profile?.telegram_id === 253752301 || tgAuth.profile?.username?.toLowerCase() === "snegoril");
+    telegramAdminHint ||
+    (tgAuth.status === "authenticated" &&
+      (tgAuth.profile?.telegram_id === 253752301 || tgAuth.profile?.username?.toLowerCase() === "snegoril"));
   // Вне Telegram (web-превью Lovable / ПК) отладка сетки доступна всем — для удобства работы с раскладкой.
   const debugAllowed = isAdmin || isTelegramSnegoril || !isInTelegram();
   const [debug, setDebug] = useState(false);
@@ -205,6 +227,20 @@ function Index() {
 
   // Init Telegram SDK
   useTelegramInit();
+
+  useEffect(() => {
+    if (!debugAllowed) return;
+    let sp: string | null = null;
+    try {
+      const tg = getTg() as unknown as { initDataUnsafe?: { start_param?: string } } | undefined;
+      sp = tg?.initDataUnsafe?.start_param ?? new URL(window.location.href).searchParams.get("startapp");
+    } catch {
+      sp = null;
+    }
+    if (sp === "grid_debug" || sp === "debug_grid" || sp === "dev_grid") {
+      setDebug(true);
+    }
+  }, [debugAllowed]);
 
   // Fire once on mount.
   useEffect(() => {
@@ -1009,6 +1045,22 @@ function Index() {
         >
           Отладка сетки
         </div>
+      )}
+      {started && debugAllowed && (
+        <button
+          type="button"
+          onClick={() => setDebug((d) => !d)}
+          aria-pressed={debug}
+          className={`fixed left-2 z-40 h-10 px-3 rounded-full text-[11px] font-bold uppercase tracking-wide shadow-lg active:scale-95 transition ${
+            debug
+              ? "bg-fuchsia-500 text-white ring-2 ring-fuchsia-200/80"
+              : "bg-amber-400 text-stone-950 ring-1 ring-amber-100/70"
+          }`}
+          style={{ top: "calc(max(0.5rem, env(safe-area-inset-top)) + 3rem)" }}
+          title={debug ? "Выключить режим разметки" : "Включить режим разметки"}
+        >
+          {debug ? "DEV on" : "DEV"}
+        </button>
       )}
 
       <GameHeader
