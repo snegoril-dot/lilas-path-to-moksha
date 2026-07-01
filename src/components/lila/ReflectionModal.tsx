@@ -36,6 +36,7 @@ export function ReflectionModal({
   const [aiText, setAiText] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiErr, setAiErr] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleId = "reflection-modal-title";
   const save = useServerFn(saveReflection);
@@ -47,6 +48,7 @@ export function ReflectionModal({
       setNote("");
       setAiText(null);
       setAiErr(null);
+      setSaving(false);
       setTimeout(() => taRef.current?.focus(), 50);
     }
   }, [open]);
@@ -77,7 +79,8 @@ export function ReflectionModal({
   };
 
   const handleSubmit = async () => {
-    if (!data) return;
+    if (!data || saving) return;
+    setSaving(true);
     hapticNotify("success");
     const trimmed = note.trim();
     if (trimmed.length > 0) {
@@ -214,15 +217,18 @@ export function ReflectionModal({
               <div className="flex gap-2">
                 <button
                   onClick={onSkip}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition"
+                  disabled={saving}
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition disabled:opacity-50"
                 >
                   Пропустить
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
+                  disabled={saving}
+                  aria-busy={saving}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition disabled:opacity-60"
                 >
-                  Сохранить и идти дальше
+                  {saving ? "Сохраняем…" : "Сохранить и идти дальше"}
                 </button>
               </div>
             </div>

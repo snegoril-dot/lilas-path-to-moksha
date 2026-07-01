@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
@@ -47,12 +47,15 @@ export function WelcomeScreen({
   const trimmed = sankalpa.trim();
   const canStart = trimmed.length > 0;
 
+  const startedRef = useRef(false);
   const handleStart = () => {
     if (!canStart) {
       setTouched(true);
       haptic("light");
       return;
     }
+    if (startedRef.current) return;
+    startedRef.current = true;
     haptic("medium");
     onStart(trimmed, mode);
   };
