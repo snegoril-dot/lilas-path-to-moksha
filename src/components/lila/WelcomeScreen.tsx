@@ -89,11 +89,16 @@ export function WelcomeScreen({
   };
 
   const mainBtnText = step < 2 ? "Далее →" : "🎲 Начать игру";
+  // Sync MainButton enabled state with the current step:
+  // step 1 requires a valid Санкальпа, other steps are always active.
+  const mainBtnActive = step === 1 ? canStart || trimmed.length === 0 : true;
   useTelegramMainButton({
     text: mainBtnText,
     visible: inTg && !achOpen,
+    active: mainBtnActive,
     onClick: step < 2 ? goNext : handleStart,
   });
+
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col bg-gradient-to-b from-[var(--lila-bg)] via-[var(--lila-bg)] to-[var(--lila-bg-2)]">
