@@ -670,9 +670,17 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                       onPointerUp={onCellResizeEnd}
                       onPointerCancel={onCellResizeEnd}
                       onClick={(e) => { e.stopPropagation(); }}
-                      className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-sm bg-fuchsia-400/80 ring-1 ring-white/70 cursor-nwse-resize z-40"
+                      className={`absolute -right-1 -bottom-1 rounded-full ring-2 ring-white/80 cursor-nwse-resize z-40 ${
+                        selectedCell === id ? "h-6 w-6 bg-fuchsia-400" : "h-5 w-5 bg-fuchsia-400/80"
+                      }`}
                       style={{ touchAction: "none" }}
                       aria-hidden
+                    />
+                  )}
+                  {debug && selectedCell === id && (
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 rounded-[6px] ring-2 ring-fuchsia-300 shadow-[0_0_12px_rgba(232,121,249,0.7)] pointer-events-none z-30"
                     />
                   )}
                   {debug && (
