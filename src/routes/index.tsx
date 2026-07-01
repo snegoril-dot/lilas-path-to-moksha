@@ -177,6 +177,7 @@ function Index() {
     setMessages([]);
     sessionSavedRef.current = false;
     setStarted(true);
+    setStartedAt(resumeData.startedAt);
     setResumeOpen(false);
     setTimeout(() => {
       addMsg("🌿 Ты возвращаешься на свой путь. Продолжай.");
