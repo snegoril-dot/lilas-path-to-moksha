@@ -16,6 +16,7 @@ import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
 import { RemindersToggles } from "./RemindersToggles";
 import { PaywallSheet } from "./PaywallSheet";
 import { MyPurchasesSheet } from "./MyPurchasesSheet";
+import { SupportFAQSheet } from "./SupportFAQSheet";
 import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { BellRing } from "lucide-react";
