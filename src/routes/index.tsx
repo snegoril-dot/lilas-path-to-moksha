@@ -219,6 +219,7 @@ function Index() {
     sessionSavedRef.current = false;
     setReflection(null);
     setSankalpa("");
+    setMode("classic");
   }, [persistAbandon]);
 
   // On mount: check for an active in-progress session and offer to resume.
