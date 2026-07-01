@@ -25,6 +25,7 @@ import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/
 import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
+import { PauseSheet } from "@/components/lila/PauseSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
