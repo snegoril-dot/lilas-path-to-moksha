@@ -850,6 +850,14 @@ function Index() {
       />
 
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
+      <PathTimelineSheet
+        open={timelineOpen}
+        onClose={() => setTimelineOpen(false)}
+        pathLog={pathLog}
+        diceHistory={diceHistory}
+        keyCells={keyCells}
+        currentCell={pos}
+      />
       <SettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
