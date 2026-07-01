@@ -130,9 +130,9 @@ function Index() {
         }
         setTimeout(() => {
           addMsg(
-            "Душа ещё не воплощена. Чтобы войти в игру, выброси шестёрку — священное число рождения."
+            "Душа ещё не воплощена. Чтобы войти в игру, выброси 🎲 шестёрку.\n\nПочему именно 6? В традиции Лилы это священное число рождения: шесть чакр пробуждаются, шесть направлений пространства раскрываются, и душа получает право войти в тело. Пока не выпала 6 — ты стоишь у врат воплощения."
           );
-        }, 600);
+        }, 800);
       }, 250);
     },
     [addMsg]
@@ -349,14 +349,13 @@ function Index() {
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
     setRolling(true);
-    // Правило милости: после 3 неудачных попыток входа — гарантированная шестёрка.
-    const raw = rollDice(getRuntimeRng());
-    const value = pos === 0 && entryGrace ? 6 : raw;
+    // Классическое правило: игрок должен сам выбросить шестёрку, чтобы войти в игру.
+    const value = rollDice(getRuntimeRng());
     setDice(value);
     setDiceHistory((d) => [...d, value]);
     setTotalRolls((n) => n + 1);
     play("roll");
-    addMsg(`🎲 Бросок: ${value}${value !== raw ? " (милость)" : ""}`, "player");
+    addMsg(`🎲 Бросок: ${value}`, "player");
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
@@ -366,20 +365,12 @@ function Index() {
         if (value !== 6) {
           const next = entryMisses + 1;
           setEntryMisses(next);
-          const ATTEMPTS = 3;
-          if (next >= ATTEMPTS) {
-            addMsg(
-              `🌙 Душа устала ждать (${next}/${ATTEMPTS}). Она отдыхает один круг — следующий бросок принесёт шестёрку как дар милости.`,
-              "system"
-            );
-            setEntryGrace(true);
-            setEntryMisses(0);
-          } else {
-            addMsg(
-              `Душа ещё ждёт воплощения (${next}/${ATTEMPTS}). Только шестёрка открывает врата рождения.`,
-              "system"
-            );
-          }
+          const hints = [
+            `Выпало ${value}. Врата воплощения открывает только 🎲 6. Пробуй снова — терпение тоже часть пути.`,
+            `Снова не 6 (попытка ${next}). Наблюдай за нетерпением ума: сколько раз душа стучит, прежде чем родиться?`,
+            `${next}-я попытка. Джохари учит: рождение — милость, а не право. Дыши и бросай ещё.`,
+          ];
+          addMsg(hints[Math.min(next - 1, hints.length - 1)], "guru");
           setRolling(false);
           return;
         }
