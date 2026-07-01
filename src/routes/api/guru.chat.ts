@@ -146,18 +146,37 @@ export const Route = createFileRoute("/api/guru/chat")({
 
         const cell = body.cell ? BOARD[body.cell - 1] : null;
         const loka = body.cell ? getLoka(body.cell) : null;
+        const exp = body.cell ? getCellExperience(body.cell) : null;
+        const eventLabel =
+          body.eventKind === "snake"
+            ? "Игрок только что упал по змее — это возврат к неосознанному качеству, не наказание."
+            : body.eventKind === "ladder"
+              ? "Игрок только что поднялся по стреле — активировалось качество сознания."
+              : body.eventKind === "moksha"
+                ? "Игрок достиг Мокши (клетка 68). Это освобождение — говори тихо и глубоко."
+                : body.eventKind === "waiting"
+                  ? "Игрок ещё ждёт входа в игру (нужна шестёрка)."
+                  : "Обычный ход на клетке — помоги увидеть её как зеркало.";
+
         const context = [
           GURU_SYSTEM_PROMPT,
+          eventLabel,
           cell
-            ? `Игрок сейчас на клетке ${cell.id} — «${cell.name}». Мудрость клетки: ${cell.wisdom}`
-            : "Игрок ещё не воплощён (ждёт шестёрку).",
+            ? `Клетка ${cell.id} — «${cell.name}».\nМудрость: ${cell.wisdom}`
+            : "Игрок ещё не воплощён на доске.",
+          exp
+            ? `Краткий смысл: ${exp.shortMeaning}\nВопрос для рефлексии: ${exp.reflectionQuestion}\nПрактика на сегодня: ${exp.dailyPractice}`
+            : "",
           loka ? `Активный план сознания: ${loka.name}. ${loka.hint}.` : "",
-          body.sankalpa ? `Санкальпа игрока: «${body.sankalpa}».` : "Санкальпа не задана.",
+          body.sankalpa ? `Санкальпа игрока: «${body.sankalpa}».` : "Санкальпа не задана — не додумывай её.",
           body.recentPath && body.recentPath.length
-            ? `Недавний путь: ${body.recentPath
+            ? `Недавний путь (только для контекста, не пересказывай его): ${body.recentPath
                 .slice(-8)
                 .map((p) => `${p.cell}${p.to ? `→${p.to}` : ""}(${p.kind})`)
                 .join(", ")}`
+            : "",
+          body.includeLastReflection
+            ? `Игрок явно попросил учесть свою последнюю заметку: «${body.includeLastReflection}». Опирайся на неё бережно.`
             : "",
         ]
           .filter(Boolean)
