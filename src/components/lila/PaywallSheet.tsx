@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Sparkles, Check, RefreshCw, Loader2 } from "lucide-react";
-import { STARS_PRODUCTS, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
-import { listEntitlements, restorePurchases, createStarsInvoice } from "@/lib/entitlements.functions";
+import { Sparkles, Check, RefreshCw, Loader2, Bug } from "lucide-react";
+import { STARS_PRODUCTS, FEATURE_CATALOG, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
+import { listEntitlements, restorePurchases, createStarsInvoice, getLastPayment } from "@/lib/entitlements.functions";
+import { notifyEntitlementsChanged } from "@/hooks/use-entitlements";
 
 function haptic(type: "success" | "error" | "light") {
   const tg = typeof window !== "undefined" ? (window as any).Telegram?.WebApp : undefined;
@@ -36,16 +37,25 @@ function openTelegramInvoice(url: string, onPaid?: () => void): void {
 
 export function PaywallSheet({ open, onClose }: Props) {
   const [ent, setEnt] = useState<UserEntitlements | null>(null);
+  const [lastPayment, setLastPayment] = useState<{
+    product_id: string; stars_amount: number; telegram_payment_charge_id: string; created_at: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await listEntitlements({ data: {} });
+      const [data, payment] = await Promise.all([
+        listEntitlements({ data: {} }),
+        getLastPayment({ data: {} }).catch(() => null),
+      ]);
       setEnt(data);
+      setLastPayment(payment as typeof lastPayment);
+      notifyEntitlementsChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить покупки");
     } finally {
@@ -85,6 +95,7 @@ export function PaywallSheet({ open, onClose }: Props) {
     try {
       const data = await restorePurchases({ data: {} });
       setEnt(data);
+      notifyEntitlementsChanged();
       haptic("success");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось восстановить покупки");
@@ -174,6 +185,72 @@ export function PaywallSheet({ open, onClose }: Props) {
           <span className="text-white/50">
             {ent?.isPremium ? "Полный доступ активен" : "Оплата через Telegram Stars"}
           </span>
+        </div>
+
+        <div className="mt-5 border-t border-white/10 pt-3">
+          <button
+            type="button"
+            onClick={() => setShowDebug((v) => !v)}
+            className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80"
+          >
+            <Bug className="h-3.5 w-3.5" />
+            {showDebug ? "Скрыть отладку" : "Показать отладку"}
+          </button>
+
+          {showDebug && (
+            <div className="mt-2 rounded-xl bg-black/30 p-3 text-xs text-white/70 space-y-2">
+              <div>
+                <div className="text-white/50 mb-1">User ID</div>
+                <code className="break-all">{ent?.userId ?? "—"}</code>
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">isPremium</div>
+                <code>{String(!!ent?.isPremium)}</code>
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">Active features</div>
+                {ent?.features && Object.keys(ent.features).length > 0 ? (
+                  <ul className="space-y-0.5">
+                    {Object.entries(ent.features).map(([f, v]) => (
+                      <li key={f} className="flex items-center justify-between gap-2">
+                        <code>{f}</code>
+                        <span className="text-white/50">
+                          {FEATURE_CATALOG[f as FeatureId]?.tier ?? "—"}
+                          {v?.expiresAt ? ` · до ${new Date(v.expiresAt).toLocaleDateString()}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="text-white/50">нет</span>
+                )}
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">Last payment</div>
+                {lastPayment ? (
+                  <div className="space-y-0.5">
+                    <div><code>{lastPayment.product_id}</code></div>
+                    <div className="text-white/50">
+                      {lastPayment.stars_amount} ⭐ · {new Date(lastPayment.created_at).toLocaleString()}
+                    </div>
+                    <div className="text-white/40 break-all">
+                      charge: {lastPayment.telegram_payment_charge_id}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-white/50">платежей ещё не было</span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={refresh}
+                disabled={loading}
+                className="inline-flex items-center gap-1 text-white/60 hover:text-white"
+              >
+                <RefreshCw className="h-3.5 w-3.5" /> Обновить
+              </button>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

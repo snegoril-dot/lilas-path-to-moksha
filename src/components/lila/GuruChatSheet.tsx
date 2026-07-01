@@ -12,6 +12,9 @@ import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
 import { CellContextChip } from "./CellContextChip";
 import { Glyph } from "./Glyph";
+import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
+import { FEATURE_IDS } from "@/lib/entitlements";
+import { Lock } from "lucide-react";
 
 
 
@@ -200,6 +203,8 @@ export function GuruChatSheet({
   const badge = EVENT_BADGE[eventKind];
   const cellPack = ctx ? getGuruCellPack(ctx.cell) : null;
   const eventPrompts = QUICK_PROMPTS[eventKind];
+  const { has } = useEntitlements();
+  const hasDeepGuru = has(FEATURE_IDS.DEEP_GURU);
 
   return (
     <AnimatePresence>
@@ -261,6 +266,19 @@ export function GuruChatSheet({
               role="log"
               aria-live="polite"
             >
+              {!hasDeepGuru && (
+                <button
+                  type="button"
+                  onClick={() => { onClose(); openPaywallGlobal("deep_guru"); }}
+                  className="w-full flex items-center gap-2 rounded-xl bg-amber-500/10 ring-1 ring-amber-300/30 px-3 py-2 text-[12px] text-amber-100 hover:bg-amber-500/15"
+                >
+                  <Lock size={13} className="shrink-0 opacity-80" />
+                  <span className="truncate text-left flex-1">
+                    Открой Глубокого Гуру — расширенные ответы и полная трактовка клетки
+                  </span>
+                  <span className="opacity-80">⭐</span>
+                </button>
+              )}
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <div className="text-sm opacity-70 leading-relaxed">

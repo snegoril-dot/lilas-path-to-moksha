@@ -5,7 +5,8 @@ import {
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { onPaywallOpen } from "@/hooks/use-entitlements";
 import type { PlayerToken } from "@/lib/player-tokens";
 import { BOARD } from "@/lib/lila-board";
 import { OnboardingModal } from "./OnboardingModal";
@@ -107,6 +108,9 @@ export function SettingsSheet(props: Props) {
   const [weeklyOpen, setWeeklyOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
+
+  useEffect(() => onPaywallOpen(() => setPaywallOpen(true)), []);
+
 
   const isBeta = true;
   const cellInfo = currentCell > 0 ? BOARD[currentCell - 1] : null;
