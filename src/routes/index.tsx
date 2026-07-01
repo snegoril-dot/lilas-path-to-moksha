@@ -25,6 +25,7 @@ import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/
 import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
+import { PauseSheet } from "@/components/lila/PauseSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -62,6 +63,8 @@ function Index() {
   const [diceHistory, setDiceHistory] = useState<number[]>([]);
   const sessionSavedRef = useRef(false);
   const pendingResume = useRef<(() => void) | null>(null);
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [pauseOpen, setPauseOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -73,6 +76,7 @@ function Index() {
     mode: GameMode;
     movesCount: number;
     updatedAt: string | null;
+    startedAt: string | null;
     entryMisses: number;
     sixStreak: number;
     path: Array<{ cell: number; kind: string; to?: number }>;
@@ -126,6 +130,7 @@ function Index() {
       sessionIdRef.current = null;
       setSankalpa(userSankalpa);
       setMode(chosenMode);
+      setStartedAt(new Date().toISOString());
       setTimeout(() => {
         if (userSankalpa) {
           addMsg(
@@ -172,6 +177,7 @@ function Index() {
     setMessages([]);
     sessionSavedRef.current = false;
     setStarted(true);
+    setStartedAt(resumeData.startedAt);
     setResumeOpen(false);
     setTimeout(() => {
       addMsg("🌿 Ты возвращаешься на свой путь. Продолжай.");
@@ -195,7 +201,7 @@ function Index() {
     }
   }, [resumeData, persistAbandon]);
 
-  const restart = useCallback(() => {
+  const doRestart = useCallback(() => {
     // Abandon current in-progress session (if any) before returning to welcome.
     const prevId = sessionIdRef.current;
     if (prevId) {
@@ -204,6 +210,7 @@ function Index() {
       );
     }
     sessionIdRef.current = null;
+    setPauseOpen(false);
     setStarted(false);
     setWon(false);
     setPos(0);
@@ -220,7 +227,18 @@ function Index() {
     setReflection(null);
     setSankalpa("");
     setMode("classic");
+    setStartedAt(null);
   }, [persistAbandon]);
+
+  // Клик по «Начать заново» посреди игры → открываем итог сессии,
+  // чтобы игрок мог зафиксировать инсайт и решить.
+  const restart = useCallback(() => {
+    if (started && !won) {
+      setPauseOpen(true);
+    } else {
+      doRestart();
+    }
+  }, [started, won, doRestart]);
 
   // On mount: check for an active in-progress session and offer to resume.
   useEffect(() => {
@@ -242,6 +260,7 @@ function Index() {
           mode: ((row as { mode?: string }).mode === "soft" ? "soft" : "classic") as GameMode,
           movesCount: (row.moves_count as number) ?? 0,
           updatedAt: (row.updated_at as string | null) ?? null,
+          startedAt: (row.started_at as string | null) ?? null,
           entryMisses: (row.entry_misses as number) ?? 0,
           sixStreak: (row.six_streak as number) ?? 0,
           path: ((row.path as Array<{ cell: number; kind: string; to?: number }>) ?? []),
@@ -727,11 +746,25 @@ function Index() {
       />
       <WinOverlay
         open={won}
-        onRestart={restart}
+        onRestart={doRestart}
         sankalpa={sankalpa}
         keyCells={keyCells}
         totalRolls={totalRolls}
         mode={mode}
+        startedAt={startedAt}
+        sessionId={sessionIdRef.current}
+        currentCell={pos}
+      />
+      <PauseSheet
+        open={pauseOpen}
+        onContinue={() => setPauseOpen(false)}
+        onExit={doRestart}
+        sankalpa={sankalpa}
+        startedAt={startedAt}
+        currentCell={pos}
+        totalRolls={totalRolls}
+        keyCells={keyCells}
+        sessionId={sessionIdRef.current}
       />
 
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
