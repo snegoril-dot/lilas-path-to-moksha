@@ -312,6 +312,7 @@ export type Database = {
           id: string
           practice_id: string
           reflection: string | null
+          reminder_sent_at: string | null
           resonance: number | null
           sankalpa_bridge: string | null
           started_at: string
@@ -331,6 +332,7 @@ export type Database = {
           id?: string
           practice_id: string
           reflection?: string | null
+          reminder_sent_at?: string | null
           resonance?: number | null
           sankalpa_bridge?: string | null
           started_at?: string
@@ -350,6 +352,7 @@ export type Database = {
           id?: string
           practice_id?: string
           reflection?: string | null
+          reminder_sent_at?: string | null
           resonance?: number | null
           sankalpa_bridge?: string | null
           started_at?: string
