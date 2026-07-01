@@ -86,6 +86,8 @@ export function SessionSummary({
   const [includeSankalpa, setIncludeSankalpa] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [savedInsights, setSavedInsights] = useState<JournalRow[]>([]);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
 
   const isMoksha = result === "moksha";
   const cell = currentCell > 0 ? BOARD[currentCell - 1] : null;
