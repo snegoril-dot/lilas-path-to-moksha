@@ -36,6 +36,7 @@ export function ReflectionModal({
   const [aiText, setAiText] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiErr, setAiErr] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleId = "reflection-modal-title";
   const save = useServerFn(saveReflection);
