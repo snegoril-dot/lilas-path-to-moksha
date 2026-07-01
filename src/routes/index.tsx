@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
-import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
-import { WinOverlay } from "@/components/lila/WinOverlay";
-import { GuruChatSheet } from "@/components/lila/GuruChatSheet";
-import { SettingsSheet } from "@/components/lila/SettingsSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
@@ -32,15 +28,22 @@ import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/
 import { useTelegramInit, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
-import { PauseSheet } from "@/components/lila/PauseSheet";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
-import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
 import { GameHeader } from "@/components/lila/GameHeader";
 import { GameActionBar } from "@/components/lila/GameActionBar";
-import { PathAnalysisSheet, type PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
+import type { PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
 import { HintToast, hasSeenHint, markHintSeen, type HintId } from "@/components/lila/HintToast";
+
+// Lazy-loaded heavy modals — only fetched when the user opens them.
+const RulesModal = lazy(() => import("@/components/lila/RulesModal").then(m => ({ default: m.RulesModal })));
+const WinOverlay = lazy(() => import("@/components/lila/WinOverlay").then(m => ({ default: m.WinOverlay })));
+const GuruChatSheet = lazy(() => import("@/components/lila/GuruChatSheet").then(m => ({ default: m.GuruChatSheet })));
+const SettingsSheet = lazy(() => import("@/components/lila/SettingsSheet").then(m => ({ default: m.SettingsSheet })));
+const PauseSheet = lazy(() => import("@/components/lila/PauseSheet").then(m => ({ default: m.PauseSheet })));
+const PathTimelineSheet = lazy(() => import("@/components/lila/PathTimelineSheet").then(m => ({ default: m.PathTimelineSheet })));
+const PathAnalysisSheet = lazy(() => import("@/components/lila/PathAnalysisSheet").then(m => ({ default: m.PathAnalysisSheet })));
 
 
 
