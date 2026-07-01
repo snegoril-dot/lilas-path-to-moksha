@@ -1,3 +1,5 @@
+import { safeGet, safeSet } from "@/lib/safe-storage";
+
 export interface Achievement {
   id: string;
   emoji: string;
@@ -91,7 +93,7 @@ const STORAGE_KEY = "lila.achievements.seen";
 export function loadSeen(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = safeGet(STORAGE_KEY);
     return new Set(raw ? (JSON.parse(raw) as string[]) : []);
   } catch {
     return new Set();
@@ -101,7 +103,7 @@ export function loadSeen(): Set<string> {
 export function saveSeen(set: Set<string>) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+    safeSet(STORAGE_KEY, JSON.stringify([...set]));
   } catch {
     /* ignore */
   }

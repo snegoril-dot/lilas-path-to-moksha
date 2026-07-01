@@ -7,6 +7,7 @@ import { saveReflection } from "@/lib/guru.functions";
 import { useTelegramBackButton, hapticNotify, haptic } from "@/hooks/use-telegram";
 import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
 import { trackEvent } from "@/lib/analytics";
+import { safeRemove } from "@/lib/safe-storage";
 
 
 export interface ReflectionPayload {
@@ -99,7 +100,7 @@ export function ReflectionModal({
           },
         });
         // очищаем локальный черновик после успешного сохранения
-        try { localStorage.removeItem(`lila.reflection.draft.${data.fromId}`); } catch {}
+        safeRemove(`lila.reflection.draft.${data.fromId}`);
       } catch (e) {
         console.error("[reflection save]", e);
         // Оффлайн/сетевой сбой — кладём заметку в очередь, чтобы отправить позже.

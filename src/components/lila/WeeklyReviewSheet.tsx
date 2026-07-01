@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getWeeklyReview, type WeeklyReviewCell } from "@/lib/weekly-review.functions";
 import { getCellExperience } from "@/lib/cell-experience";
 import { trackEvent } from "@/lib/analytics";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 interface Props {
   open: boolean;
@@ -16,12 +17,12 @@ const RESONANCE_KEY = (cell: number) => `lila:resonance:${cell}`;
 function ResonanceScale({ cell }: { cell: number }) {
   const [value, setValue] = useState<number>(() => {
     if (typeof window === "undefined") return 0;
-    return Number(window.localStorage.getItem(RESONANCE_KEY(cell)) || 0);
+    return Number(safeGet(RESONANCE_KEY(cell)) || 0);
   });
   const set = (n: number) => {
     setValue(n);
     try {
-      window.localStorage.setItem(RESONANCE_KEY(cell), String(n));
+      safeSet(RESONANCE_KEY(cell), String(n));
       trackEvent("weekly_resonance_set");
     } catch {}
   };

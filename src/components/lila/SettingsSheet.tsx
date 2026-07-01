@@ -457,7 +457,7 @@ function DeleteAccountButton({ onDone }: { onDone: () => void }) {
     try {
       const { deleteMyAccount } = await import("@/lib/account.functions");
       await deleteMyAccount({ data: undefined });
-      const { supabase } = await import("@/integrations/supabase/client");
+      const { supabase } = await import("@/lib/supabase-safe-client");
       await supabase.auth.signOut();
       try { localStorage.clear(); } catch { /* noop */ }
       onDone();
@@ -517,7 +517,7 @@ function ReferralSection() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { supabase } = await import("@/integrations/supabase/client");
+      const { supabase } = await import("@/lib/supabase-safe-client");
       const { data } = await supabase.auth.getSession();
       const uid = data.session?.user.id;
       if (!uid) return;
