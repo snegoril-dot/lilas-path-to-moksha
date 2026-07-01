@@ -501,9 +501,12 @@ function Index() {
           if (!entry.mercy) {
             addMsg("🎲 Шестёрка даёт ещё один бросок.", "system");
           }
+          trackEvent("entered_board", { cell: 1, dice: value, sessionId: sessionIdRef.current, extra: { mercy: !!entry.mercy } });
+          trackEvent("cell_landed", { cell: 1, sessionId: sessionIdRef.current });
           openLanded(1);
           setRolling(false);
         });
+
       }, diceDelay);
       return;
     }
