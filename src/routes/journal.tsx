@@ -102,7 +102,15 @@ function JournalPage() {
   }, [filtered]);
 
   const counts = useMemo(() => {
-    const c: Record<Kind, number> = { reflection: 0, insight: 0, guru: 0 };
+    const c: Record<Kind, number> = {
+      reflection: 0,
+      insight: 0,
+      final_insight: 0,
+      guru: 0,
+      guru_note: 0,
+      snake_lesson: 0,
+      ladder_gift: 0,
+    };
     entries.forEach((e) => (c[normalizeKind(e.kind)] += 1));
     return c;
   }, [entries]);
