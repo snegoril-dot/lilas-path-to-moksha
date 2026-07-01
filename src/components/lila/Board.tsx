@@ -557,6 +557,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           );
         })}
       </div>
+      </div>
+
       {debug && (
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           <button
