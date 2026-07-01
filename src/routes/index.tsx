@@ -148,12 +148,12 @@ function Index() {
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
-  const [debug, setDebug] = useState(() => {
-    if (typeof window === "undefined") return false;
-    // Дебаг-оверлей доски доступен только в dev-сборке.
-    if (import.meta.env.PROD) return false;
-    return new URLSearchParams(window.location.search).get("debug") === "1";
-  });
+  const { isAdmin } = useIsAdmin();
+  const [debug, setDebug] = useState(false);
+  // Если пользователь не админ — принудительно выключаем отладку.
+  useEffect(() => {
+    if (!isAdmin && debug) setDebug(false);
+  }, [isAdmin, debug]);
 
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
