@@ -158,6 +158,7 @@ function Index() {
     if (!resumeData) return;
     sessionIdRef.current = resumeData.id;
     setSankalpa(resumeData.sankalpa ?? "");
+    setMode(resumeData.mode);
     setPos(resumeData.currentCell);
     setTotalRolls(resumeData.movesCount);
     setEntryMisses(resumeData.entryMisses);
