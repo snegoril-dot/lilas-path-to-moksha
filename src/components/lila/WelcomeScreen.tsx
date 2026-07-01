@@ -17,6 +17,19 @@ export function WelcomeScreen({
   const [mode, setMode] = useState<GameMode>("classic");
 
   const [achOpen, setAchOpen] = useState(false);
+  const inTg = isInTelegram();
+
+  const handleStart = () => {
+    haptic("medium");
+    onStart(sankalpa.trim(), mode);
+  };
+
+  useTelegramMainButton({
+    text: "🎲 Начать игру",
+    visible: inTg && !achOpen,
+    onClick: handleStart,
+  });
+
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[var(--lila-bg)] via-[var(--lila-bg)] to-[var(--lila-bg-2)]">
