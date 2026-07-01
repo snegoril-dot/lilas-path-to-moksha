@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createLovableAiGatewayProvider, GURU_SYSTEM_PROMPT } from "@/lib/ai-gateway.server";
 import { BOARD, getLoka } from "@/lib/lila-board";
+import { getCellExperience } from "@/lib/cell-experience";
 
 const DAILY_LIMIT = 10;
 const FALLBACK_MSG = "Гуру сейчас молчит. Попробуй вернуться к вопросу чуть позже.";
@@ -24,6 +25,8 @@ const bodySchema = z.object({
   messages: z.array(uiMessageSchema).min(1).max(50),
   cell: z.number().int().min(1).max(72).optional(),
   sankalpa: z.string().max(500).optional(),
+  eventKind: z.enum(["normal", "snake", "ladder", "moksha", "waiting"]).optional(),
+  includeLastReflection: z.string().max(1200).optional(),
   recentPath: z
     .array(
       z.object({
