@@ -281,6 +281,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 : "ring-1 ring-white/10";
 
               const co = cellOffsets[id];
+              const cs = cellSizes[id];
               return (
                 <button
                   key={id}
@@ -294,12 +295,27 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                     gridRow: visualRow + 1,
                     transform: co ? `translate(${co.x}px, ${co.y}px)` : undefined,
                     touchAction: debug ? "none" : undefined,
-                    zIndex: co ? 15 : undefined,
+                    zIndex: co || cs ? 15 : undefined,
+                    width: cs ? `calc(100% + ${cs.w}px)` : undefined,
+                    height: cs ? `calc(100% + ${cs.h}px)` : undefined,
                   }}
                   className={`relative flex items-end justify-center rounded-[6px] p-0.5 text-center select-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 cursor-pointer hover:brightness-125 ${tint} ${stateRing} ${
                     isVisited ? "brightness-110" : ""
                   }`}
                 >
+                  {debug && (
+                    <span
+                      role="presentation"
+                      onPointerDown={(e) => onCellResizeStart(e, id)}
+                      onPointerMove={onCellResizeMove}
+                      onPointerUp={onCellResizeEnd}
+                      onPointerCancel={onCellResizeEnd}
+                      onClick={(e) => { e.stopPropagation(); }}
+                      className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-sm bg-fuchsia-400/80 ring-1 ring-white/70 cursor-nwse-resize z-40"
+                      style={{ touchAction: "none" }}
+                      aria-hidden
+                    />
+                  )}
                   <span
                     className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-[15px] font-extrabold ${NUMBER_CLASS}`}
                     aria-hidden
