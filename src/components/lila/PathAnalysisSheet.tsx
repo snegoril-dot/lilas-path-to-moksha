@@ -205,14 +205,24 @@ export function PathAnalysisSheet({ ctx, onClose }: Props) {
 
             <footer className="shrink-0 px-4 py-3 border-t border-white/10 flex items-center gap-2 pb-safe">
               {!result ? (
-                <button
-                  onClick={handleAnalyze}
-                  disabled={loading}
-                  className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold disabled:opacity-60 active:scale-[0.98] transition inline-flex items-center justify-center gap-2"
-                >
-                  <Sparkles size={18} />
-                  {loading ? "Гуру всматривается…" : "Разобрать путь"}
-                </button>
+                canAnalyze ? (
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={loading}
+                    className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold disabled:opacity-60 active:scale-[0.98] transition inline-flex items-center justify-center gap-2"
+                  >
+                    <Sparkles size={18} />
+                    {loading ? "Гуру всматривается…" : "Разобрать путь"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { onClose(); openPaywallGlobal("path_analysis"); }}
+                    className="flex-1 h-12 rounded-2xl bg-white/10 hover:bg-white/15 ring-1 ring-amber-300/40 text-amber-100 font-medium inline-flex items-center justify-center gap-2"
+                  >
+                    <Lock size={16} />
+                    Открыть разбор пути за ⭐
+                  </button>
+                )
               ) : (
                 <>
                   <button
