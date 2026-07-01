@@ -726,6 +726,21 @@ function Index() {
         return;
       }
 
+      // Классические клетки-ловушки: выход только при определённых числах.
+      if (!canExitCell(pos, value)) {
+        hapticNotify("warning");
+        const hint = exitHint(pos);
+        addMsg(
+          `Такой ход невозможен. ${hint ?? ""} Останься здесь ещё на один вдох и подумай ещё — какая ключевая мысль удерживает тебя в этом состоянии?`.trim(),
+          "guru"
+        );
+        trackEvent("cell_landed", { cell: pos, sessionId: sessionIdRef.current, extra: { blocked: true, dice: value } });
+        setRolling(false);
+        return;
+      }
+
+
+
       const target = computeNewPosition(pos, value);
       const overshoot = pos + value > 68;
 
