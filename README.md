@@ -43,7 +43,9 @@ See [`.env.example`](./.env.example).
 | `SUPABASE_URL` | server | Same URL, used by SSR / server functions |
 | `SUPABASE_PUBLISHABLE_KEY` | server | Same publishable key for SSR |
 | `LOVABLE_API_KEY` | server | AI Gateway auth (auto-provisioned on Lovable Cloud) |
-| `TELEGRAM_BOT_TOKEN` | server | Only needed if you host the Telegram bot yourself |
+| `TELEGRAM_BOT_TOKEN` | server | Bot token from @BotFather (webhook auth) |
+| `MINI_APP_URL` | server | HTTPS URL of the deployed Mini App |
+| `TELEGRAM_WEBHOOK_SECRET` | server | Optional shared secret verified on the webhook |
 
 On Lovable Cloud these are injected automatically — you do not need a local `.env` when developing inside the platform.
 
@@ -52,8 +54,52 @@ On Lovable Cloud these are injected automatically — you do not need a local `.
 1. Create a bot with [@BotFather](https://t.me/BotFather) and copy the token.
 2. `/newapp` → attach the bot → set the Web App URL to your published site (e.g. `https://<your-project>.lovable.app`).
 3. Set a menu button: `/setmenubutton` → your bot → same URL.
-4. (Optional) Store `TELEGRAM_BOT_TOKEN` as a server secret if you add server-side Telegram API calls.
-5. Open the bot in Telegram → tap the menu button. The app reads `window.Telegram.WebApp` for theme, viewport, haptics and sharing.
+4. Open the bot in Telegram → tap the menu button. The app reads `window.Telegram.WebApp` for theme, viewport, haptics and sharing.
+
+## Telegram bot (`/start`, `/continue`, `/help`)
+
+The bot is a **stateless webhook** — no long-lived process is needed, which
+fits the serverless runtime of this project. The handler lives at
+[`src/routes/api/public/telegram/webhook.ts`](src/routes/api/public/telegram/webhook.ts)
+and answers three commands with a "Открыть Лилу" button that launches the Mini App.
+
+### Configure
+
+Store as **server** secrets (never expose to the client):
+
+- `TELEGRAM_BOT_TOKEN` — from @BotFather
+- `MINI_APP_URL` — e.g. `https://lilas-path-to-moksha.lovable.app`
+- `TELEGRAM_WEBHOOK_SECRET` — optional; any random string
+
+### Register the webhook (one-time)
+
+```bash
+# Pick a random secret and remember it
+SECRET="$(openssl rand -hex 24)"
+
+curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+  --data-urlencode "url=https://<your-project>.lovable.app/api/public/telegram/webhook" \
+  --data-urlencode "secret_token=${SECRET}" \
+  --data-urlencode 'allowed_updates=["message"]'
+
+# Verify
+curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+```
+
+Then save `SECRET` as `TELEGRAM_WEBHOOK_SECRET`.
+
+### Set command hints in Telegram
+
+```bash
+curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" \
+  -H 'Content-Type: application/json' \
+  -d '{"commands":[
+    {"command":"start","description":"Начать путь"},
+    {"command":"continue","description":"Продолжить путь"},
+    {"command":"help","description":"Как играть"}
+  ]}'
+```
+
 
 ## Roadmap
 
