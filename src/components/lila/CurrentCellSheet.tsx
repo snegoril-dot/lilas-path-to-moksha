@@ -243,13 +243,14 @@ export function CurrentCellSheet({
 
             {/* Actions */}
             {!showInsight && (
-              <div className="shrink-0 grid grid-cols-3 gap-2 p-3 border-t border-white/5 bg-black/20">
+              <div className="shrink-0 grid grid-cols-4 gap-2 p-3 border-t border-white/5 bg-black/20">
                 <button
                   onClick={() => {
                     haptic("light");
                     setShowInsight(true);
                   }}
-                  className="h-12 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-xs font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[11px] font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Записать инсайт"
                 >
                   <Feather size={16} />
                   Инсайт
@@ -259,17 +260,28 @@ export function CurrentCellSheet({
                     haptic("light");
                     onAskGuru(cell.id);
                   }}
-                  className="h-12 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-200 text-xs font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-200 text-[11px] font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Спросить Гуру"
                 >
                   <MessageCircle size={16} />
                   Гуру
                 </button>
+                <Link
+                  to="/journal"
+                  onClick={() => haptic("light")}
+                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[11px] font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Открыть дневник"
+                >
+                  <BookOpen size={16} />
+                  Дневник
+                </Link>
                 <button
                   onClick={() => {
                     haptic("medium");
                     onContinue();
                   }}
-                  className="h-12 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 text-xs font-bold inline-flex flex-col items-center justify-center gap-0.5"
+                  className="h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 text-[11px] font-bold inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Продолжить путь"
                 >
                   <ArrowRight size={16} />
                   Продолжить
