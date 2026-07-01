@@ -3,10 +3,12 @@ import { X } from "lucide-react";
 import { BOARD, getLoka } from "@/lib/lila-board";
 import { getCellMeta, getTattvaForCell } from "@/lib/lila-wisdom-full";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
 
 export function CellModal({ cellId, onClose }: { cellId: number | null; onClose: () => void }) {
   const cell = cellId ? BOARD[cellId - 1] : null;
   const { initialRef } = useDialogA11y(!!cell, onClose);
+  useTelegramBackButton(!!cell, onClose);
   const titleId = "cell-modal-title";
   const meta = cell ? getCellMeta(cell.id) : null;
   const tattva = cell ? getTattvaForCell(cell.id) : null;

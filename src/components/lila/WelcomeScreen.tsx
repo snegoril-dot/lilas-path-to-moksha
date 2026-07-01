@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
+import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 
 export function WelcomeScreen({
   onStart,
@@ -16,6 +17,19 @@ export function WelcomeScreen({
   const [mode, setMode] = useState<GameMode>("classic");
 
   const [achOpen, setAchOpen] = useState(false);
+  const inTg = isInTelegram();
+
+  const handleStart = () => {
+    haptic("medium");
+    onStart(sankalpa.trim(), mode);
+  };
+
+  useTelegramMainButton({
+    text: "🎲 Начать игру",
+    visible: inTg && !achOpen,
+    onClick: handleStart,
+  });
+
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[var(--lila-bg)] via-[var(--lila-bg)] to-[var(--lila-bg-2)]">
@@ -132,18 +146,21 @@ export function WelcomeScreen({
         transition={{ delay: 0.75 }}
         className="mt-3 w-full max-w-sm space-y-3"
       >
-        <button
-          onClick={() => onStart(sankalpa.trim(), mode)}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-base shadow-xl hover:brightness-110 active:scale-[0.98] transition"
-        >
-          🎲 Начать игру
-        </button>
+        {!inTg && (
+          <button
+            onClick={handleStart}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-base shadow-xl hover:brightness-110 active:scale-[0.98] transition"
+          >
+            🎲 Начать игру
+          </button>
+        )}
         <button
           onClick={onRules}
           className="w-full py-3 rounded-2xl bg-[var(--tg-theme-button-color,#2481cc)] text-[var(--tg-theme-button-text-color,#fff)] font-semibold text-sm shadow-md hover:brightness-110 active:scale-[0.98] transition"
         >
           📜 Правила
         </button>
+
       </motion.div>
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
     </div>

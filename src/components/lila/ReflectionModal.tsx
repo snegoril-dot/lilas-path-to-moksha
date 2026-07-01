@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
+import { useTelegramBackButton, hapticNotify, haptic } from "@/hooks/use-telegram";
 
 export interface ReflectionPayload {
   fromId: number;
@@ -26,6 +27,7 @@ export function ReflectionModal({
 }) {
   const open = !!data;
   const { initialRef } = useDialogA11y(open, onSkip);
+  useTelegramBackButton(open, onSkip);
   const [note, setNote] = useState("");
   const [aiText, setAiText] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
@@ -152,7 +154,7 @@ export function ReflectionModal({
 
             <div className="mt-4 grid grid-cols-1 gap-2">
               <button
-                onClick={askGuru}
+                onClick={() => { haptic("light"); askGuru(); }}
                 disabled={aiBusy}
                 className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium transition disabled:opacity-50"
               >
@@ -167,7 +169,7 @@ export function ReflectionModal({
                   Пропустить
                 </button>
                 <button
-                  onClick={() => onSubmit(note.trim())}
+                  onClick={() => { hapticNotify("success"); onSubmit(note.trim()); }}
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
                 >
                   Принять урок

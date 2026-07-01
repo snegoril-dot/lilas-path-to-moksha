@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
 import {
   ACHIEVEMENTS,
   computeUnlocked,
@@ -18,6 +19,7 @@ export function AchievementsModal({
   onClose: () => void;
 }) {
   const { initialRef } = useDialogA11y(open, onClose);
+  useTelegramBackButton(open, onClose);
   const load = useServerFn(getMySessions);
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);

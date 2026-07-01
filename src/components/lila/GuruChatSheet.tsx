@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface GuruChatContext {
@@ -22,6 +23,7 @@ export function GuruChatSheet({
 }) {
   const open = !!ctx;
   const { initialRef } = useDialogA11y(open, onClose);
+  useTelegramBackButton(open, onClose);
   const [input, setInput] = useState("");
   const titleId = "guru-chat-title";
 
