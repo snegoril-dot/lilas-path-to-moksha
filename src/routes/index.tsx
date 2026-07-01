@@ -194,6 +194,37 @@ function Index() {
     trackEvent("app_opened");
   }, []);
 
+  // Global online-listener: чистим очередь отложенных заметок при появлении сети.
+  useEffect(() => {
+    const unsub = registerOnlineFlush(async (n) => {
+      await sendReflection({
+        data: {
+          sessionId: n.sessionId,
+          cell: n.cellId,
+          userText: n.text,
+          sankalpa: n.sankalpa,
+          prompt: n.prompt,
+          withAi: false,
+          kind: n.kind,
+        },
+      });
+    });
+    return unsub;
+  }, [sendReflection]);
+
+  // Кешируем последнюю клетку — чтобы оффлайн-открытие показало осмысленный контент.
+  useEffect(() => {
+    if (!started || pos === 0) return;
+    const cell = BOARD[pos - 1];
+    if (!cell) return;
+    saveLastCell(tgAuth.userId ?? null, {
+      cellId: cell.id,
+      name: cell.name,
+      wisdom: cell.wisdom,
+      reflection: cell.reflection ?? null,
+    });
+  }, [started, pos, tgAuth.userId]);
+
   // Contextual hints — shown once per user (localStorage).
   useEffect(() => {
     if (!started || won) return;
