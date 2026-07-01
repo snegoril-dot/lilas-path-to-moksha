@@ -6,7 +6,6 @@ import { saveReflection, getJournal } from "@/lib/guru.functions";
 import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
 import { buildShareText as buildShareTextLib, shareToTelegram, type ShareResult } from "@/lib/share";
-import { getCellExperience } from "@/lib/cell-experience";
 import type { KeyCell } from "./WinOverlay";
 
 export type SessionResult = "in_progress" | "moksha" | "paused";
