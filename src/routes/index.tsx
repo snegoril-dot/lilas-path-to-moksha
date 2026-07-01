@@ -697,6 +697,14 @@ function Index() {
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => { haptic("light"); setTimelineOpen(true); }}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Мой путь"
+            title="Мой путь"
+          >
+            <RouteIcon size={18} />
+          </button>
           <Link
             to="/journal"
             className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
@@ -726,7 +734,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} />
+        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
       </div>
 
       {/* Chat */}
