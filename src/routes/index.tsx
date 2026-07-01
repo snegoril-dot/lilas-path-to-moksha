@@ -328,7 +328,27 @@ function Index() {
         if (cell) addMsg(`Ты стоишь на клетке ${cell.id} · ${cell.name}.`, "system");
       }
     }, 200);
-  }, [resumeData, addMsg]);
+
+    // Если возвращение спустя сутки+ — показать тёплый ReturnBanner.
+    const updated = resumeData.updatedAt ? new Date(resumeData.updatedAt).getTime() : 0;
+    const hoursSince = updated ? (Date.now() - updated) / 3_600_000 : 0;
+    if (hoursSince >= 24 && resumeData.currentCell > 0) {
+      const cellId = resumeData.currentCell;
+      const sankalpaSnap = resumeData.sankalpa;
+      // Асинхронно подтягиваем последнюю мысль по клетке.
+      fetchLastCellNote({ data: { cell: cellId } })
+        .then((row) => {
+          const text =
+            (row as { user_text?: string | null } | null)?.user_text ??
+            (row as { ai_reflection?: string | null } | null)?.ai_reflection ??
+            null;
+          setReturnBanner({ cellId, sankalpa: sankalpaSnap, lastNote: text, hoursSince });
+        })
+        .catch(() => {
+          setReturnBanner({ cellId, sankalpa: sankalpaSnap, lastNote: null, hoursSince });
+        });
+    }
+  }, [resumeData, addMsg, fetchLastCellNote]);
 
   const startFresh = useCallback(async () => {
     setResumeOpen(false);
