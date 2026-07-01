@@ -172,8 +172,11 @@ function Index() {
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
   const { isAdmin } = useIsAdmin();
+  const isTelegramSnegoril =
+    tgAuth.status === "authenticated" &&
+    (tgAuth.profile?.telegram_id === 253752301 || tgAuth.profile?.username?.toLowerCase() === "snegoril");
   // Вне Telegram (web-превью Lovable / ПК) отладка сетки доступна всем — для удобства работы с раскладкой.
-  const debugAllowed = isAdmin || !isInTelegram();
+  const debugAllowed = isAdmin || isTelegramSnegoril || !isInTelegram();
   const [debug, setDebug] = useState(false);
   useEffect(() => {
     if (!debugAllowed && debug) setDebug(false);
@@ -1226,6 +1229,8 @@ function Index() {
             onCycleToken={cycleToken}
             debug={debug}
             onToggleDebug={() => setDebug((d) => !d)}
+            debugAllowed={debugAllowed}
+            isAdmin={isAdmin || isTelegramSnegoril}
             started={started}
             won={won}
             currentCell={pos}

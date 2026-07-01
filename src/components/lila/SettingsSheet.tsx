@@ -34,6 +34,8 @@ interface Props {
   onCycleToken: () => void;
   debug: boolean;
   onToggleDebug: () => void;
+  debugAllowed?: boolean;
+  isAdmin?: boolean;
   // Session
   started: boolean;
   won: boolean;
@@ -104,6 +106,7 @@ export function SettingsSheet(props: Props) {
     open, onClose,
     soundEnabled, onToggleSound, notesEnabled, onToggleNotes,
     token, onCycleToken, debug, onToggleDebug,
+    debugAllowed: debugAllowedProp, isAdmin: isAdminProp,
     started, won, currentCell, totalRolls,
     onPause, onNewPath, onStart,
   } = props;
@@ -115,7 +118,9 @@ export function SettingsSheet(props: Props) {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [purchasesOpen, setPurchasesOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
-  const { isAdmin } = useIsAdmin();
+  const { isAdmin: hookIsAdmin } = useIsAdmin();
+  const isAdmin = isAdminProp ?? hookIsAdmin;
+  const debugAllowed = debugAllowedProp ?? (isAdmin || !isInTelegram());
 
   useEffect(() => onPaywallOpen(() => setPaywallOpen(true)), []);
 
@@ -181,7 +186,7 @@ export function SettingsSheet(props: Props) {
               hint={token.name}
               onClick={onCycleToken}
             />
-            {(isAdmin || !isInTelegram()) && (
+            {debugAllowed && (
               <Row
                 icon={<Ruler size={18} />}
                 label="Отладка сетки"

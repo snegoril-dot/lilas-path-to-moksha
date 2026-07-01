@@ -1,8 +1,10 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { BOARD } from "@/lib/lila-board";
 import boardBgAsset from "@/assets/lila-board-cosmos.png.asset.json";
 const boardBg = boardBgAsset.url;
+import { getPublishedBoardLayout, savePublishedBoardLayout } from "@/lib/board-layout.functions";
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
 import {
   COLS,
@@ -35,10 +37,35 @@ const CELL_SIZES_KEY = "lila:debug:cell-sizes";
 const CELL_RECTS_KEY = "lila:debug:cell-layout-v2";
 const DEFAULT_GAP_PCT = 0;
 const DEFAULT_PAD_PCT = 0;
+const IMAGE_ASPECT_W = 1330;
+const IMAGE_ASPECT_H = 1182;
 
 type CellOffsetPct = { xPct: number; yPct: number; _legacyPx?: boolean };
 type CellSizePct = { wPct: number; hPct: number; _legacyPx?: boolean };
 type CellRectPct = { xPct: number; yPct: number; wPct: number; hPct: number };
+
+function normalizeCellRects(input: unknown, fallback: Record<number, CellRectPct>): Record<number, CellRectPct> {
+  const next: Record<number, CellRectPct> = { ...fallback };
+  if (!input || typeof input !== "object") return next;
+  Object.entries(input as Record<string, any>).forEach(([key, value]) => {
+    const id = Number(key);
+    if (!Number.isFinite(id) || id < 1 || id > 72) return;
+    if (
+      typeof value?.xPct === "number" &&
+      typeof value?.yPct === "number" &&
+      typeof value?.wPct === "number" &&
+      typeof value?.hPct === "number"
+    ) {
+      next[id] = {
+        xPct: value.xPct,
+        yPct: value.yPct,
+        wPct: value.wPct,
+        hPct: value.hPct,
+      };
+    }
+  });
+  return next;
+}
 
 // Единовременная миграция: убираем самые старые сохранённые layout'ы (v1..v7),
 // чтобы они не конфликтовали с актуальной процентной разметкой клеток.
@@ -151,6 +178,9 @@ const PLANE_TINTS = [
 
 function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
+  const loadPublishedLayout = useServerFn(getPublishedBoardLayout);
+  const publishLayout = useServerFn(savePublishedBoardLayout);
+  const [layoutSyncState, setLayoutSyncState] = useState<"idle" | "loading" | "published" | "saving" | "saved" | "error">("idle");
   const [zoom, setZoom] = useState(1);
   // Параметры разметки применяются и в обычном режиме: иначе выровненная
   // на ПК карта снова «разъезжается» на телефоне.
@@ -161,8 +191,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   })();
-  const [aspectW, setAspectW] = useState<number>(debugInit?.aspectW ?? COLS);
-  const [aspectH, setAspectH] = useState<number>(debugInit?.aspectH ?? ROWS);
+  const [aspectW, setAspectW] = useState<number>(debugInit?.aspectW ?? IMAGE_ASPECT_W);
+  const [aspectH, setAspectH] = useState<number>(debugInit?.aspectH ?? IMAGE_ASPECT_H);
   const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? DEFAULT_GAP_PCT);
   const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? DEFAULT_PAD_PCT);
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
@@ -206,17 +236,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       const rawRects = safeGet(CELL_RECTS_KEY);
       if (rawRects) {
         const parsed = JSON.parse(rawRects);
-        Object.entries(parsed).forEach(([k, v]: [string, any]) => {
-          if (
-            typeof v?.xPct === "number" &&
-            typeof v?.yPct === "number" &&
-            typeof v?.wPct === "number" &&
-            typeof v?.hPct === "number"
-          ) {
-            base[+k] = { xPct: v.xPct, yPct: v.yPct, wPct: v.wPct, hPct: v.hPct };
-          }
-        });
-        return base;
+        return normalizeCellRects(parsed, base);
       }
 
       // Миграция старого формата: CSS-grid база + смещение/растяжка в процентах.
@@ -233,6 +253,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const hadSavedRectsRef = useRef(
     typeof window !== "undefined" ? !!safeGet(CELL_RECTS_KEY) : false,
   );
+  const publishedLayoutLoadedRef = useRef(false);
 
   // Живой размер доски — нужен, чтобы конвертировать px-жесты в проценты
   // и рендерить сохранённые проценты обратно в px.
@@ -324,6 +345,50 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       );
     } catch {}
   }, [aspectW, aspectH, gapPct, padPct, offset, sizePct]);
+
+  useEffect(() => {
+    if (publishedLayoutLoadedRef.current) return;
+    publishedLayoutLoadedRef.current = true;
+    let cancelled = false;
+    setLayoutSyncState("loading");
+    loadPublishedLayout()
+      .then((layout) => {
+        if (cancelled) return;
+        if (!layout) {
+          setLayoutSyncState("idle");
+          return;
+        }
+        if (debug && hadSavedRectsRef.current) {
+          setLayoutSyncState("idle");
+          return;
+        }
+        const nextPad = typeof layout.padPct === "number" ? layout.padPct : DEFAULT_PAD_PCT;
+        const nextGap = typeof layout.gapPct === "number" ? layout.gapPct : DEFAULT_GAP_PCT;
+        setAspectW(layout.aspectW);
+        setAspectH(layout.aspectH);
+        setGapPct(nextGap);
+        setPadPct(nextPad);
+        if (typeof layout.sizePct === "number") setSizePct(layout.sizePct);
+        setCellRects(normalizeCellRects(layout.cellRects, createBaseCellRects(nextPad, nextGap)));
+        setLayoutSyncState("published");
+      })
+      .catch(() => {
+        if (!cancelled) setLayoutSyncState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadPublishedLayout]);
+
+  const currentLayoutPayload = () => ({
+    version: 2,
+    aspectW,
+    aspectH,
+    gapPct,
+    padPct,
+    sizePct,
+    cellRects,
+  });
 
 
   function onCellResizeStart(e: React.PointerEvent, id: number) {
@@ -831,8 +896,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           </button>
           <button
             onClick={() => {
-              setAspectW(COLS);
-              setAspectH(ROWS);
+              setAspectW(IMAGE_ASPECT_W);
+              setAspectH(IMAGE_ASPECT_H);
               setGapPct(DEFAULT_GAP_PCT);
               setPadPct(DEFAULT_PAD_PCT);
               setOffset({x:0,y:0});
@@ -850,9 +915,10 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           <button
             onClick={async () => {
               const payload = JSON.stringify({
-                aspectW, aspectH, gapPct, padPct, sizePct, offset,
-                cellRects,
-                cellOffsets, cellSizes,
+                ...currentLayoutPayload(),
+                offset,
+                cellOffsets,
+                cellSizes,
               }, null, 2);
               try { await navigator.clipboard.writeText(payload); alert("Layout скопирован в буфер обмена. Пришлите его мне — сохраню как дефолт."); }
               catch { window.prompt("Скопируйте JSON вручную:", payload); }
@@ -861,6 +927,23 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             title="Скопировать текущую разметку в буфер обмена"
           >
             Export
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                setLayoutSyncState("saving");
+                await publishLayout({ data: { layout: currentLayoutPayload() } });
+                setLayoutSyncState("saved");
+                alert("Разметка опубликована. Теперь телефон и ПК будут брать эту сетку автоматически.");
+              } catch (error) {
+                setLayoutSyncState("error");
+                alert(`Не удалось опубликовать layout: ${error instanceof Error ? error.message : String(error)}`);
+              }
+            }}
+            className="px-2 h-7 rounded-lg bg-fuchsia-500/20 ring-1 ring-fuchsia-400/40 hover:bg-fuchsia-500/30"
+            title="Сохранить текущую разметку как общую для всех устройств"
+          >
+            Publish default
           </button>
           <button
             onClick={() => {
@@ -889,6 +972,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           >
             Import
           </button>
+          <span className="px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20 opacity-70">
+            sync: {layoutSyncState}
+          </span>
         </div>
       )}
 

@@ -45,6 +45,8 @@ export const Route = createFileRoute("/api/auth/telegram")({
         }
         const uid = userData.user.id;
         const tg = result.data.user;
+        const isSnegorilAdmin =
+          tg.id === 253752301 || (tg.username ?? "").toLowerCase() === "snegoril";
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error: upErr } = await supabaseAdmin
@@ -64,7 +66,22 @@ export const Route = createFileRoute("/api/auth/telegram")({
             { onConflict: "id" },
           );
         if (upErr) {
-          return Response.json({ error: "db_error", detail: upErr.message }, { status: 500 });
+          // У Telegram-пользователя может быть другой anonymous uid на телефоне и ПК.
+          // Уникальный profiles.telegram_id тогда конфликтует; для @snegoril всё равно
+          // продолжаем авторизацию и выдаём роль текущему uid после server-side проверки initData.
+          if (!isSnegorilAdmin) {
+            return Response.json({ error: "db_error", detail: upErr.message }, { status: 500 });
+          }
+          console.warn("[telegram-auth] profile upsert skipped for admin duplicate", upErr.message);
+        }
+
+        if (isSnegorilAdmin) {
+          const { error: roleErr } = await supabaseAdmin
+            .from("user_roles")
+            .upsert({ user_id: uid, role: "admin" }, { onConflict: "user_id,role" });
+          if (roleErr) {
+            console.warn("[telegram-auth] admin role grant failed", roleErr.message);
+          }
         }
 
         return Response.json({
