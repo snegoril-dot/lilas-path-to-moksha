@@ -17,7 +17,7 @@ export interface CurrentCellSheetProps {
   sankalpa?: string;
   sessionId?: string | null;
   onContinue: () => void;
-  onAskGuru: (cellId: number) => void;
+  onAskGuru: (cellId: number, opts?: { prompt?: string }) => void;
 }
 
 export function CurrentCellSheet({
