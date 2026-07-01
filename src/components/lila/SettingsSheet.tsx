@@ -11,6 +11,7 @@ import { BOARD } from "@/lib/lila-board";
 import { OnboardingModal } from "./OnboardingModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 interface Props {
   open: boolean;
@@ -101,6 +102,7 @@ export function SettingsSheet(props: Props) {
   const [onbOpen, setOnbOpen] = useState(false);
   const [fbOpen, setFbOpen] = useState(false);
   const [weeklyOpen, setWeeklyOpen] = useState(false);
+  const { isAdmin } = useIsAdmin();
 
   const isBeta = true;
   const cellInfo = currentCell > 0 ? BOARD[currentCell - 1] : null;
@@ -163,11 +165,11 @@ export function SettingsSheet(props: Props) {
               hint={token.name}
               onClick={onCycleToken}
             />
-            {import.meta.env.DEV && (
+            {isAdmin && (
               <Row
                 icon={<Ruler size={18} />}
                 label="Отладка сетки"
-                hint={debug ? "Включена" : "Выключена"}
+                hint={debug ? "Включена (админ)" : "Только для админа"}
                 onClick={onToggleDebug}
                 active={debug}
               />

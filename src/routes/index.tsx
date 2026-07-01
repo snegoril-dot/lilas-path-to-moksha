@@ -23,6 +23,7 @@ import { useSound } from "@/hooks/use-sound";
 import { useNotes } from "@/hooks/use-notes";
 import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { useTelegramAuth } from "@/hooks/use-telegram-auth";
 import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/lib/guru.functions";
 import { useTelegramInit, hapticNotify } from "@/hooks/use-telegram";
@@ -148,12 +149,12 @@ function Index() {
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
-  const [debug, setDebug] = useState(() => {
-    if (typeof window === "undefined") return false;
-    // Дебаг-оверлей доски доступен только в dev-сборке.
-    if (import.meta.env.PROD) return false;
-    return new URLSearchParams(window.location.search).get("debug") === "1";
-  });
+  const { isAdmin } = useIsAdmin();
+  const [debug, setDebug] = useState(false);
+  // Если пользователь не админ — принудительно выключаем отладку.
+  useEffect(() => {
+    if (!isAdmin && debug) setDebug(false);
+  }, [isAdmin, debug]);
 
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
@@ -844,12 +845,12 @@ function Index() {
 
   return (
     <div className="flex flex-col h-app min-h-app bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
-      {import.meta.env.DEV && debug && (
+      {debug && (
         <div
           className="fixed top-1 right-1 z-50 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-amber-500/90 text-black shadow-sm pointer-events-none"
           aria-hidden="true"
         >
-          Dev mode
+          Отладка сетки
         </div>
       )}
 
