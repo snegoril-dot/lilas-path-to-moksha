@@ -1,4 +1,5 @@
 import { BOARD, LADDERS, SNAKES, getLoka } from "@/lib/lila-board";
+import { Glyph, type GlyphName } from "./Glyph";
 
 /**
  * Компактный контекст-виджет: показывает, к какой клетке относится сообщение
