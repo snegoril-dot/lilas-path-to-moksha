@@ -90,10 +90,10 @@ async function handle(request: Request) {
     const ok = await sendTelegramMessage(chatId, text);
     if (ok) {
       sent += 1;
-      await supabase.from("analytics_events").insert({
+      await (supabase as any).from("analytics_events").insert({
         user_id: userId,
         event_name: EVENT,
-        props: { cell_count: cellCount },
+        metadata: { cell_count: cellCount },
       });
     }
   }
