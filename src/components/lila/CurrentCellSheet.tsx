@@ -214,6 +214,11 @@ export function CurrentCellSheet({
 
               {showInsight && (
                 <div className="space-y-2">
+                  {sankalpa && (
+                    <div className="rounded-xl bg-amber-300/10 ring-1 ring-amber-300/20 px-3 py-2 text-xs text-amber-100/90">
+                      <span className="opacity-60">Санкальпа: </span>«{sankalpa}»
+                    </div>
+                  )}
                   <label className="text-[11px] uppercase tracking-wider opacity-60 block">
                     Твой инсайт
                   </label>
@@ -222,7 +227,7 @@ export function CurrentCellSheet({
                     value={insight}
                     onChange={(e) => setInsight(e.target.value.slice(0, 1200))}
                     rows={4}
-                    placeholder="Одна честная строка — то, что открылось прямо сейчас."
+                    placeholder="Что эта клетка показывает мне сейчас?"
                     className="w-full rounded-2xl bg-black/30 ring-1 ring-white/10 p-3 text-sm outline-none focus:ring-amber-300/60 resize-none"
                     disabled={busy || saved}
                   />
@@ -230,18 +235,28 @@ export function CurrentCellSheet({
                     <span>{insight.length}/1200</span>
                     {err && <span className="text-rose-300">{err}</span>}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => setShowInsight(false)}
                       disabled={busy}
-                      className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-sm"
+                      className="h-10 rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-sm"
                     >
-                      Отмена
+                      Пропустить
+                    </button>
+                    <button
+                      onClick={() => {
+                        haptic("light");
+                        onAskGuru(cell.id);
+                      }}
+                      disabled={busy}
+                      className="h-10 rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-200 text-sm"
+                    >
+                      Спросить Гуру
                     </button>
                     <button
                       onClick={saveInsight}
                       disabled={busy || saved || insight.trim().length === 0}
-                      className="flex-1 h-10 rounded-xl bg-amber-300 text-stone-900 font-semibold text-sm inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+                      className="h-10 rounded-xl bg-amber-300 text-stone-900 font-semibold text-sm inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
                     >
                       {saved ? (
                         <>
@@ -250,7 +265,7 @@ export function CurrentCellSheet({
                       ) : busy ? (
                         <Loader2 size={16} className="animate-spin" />
                       ) : (
-                        "Сохранить"
+                        "Сохранить инсайт"
                       )}
                     </button>
                   </div>
