@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { useTelegramAuth } from "@/hooks/use-telegram-auth";
 import { saveSession, upsertSession, getActiveSession, abandonSession, saveReflection, getLastCellNote } from "@/lib/guru.functions";
-import { registerOnlineFlush, getPendingCount } from "@/lib/note-queue";
+import { registerOnlineFlush } from "@/lib/note-queue";
 import { saveLastCell } from "@/lib/last-cell-cache";
 import { ReturnBanner } from "@/components/lila/ReturnBanner";
 import { useTelegramInit, hapticNotify } from "@/hooks/use-telegram";
