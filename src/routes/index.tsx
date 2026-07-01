@@ -730,7 +730,9 @@ function Index() {
         sankalpa={sankalpa}
         keyCells={keyCells}
         totalRolls={totalRolls}
+        mode={mode}
       />
+
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
       <SettingsSheet
         open={settingsOpen}
