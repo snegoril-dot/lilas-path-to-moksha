@@ -3,6 +3,7 @@ import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
+  Receipt, Scale,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -14,6 +15,8 @@ import { FeedbackModal } from "./FeedbackModal";
 import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
 import { RemindersToggles } from "./RemindersToggles";
 import { PaywallSheet } from "./PaywallSheet";
+import { MyPurchasesSheet } from "./MyPurchasesSheet";
+import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { BellRing } from "lucide-react";
 
