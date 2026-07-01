@@ -30,7 +30,7 @@ export function PathAnalysisSheet({ ctx, onClose }: Props) {
 
   const analyze = useServerFn(analyzePath);
   const save = useServerFn(saveReflection);
-  const dialogRef = useDialogA11y<HTMLDivElement>(open);
+  useDialogA11y(open, onClose);
   useTelegramBackButton(open, onClose);
 
   useEffect(() => {
