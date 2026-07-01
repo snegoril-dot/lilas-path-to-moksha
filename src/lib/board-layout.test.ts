@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  BOARD_MATRIX,
   COLS,
   ROWS,
   TOTAL,
   expectedRowIds,
+  getCellCoordinates,
+  getCellIdByCoordinates,
   idForRowCol,
   rowColForId,
   rowIds,
   verifyBoardMapping,
 } from "./board-layout";
+import { LADDERS, SNAKES } from "./lila-board";
 
 describe("board-layout / бустрофедон 9×8", () => {
   it("ROWS=8, COLS=9, TOTAL=72", () => {
