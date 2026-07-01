@@ -396,6 +396,9 @@ export function SettingsSheet(props: Props) {
               </ul>
             </Section>
 
+            <ReferralSection />
+            <AdminSection onClose={onClose} />
+
           </div>
         </SheetContent>
       </Sheet>
@@ -406,5 +409,87 @@ export function SettingsSheet(props: Props) {
       <PaywallSheet open={paywallOpen} onClose={() => setPaywallOpen(false)} />
       <MyPurchasesSheet open={purchasesOpen} onClose={() => setPurchasesOpen(false)} />
     </>
+  );
+}
+
+function AdminSection({ onClose }: { onClose: () => void }) {
+  const { isAdmin } = useIsAdmin();
+  if (!isAdmin) return null;
+  return (
+    <div className="mt-2">
+      <Link
+        to="/admin"
+        onClick={onClose}
+        className="flex items-center justify-between rounded-xl bg-purple-500/10 hover:bg-purple-500/20 ring-1 ring-purple-400/30 px-3 py-2 text-sm text-purple-100"
+      >
+        <span className="flex items-center gap-2"><Shield size={14} /> Админ-панель</span>
+        <ChevronRight size={16} className="opacity-60" />
+      </Link>
+    </div>
+  );
+}
+
+function ReferralSection() {
+  const [link, setLink] = useState<string | null>(null);
+  const [invited, setInvited] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user.id;
+      if (!uid) return;
+      const [{ getReferralLink }, { getReferralStats }] = await Promise.all([
+        import("@/lib/referrals"),
+        import("@/lib/referrals.functions"),
+      ]);
+      const l = await getReferralLink(uid);
+      if (cancelled) return;
+      setLink(l);
+      try {
+        const stats = await getReferralStats();
+        if (!cancelled) setInvited(stats.invited);
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!link) return null;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* noop */ }
+  };
+
+  return (
+    <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-3 mt-2">
+      <div className="flex items-center gap-2 mb-1">
+        <Sparkles size={14} className="text-amber-300" />
+        <span className="text-sm font-medium">Пригласить друга</span>
+      </div>
+      <p className="text-[12px] opacity-70 mb-2">
+        Каждый друг, дошедший до Санкальпы — +7 дней «Глубокого Гуру» тебе.
+        {invited != null && ` Приглашено: ${invited}.`}
+      </p>
+      <div className="flex gap-2">
+        <input
+          readOnly
+          value={link}
+          className="flex-1 min-w-0 rounded-lg bg-black/30 px-2 py-1.5 text-xs font-mono"
+          onFocus={(e) => e.currentTarget.select()}
+        />
+        <button
+          onClick={copy}
+          className="rounded-lg bg-amber-500/20 hover:bg-amber-500/30 ring-1 ring-amber-400/30 px-3 text-xs text-amber-100"
+        >
+          {copied ? "Скопировано" : "Копировать"}
+        </button>
+      </div>
+    </div>
   );
 }

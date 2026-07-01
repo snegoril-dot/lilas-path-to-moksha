@@ -365,6 +365,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          banned_at: string | null
           created_at: string
           first_name: string | null
           id: string
@@ -377,6 +378,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          banned_at?: string | null
           created_at?: string
           first_name?: string | null
           id: string
@@ -389,6 +391,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          banned_at?: string | null
           created_at?: string
           first_name?: string | null
           id?: string
@@ -399,6 +402,33 @@ export type Database = {
           telegram_id?: number | null
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          ref_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          rewarded_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ref_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          rewarded_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ref_code?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          rewarded_at?: string | null
         }
         Relationships: []
       }
@@ -566,6 +596,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_ban_user: {
+        Args: { _banned: boolean; _target_user_id: string }
+        Returns: undefined
+      }
+      admin_funnel_stats: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          step: string
+          users: number
+        }[]
+      }
+      admin_grant_entitlement: {
+        Args: { _days: number; _feature: string; _target_user_id: string }
+        Returns: undefined
+      }
+      admin_growth_stats: {
+        Args: never
+        Returns: {
+          arppu_30d: number
+          dau: number
+          mau: number
+          revenue_30d: number
+          revenue_7d: number
+          wau: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
