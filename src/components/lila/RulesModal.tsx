@@ -35,17 +35,25 @@ export function RulesModal({ open, onClose }: { open: boolean; onClose: () => vo
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md rounded-3xl bg-[var(--lila-surface)] text-[var(--tg-theme-text-color,#fff)] p-6 shadow-2xl ring-1 ring-white/10 max-h-[85vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 id={titleId} className="text-xl font-semibold">🪷 Как идти по пути</h2>
+            <div className="flex items-center justify-between gap-2 mb-4">
               <button
                 ref={initialRef}
+                onClick={onClose}
+                aria-label="Назад"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-300 focus:outline-none"
+              >
+                <ChevronLeft size={16} /> Назад
+              </button>
+              <h2 id={titleId} className="text-base font-semibold flex-1 text-center">🪷 Как идти по пути</h2>
+              <button
                 onClick={onClose}
                 aria-label="Закрыть"
                 className="p-1 rounded-full hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-300 focus:outline-none"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
+
 
             <div className="space-y-5 text-sm leading-relaxed opacity-90">
               <p className="opacity-75">
