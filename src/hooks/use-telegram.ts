@@ -194,9 +194,14 @@ export function useTelegramInit() {
       cancelled = true;
       const tg = getTg();
       if (tg?.offEvent) {
-        if (viewportHandler) tg.offEvent("viewportChanged", viewportHandler);
+        if (viewportHandler) {
+          tg.offEvent("viewportChanged", viewportHandler);
+          tg.offEvent("safeAreaChanged", viewportHandler);
+          tg.offEvent("contentSafeAreaChanged", viewportHandler);
+        }
         if (themeHandler) tg.offEvent("themeChanged", themeHandler);
       }
+
     };
   }, []);
 }
