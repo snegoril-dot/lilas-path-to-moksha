@@ -11,16 +11,16 @@ import { GuruChatSheet } from "@/components/lila/GuruChatSheet";
 import { SettingsSheet } from "@/components/lila/SettingsSheet";
 import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
-import { ReflectionModal } from "@/components/lila/ReflectionModal";
+import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
+import type { GuruChatContext } from "@/components/lila/GuruChatSheet";
 import type {
   GameMode,
-  GuruContext,
   KeyCell,
   MoveEvent,
   PathLogItem,
-  ReflectionEntry,
   ResumeSnapshot,
 } from "@/lib/game-types";
+
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { useSound } from "@/hooks/use-sound";
