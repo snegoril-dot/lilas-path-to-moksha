@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
 import boardBg from "@/assets/lila-board-cosmos.jpg";
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
@@ -151,7 +151,8 @@ function loadLayout(): Layout {
   }
 }
 
-export function Board({ playerPos, onSelectCell, debug, token, visited }: Props) {
+function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
+  const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>(() => loadLayout());
   const visitedSet = useMemo(() => {
@@ -473,14 +474,14 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
                 >
                   <motion.span
                     className="block w-full h-full"
-                    animate={{
+                    animate={prefersReducedMotion ? undefined : {
                       rotate: token?.motion.idle.rotate,
                       scale: token?.motion.idle.scale,
                       y: token?.motion.idle.y,
                     }}
                     transition={{
                       duration: token?.motion.idle.duration ?? 3,
-                      repeat: Infinity,
+                      repeat: prefersReducedMotion ? 0 : Infinity,
                       ease: "easeInOut",
                     }}
                   >
@@ -523,3 +524,7 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
     </div>
   );
 }
+
+export const Board = memo(BoardImpl);
+export default Board;
+
