@@ -16,6 +16,8 @@ export interface CurrentCellSheetProps {
   jumpKind?: "snake" | "ladder" | null;
   sankalpa?: string;
   sessionId?: string | null;
+  /** Сколько раз эта клетка уже встречалась на текущем пути (включая текущее посещение). */
+  visitCount?: number;
   onContinue: () => void;
   onAskGuru: (cellId: number, opts?: { prompt?: string }) => void;
 }
@@ -26,6 +28,7 @@ export function CurrentCellSheet({
   jumpKind,
   sankalpa,
   sessionId,
+  visitCount,
   onContinue,
   onAskGuru,
 }: CurrentCellSheetProps) {
