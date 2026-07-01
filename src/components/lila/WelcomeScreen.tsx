@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
+import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 
 export function WelcomeScreen({
   onStart,
