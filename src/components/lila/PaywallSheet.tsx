@@ -67,8 +67,15 @@ export function PaywallSheet({ open, onClose }: Props) {
   };
 
   useEffect(() => {
-    if (open) void refresh();
+    if (open) {
+      void refresh();
+      trackEvent("paywall_viewed", {
+        extra: { variant: getPriceVariant(ent?.userId) },
+      });
+    }
   }, [open]);
+
+  const priceVariant = getPriceVariant(ent?.userId);
 
   const isActive = (features: FeatureId[]) =>
     !!ent && features.every((f) => ent.features?.[f]?.active);
