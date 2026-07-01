@@ -365,20 +365,12 @@ function Index() {
         if (value !== 6) {
           const next = entryMisses + 1;
           setEntryMisses(next);
-          const ATTEMPTS = 3;
-          if (next >= ATTEMPTS) {
-            addMsg(
-              `🌙 Душа устала ждать (${next}/${ATTEMPTS}). Она отдыхает один круг — следующий бросок принесёт шестёрку как дар милости.`,
-              "system"
-            );
-            setEntryGrace(true);
-            setEntryMisses(0);
-          } else {
-            addMsg(
-              `Душа ещё ждёт воплощения (${next}/${ATTEMPTS}). Только шестёрка открывает врата рождения.`,
-              "system"
-            );
-          }
+          const hints = [
+            `Выпало ${value}. Врата воплощения открывает только 🎲 6. Пробуй снова — терпение тоже часть пути.`,
+            `Снова не 6 (попытка ${next}). Наблюдай за нетерпением ума: сколько раз душа стучит, прежде чем родиться?`,
+            `${next}-я попытка. Джохари учит: рождение — милость, а не право. Дыши и бросай ещё.`,
+          ];
+          addMsg(hints[Math.min(next - 1, hints.length - 1)], "guru");
           setRolling(false);
           return;
         }
