@@ -1,15 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronDown, Sparkles, Feather, MessageCircle } from "lucide-react";
+import { ArrowLeft, ChevronDown, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
+import { getCellExperience } from "@/lib/cell-experience";
 
 export const Route = createFileRoute("/journal")({
   component: JournalPage,
 });
 
-type Kind = "reflection" | "insight" | "guru";
+type Kind =
+  | "reflection"
+  | "insight"
+  | "final_insight"
+  | "guru"
+  | "guru_note"
+  | "snake_lesson"
+  | "ladder_gift";
 type Entry = {
   id: string;
   cell: number | null;
@@ -24,11 +32,18 @@ type Entry = {
 const KIND_META: Record<Kind, { label: string; emoji: string; icon: typeof Feather; cls: string }> = {
   reflection: { label: "Заметка", emoji: "🪶", icon: Feather, cls: "bg-white/10 text-white/80" },
   insight: { label: "Инсайт", emoji: "🌟", icon: Sparkles, cls: "bg-amber-300/20 text-amber-100" },
-  guru: { label: "Гуру", emoji: "🕉", icon: MessageCircle, cls: "bg-indigo-400/20 text-indigo-100" },
+  final_insight: { label: "Итог", emoji: "🏁", icon: Flag, cls: "bg-amber-400/25 text-amber-100" },
+  guru: { label: "Вопрос к Гуру", emoji: "🕉", icon: MessageCircle, cls: "bg-indigo-400/20 text-indigo-100" },
+  guru_note: { label: "Вопрос к Гуру", emoji: "🕉", icon: MessageCircle, cls: "bg-indigo-400/20 text-indigo-100" },
+  snake_lesson: { label: "Урок змеи", emoji: "🐍", icon: TrendingDown, cls: "bg-rose-500/20 text-rose-100" },
+  ladder_gift: { label: "Дар лестницы", emoji: "🪜", icon: TrendingUp, cls: "bg-emerald-500/20 text-emerald-100" },
 };
 
+const ALL_KINDS: Kind[] = ["insight", "final_insight", "reflection", "snake_lesson", "ladder_gift", "guru_note"];
+
 function normalizeKind(k: string): Kind {
-  return k === "insight" || k === "guru" ? k : "reflection";
+  if (k in KIND_META) return k as Kind;
+  return "reflection";
 }
 
 function fmtDay(iso: string): string {
@@ -87,7 +102,15 @@ function JournalPage() {
   }, [filtered]);
 
   const counts = useMemo(() => {
-    const c: Record<Kind, number> = { reflection: 0, insight: 0, guru: 0 };
+    const c: Record<Kind, number> = {
+      reflection: 0,
+      insight: 0,
+      final_insight: 0,
+      guru: 0,
+      guru_note: 0,
+      snake_lesson: 0,
+      ladder_gift: 0,
+    };
     entries.forEach((e) => (c[normalizeKind(e.kind)] += 1));
     return c;
   }, [entries]);
@@ -102,7 +125,7 @@ function JournalPage() {
       </header>
 
       <div className="px-4 pt-3 max-w-2xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
-        {(["all", "insight", "reflection", "guru"] as const).map((k) => {
+        {(["all", ...ALL_KINDS] as const).map((k) => {
           const active = filter === k;
           const label =
             k === "all"
@@ -128,9 +151,9 @@ function JournalPage() {
         {loading && <div className="opacity-60 text-sm">Открываю свитки…</div>}
         {err && <div className="text-rose-300 text-sm">{err}</div>}
         {!loading && !err && filtered.length === 0 && (
-          <div className="opacity-60 text-sm leading-relaxed">
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 text-sm leading-relaxed text-amber-50/85">
             {filter === "all"
-              ? "Пока пусто. После змей и лестниц Гуру предложит оставить заметку — она появится здесь."
+              ? "Здесь появятся твои инсайты. После хода ты сможешь сохранить то, что откликнулось."
               : "В этом разделе пока пусто."}
           </div>
         )}
@@ -144,6 +167,7 @@ function JournalPage() {
                 const meta = KIND_META[kind];
                 const open = openId === e.id;
                 const text = e.user_text ?? "";
+                const exp = e.cell ? getCellExperience(e.cell) : null;
                 return (
                   <li
                     key={e.id}
@@ -158,9 +182,14 @@ function JournalPage() {
                         {meta.emoji}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-[11px] opacity-70">
+                        <div className="flex items-center gap-2 text-[11px] opacity-70 flex-wrap">
                           <span className="font-medium">{meta.label}</span>
-                          {e.cell && <span>· Клетка {e.cell}</span>}
+                          {e.cell && (
+                            <span>
+                              · Клетка {e.cell}
+                              {exp ? ` · ${exp.cell.name}` : ""}
+                            </span>
+                          )}
                           <span className="ml-auto">{fmtTime(e.created_at)}</span>
                         </div>
                         <div className="mt-1 text-sm text-amber-50/90 leading-snug">
@@ -181,6 +210,15 @@ function JournalPage() {
                           <p className="text-sm leading-relaxed whitespace-pre-line text-amber-50/95">
                             {text}
                           </p>
+                        )}
+                        {exp && (
+                          <div className="rounded-xl bg-white/5 ring-1 ring-white/10 px-3 py-2 space-y-1.5 text-xs">
+                            <div className="text-amber-100/90">{exp.shortMeaning}</div>
+                            <div className="opacity-70">
+                              <span className="opacity-60">Вопрос: </span>
+                              {exp.reflectionQuestion}
+                            </div>
+                          </div>
                         )}
                         {e.ai_reflection && (
                           <div className="text-xs leading-relaxed text-amber-100/90 bg-amber-300/5 ring-1 ring-amber-300/20 rounded-xl px-3 py-2 whitespace-pre-line">

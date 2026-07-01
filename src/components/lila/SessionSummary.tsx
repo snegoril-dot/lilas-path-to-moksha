@@ -92,7 +92,7 @@ export function SessionSummary({
           sessionId: sessionId ?? undefined,
           cell: currentCell > 0 ? currentCell : 1,
           userText: insight.trim(),
-          kind: "insight",
+          kind: "final_insight",
           sankalpa: sankalpa || undefined,
           prompt: "Главный инсайт сессии",
         },
