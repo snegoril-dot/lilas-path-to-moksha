@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronDown, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
+import { ArrowLeft, ChevronDown, MessageSquarePlus, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
+import { FeedbackModal } from "@/components/lila/FeedbackModal";
+
 import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
