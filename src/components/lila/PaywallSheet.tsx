@@ -228,6 +228,10 @@ export function PaywallSheet({ open, onClose }: Props) {
                 <code className="break-all">{ent?.userId ?? "—"}</code>
               </div>
               <div>
+                <div className="text-white/50 mb-1">A/B ценовой вариант</div>
+                <code>{priceVariant}</code>
+              </div>
+              <div>
                 <div className="text-white/50 mb-1">isPremium</div>
                 <code>{String(!!ent?.isPremium)}</code>
               </div>
