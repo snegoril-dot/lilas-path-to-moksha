@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegram";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-safe-client";
 import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";

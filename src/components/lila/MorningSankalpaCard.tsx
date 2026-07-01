@@ -6,6 +6,7 @@ import { pickTodayMorningQuestion } from "@/content/morning-sankalpa";
 import { saveMorningSankalpa, getTodayMorningSankalpa } from "@/lib/morning-sankalpa.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { trackEvent } from "@/lib/analytics";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 const DISMISS_KEY = "lila:morning:dismissed";
 
@@ -23,7 +24,7 @@ export function MorningSankalpaCard() {
   useEffect(() => {
     if (!ready || !userId) return;
     if (typeof window === "undefined") return;
-    const dismissed = window.localStorage.getItem(DISMISS_KEY);
+    const dismissed = safeGet(DISMISS_KEY);
     if (dismissed === dateKey) return;
     let cancelled = false;
     check({})
@@ -47,7 +48,7 @@ export function MorningSankalpaCard() {
 
   const handleDismiss = () => {
     try {
-      window.localStorage.setItem(DISMISS_KEY, dateKey);
+      safeSet(DISMISS_KEY, dateKey);
     } catch {}
     setVisible(false);
   };
@@ -60,7 +61,7 @@ export function MorningSankalpaCard() {
       setSaved(true);
       trackEvent("morning_sankalpa_saved");
       try {
-        window.localStorage.setItem(DISMISS_KEY, dateKey);
+        safeSet(DISMISS_KEY, dateKey);
       } catch {}
       setTimeout(() => setVisible(false), 1200);
     } catch (e) {

@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, hapticNotify } from "@/hooks/use-telegram";
 import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-safe-client";
+import { safeGet } from "@/lib/safe-storage";
 import { trackEvent } from "@/lib/analytics";
 
 export interface FeedbackModalProps {
@@ -61,7 +62,7 @@ export function FeedbackModal({ open, onClose, context, cell, sessionId }: Feedb
       const user = userRes?.user ?? null;
       const payload = {
         user_id: user?.id ?? null,
-        anon_id: user ? null : (typeof window !== "undefined" ? window.localStorage.getItem("lila.analytics.anon_id") : null),
+        anon_id: user ? null : safeGet("lila.analytics.anon_id"),
         session_id: sessionId ?? null,
         cell: cell ?? null,
         rating,

@@ -1,3 +1,5 @@
+import { safeGet, safeSet } from "@/lib/safe-storage";
+
 // Локальный кеш последней клетки, чтобы оффлайн-открытие Mini App
 // сразу показывало осмысленный контент вместо пустого экрана.
 
@@ -17,14 +19,14 @@ export function saveLastCell(userId: string | null | undefined, data: Omit<LastC
   if (typeof window === "undefined") return;
   try {
     const payload: LastCellCache = { ...data, updatedAt: new Date().toISOString() };
-    window.localStorage.setItem(keyFor(userId), JSON.stringify(payload));
+    safeSet(keyFor(userId), JSON.stringify(payload));
   } catch {}
 }
 
 export function readLastCell(userId: string | null | undefined): LastCellCache | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(keyFor(userId));
+    const raw = safeGet(keyFor(userId));
     if (!raw) return null;
     return JSON.parse(raw) as LastCellCache;
   } catch {

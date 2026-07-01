@@ -20,6 +20,7 @@ import { SupportFAQSheet } from "./SupportFAQSheet";
 import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { BellRing } from "lucide-react";
+import { safeClear } from "@/lib/safe-storage";
 
 interface Props {
   open: boolean;
@@ -457,9 +458,9 @@ function DeleteAccountButton({ onDone }: { onDone: () => void }) {
     try {
       const { deleteMyAccount } = await import("@/lib/account.functions");
       await deleteMyAccount({ data: undefined });
-      const { supabase } = await import("@/integrations/supabase/client");
+      const { supabase } = await import("@/lib/supabase-safe-client");
       await supabase.auth.signOut();
-      try { localStorage.clear(); } catch { /* noop */ }
+      safeClear();
       onDone();
       window.location.href = "/";
     } catch (e) {
@@ -517,7 +518,7 @@ function ReferralSection() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { supabase } = await import("@/integrations/supabase/client");
+      const { supabase } = await import("@/lib/supabase-safe-client");
       const { data } = await supabase.auth.getSession();
       const uid = data.session?.user.id;
       if (!uid) return;

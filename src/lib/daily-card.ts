@@ -1,4 +1,5 @@
 import { BOARD, getLoka } from "@/lib/lila-board";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 /**
  * Детерминированный «совет таттвы» на сутки.
@@ -47,7 +48,7 @@ const STORAGE_KEY = "lila.dailyCard.lastSeen";
 export function markDailySeen(date = todayIso()) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, date);
+    safeSet(STORAGE_KEY, date);
   } catch {
     /* ignore */
   }
@@ -56,7 +57,7 @@ export function markDailySeen(date = todayIso()) {
 export function isDailyUnseen(date = todayIso()): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return window.localStorage.getItem(STORAGE_KEY) !== date;
+    return safeGet(STORAGE_KEY) !== date;
   } catch {
     return true;
   }

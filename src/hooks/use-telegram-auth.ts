@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-safe-client";
 import { getTg } from "@/hooks/use-telegram";
 
 export interface TelegramProfile {
