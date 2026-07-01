@@ -12,7 +12,7 @@ import {
   saveSeen,
   type SessionSummary as SessionSummaryData,
 } from "@/lib/achievements";
-import { SessionSummary } from "./SessionSummary";
+import { SessionSummary, type PathStep } from "./SessionSummary";
 
 // Share logic lives in SessionSummary now.
 
