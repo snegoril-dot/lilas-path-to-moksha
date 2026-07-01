@@ -218,34 +218,49 @@ export function SessionSummary({
     }
   };
 
-  const buildShareText = (): string => {
-    const cellLine = cell
-      ? `Клетка ${cell.id} · ${cell.name}`
-      : "Душа ждёт воплощения";
-    const poetic = isMoksha
-      ? "🕉 Путь завершён — я дошёл до Мокши."
-      : result === "paused"
-        ? "🌿 Пауза в пути — но зерно уже посеяно."
-        : "🎲 Иду по карте своей жизни.";
-    const parts: string[] = [poetic, cellLine];
-    if (isMoksha) parts.push("Итог: Мокша · Освобождение");
-    if (includeSankalpa && sankalpa) parts.push(`Санкальпа: «${sankalpa}»`);
-    if (includeNotes && notesCount > 0) {
-      const withNotes = keyCells.filter((k) => k.note);
-      const excerpts = withNotes
-        .slice(-2)
-        .map((k) => `${k.kind === "snake" ? "🐍" : "🪜"} ${k.name}: «${k.note}»`)
-        .join("\n");
-      parts.push(excerpts);
-    }
-    parts.push("\nЛила — древняя игра самопознания. Пройди свой путь.");
-    return parts.join("\n");
-  };
+  const notesForShare = useMemo(
+    () =>
+      keyCells
+        .filter((k) => k.note && k.note.trim().length > 0)
+        .map((k) => ({
+          kind: k.kind,
+          name: k.name,
+          note: (k.note ?? "").trim(),
+        })),
+    [keyCells]
+  );
+
+  const shareResult: ShareResult =
+    result === "moksha" ? "moksha" : result === "paused" ? "paused" : "in_progress";
+
+  const previewText = useMemo(
+    () =>
+      buildShareTextLib({
+        result: shareResult,
+        cellId: cell?.id ?? null,
+        cellName: cell?.name ?? null,
+        includeSankalpa,
+        sankalpa,
+        includeNotes,
+        notes: notesForShare,
+      }),
+    [shareResult, cell, includeSankalpa, sankalpa, includeNotes, notesForShare]
+  );
 
   const shareLabel =
     includeSankalpa || includeNotes
-      ? "Поделиться в Telegram"
+      ? "Поделиться (включая личные поля)"
       : "Поделиться без личных заметок";
+
+  const [shareStatus, setShareStatus] = useState<null | "shared" | "clipboard" | "failed">(null);
+  const doShare = async () => {
+    const outcome = await shareToTelegram(previewText);
+    setShareStatus(outcome);
+    if (outcome !== "failed") {
+      setTimeout(() => setShareStatus(null), 4000);
+    }
+  };
+
 
   const cellName = (id: number | null | undefined) =>
     id && id > 0 ? BOARD[id - 1]?.name ?? `Клетка ${id}` : null;
