@@ -693,6 +693,10 @@ function Index() {
             // Рефлексия: пауза с заметкой о связи с Санкальпой.
             pendingResume.current = doJump;
             trackEvent("reflection_opened", { cell: landed.id, sessionId: sessionIdRef.current });
+            showHint(
+              "first_reflection",
+              "Инсайты сохраняются в дневнике. Позже из них сложится карта пути.",
+            );
             setReflection({
               fromId: landed.id,
               fromName: landed.name,
