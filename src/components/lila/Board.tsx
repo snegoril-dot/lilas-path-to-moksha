@@ -35,6 +35,7 @@ const BOARD_LAYOUT_KEY = "lila:debug:board";
 const CELL_OFFSETS_KEY = "lila:debug:cell-offsets";
 const CELL_SIZES_KEY = "lila:debug:cell-sizes";
 const CELL_RECTS_KEY = "lila:debug:cell-layout-v2";
+const PUBLISHED_LAYOUT_CACHE_KEY = "lila:board:published-layout-cache-v2";
 const DEFAULT_GAP_PCT = 0;
 const DEFAULT_PAD_PCT = 0;
 const IMAGE_ASPECT_W = 1330;
@@ -65,6 +66,34 @@ function normalizeCellRects(input: unknown, fallback: Record<number, CellRectPct
     }
   });
   return next;
+}
+
+function parsePublishedLayoutCache(): {
+  version: number;
+  aspectW: number;
+  aspectH: number;
+  gapPct: number;
+  padPct: number;
+  sizePct?: number;
+  cellRects: Record<string, CellRectPct>;
+} | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = safeGet(PUBLISHED_LAYOUT_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.aspectW !== "number" ||
+      typeof parsed?.aspectH !== "number" ||
+      typeof parsed?.gapPct !== "number" ||
+      typeof parsed?.padPct !== "number" ||
+      !parsed?.cellRects ||
+      typeof parsed.cellRects !== "object"
+    ) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 // Единовременная миграция: убираем самые старые сохранённые layout'ы (v1..v7),
@@ -184,6 +213,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [zoom, setZoom] = useState(1);
   // Параметры разметки применяются и в обычном режиме: иначе выровненная
   // на ПК карта снова «разъезжается» на телефоне.
+  const publishedCache = parsePublishedLayoutCache();
   const debugInit = (() => {
     if (typeof window === "undefined") return null;
     try {
@@ -194,14 +224,18 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   // Aspect ratio жёстко привязан к натуральному размеру фонового PNG,
   // чтобы координаты клеток в % совпадали на ПК и мобильном. Старые
   // сохранённые значения (например, из слайдеров 4..16) игнорируются.
-  const savedAspectW = typeof debugInit?.aspectW === "number" && debugInit.aspectW > 100 ? debugInit.aspectW : IMAGE_ASPECT_W;
-  const savedAspectH = typeof debugInit?.aspectH === "number" && debugInit.aspectH > 100 ? debugInit.aspectH : IMAGE_ASPECT_H;
+  const savedAspectW = typeof publishedCache?.aspectW === "number"
+    ? publishedCache.aspectW
+    : typeof debugInit?.aspectW === "number" && debugInit.aspectW > 100 ? debugInit.aspectW : IMAGE_ASPECT_W;
+  const savedAspectH = typeof publishedCache?.aspectH === "number"
+    ? publishedCache.aspectH
+    : typeof debugInit?.aspectH === "number" && debugInit.aspectH > 100 ? debugInit.aspectH : IMAGE_ASPECT_H;
   const [aspectW, setAspectW] = useState<number>(savedAspectW);
   const [aspectH, setAspectH] = useState<number>(savedAspectH);
-  const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? DEFAULT_GAP_PCT);
-  const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? DEFAULT_PAD_PCT);
+  const [gapPct, setGapPct] = useState<number>(publishedCache?.gapPct ?? debugInit?.gapPct ?? DEFAULT_GAP_PCT);
+  const [padPct, setPadPct] = useState<number>(publishedCache?.padPct ?? debugInit?.padPct ?? DEFAULT_PAD_PCT);
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
-  const [sizePct, setSizePct] = useState<number>(debugInit?.sizePct ?? 100);
+  const [sizePct, setSizePct] = useState<number>(publishedCache?.sizePct ?? debugInit?.sizePct ?? 100);
   const [dragging, setDragging] = useState(false);
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
   const [nudgeStep, setNudgeStep] = useState<number>(0.2);
@@ -235,9 +269,12 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     } catch { return {}; }
   });
   const [cellRects, setCellRects] = useState<Record<number, CellRectPct>>(() => {
-    const initPad = debugInit?.padPct ?? DEFAULT_PAD_PCT;
-    const initGap = debugInit?.gapPct ?? DEFAULT_GAP_PCT;
+    const initPad = publishedCache?.padPct ?? debugInit?.padPct ?? DEFAULT_PAD_PCT;
+    const initGap = publishedCache?.gapPct ?? debugInit?.gapPct ?? DEFAULT_GAP_PCT;
     const base = createBaseCellRects(initPad, initGap);
+    if (publishedCache?.cellRects) {
+      return normalizeCellRects(publishedCache.cellRects, base);
+    }
     if (typeof window === "undefined") return base;
     try {
       const rawRects = safeGet(CELL_RECTS_KEY);
@@ -260,6 +297,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const hadSavedRectsRef = useRef(
     typeof window !== "undefined" ? !!safeGet(CELL_RECTS_KEY) : false,
   );
+  const hasPublishedCacheRef = useRef(!!publishedCache?.cellRects);
   const publishedLayoutLoadedRef = useRef(false);
 
   // Живой размер доски — нужен, чтобы конвертировать px-жесты в проценты
@@ -341,8 +379,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   }, [cellSizes]);
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!debug && !hasPublishedCacheRef.current && !publishedLayoutLoadedRef.current) return;
     try { safeSet(CELL_RECTS_KEY, JSON.stringify(cellRects)); } catch {}
-  }, [cellRects]);
+  }, [cellRects, debug]);
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -365,10 +404,10 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           setLayoutSyncState("idle");
           return;
         }
-        if (debug && hadSavedRectsRef.current) {
-          setLayoutSyncState("idle");
-          return;
-        }
+        // Published layout is the single source of truth across devices.
+        // Do not let stale per-device localStorage on Telegram override it,
+        // especially in debug mode where old phone drafts caused cells to
+        // jump back to the pre-manual placement.
         const nextPad = typeof layout.padPct === "number" ? layout.padPct : DEFAULT_PAD_PCT;
         const nextGap = typeof layout.gapPct === "number" ? layout.gapPct : DEFAULT_GAP_PCT;
         setAspectW(layout.aspectW);
@@ -377,6 +416,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
         setPadPct(nextPad);
         if (typeof layout.sizePct === "number") setSizePct(layout.sizePct);
         setCellRects(normalizeCellRects(layout.cellRects, createBaseCellRects(nextPad, nextGap)));
+        hasPublishedCacheRef.current = true;
+        try { safeSet(PUBLISHED_LAYOUT_CACHE_KEY, JSON.stringify(layout)); } catch {}
         setLayoutSyncState("published");
       })
       .catch(() => {
@@ -948,6 +989,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
               try {
                 setLayoutSyncState("saving");
                 await publishLayout({ data: { layout: currentLayoutPayload() } });
+                hasPublishedCacheRef.current = true;
+                try { safeSet(PUBLISHED_LAYOUT_CACHE_KEY, JSON.stringify(currentLayoutPayload())); } catch {}
                 setLayoutSyncState("saved");
                 alert("Разметка опубликована. Теперь телефон и ПК будут брать эту сетку автоматически.");
               } catch (error) {
