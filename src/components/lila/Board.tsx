@@ -151,7 +151,8 @@ function loadLayout(): Layout {
   }
 }
 
-export function Board({ playerPos, onSelectCell, debug, token, visited }: Props) {
+function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
+  const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>(() => loadLayout());
   const visitedSet = useMemo(() => {
