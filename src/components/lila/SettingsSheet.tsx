@@ -92,8 +92,9 @@ export function SettingsSheet(props: Props) {
     soundEnabled, onToggleSound, notesEnabled, onToggleNotes,
     token, onCycleToken, debug, onToggleDebug,
     started, won, currentCell, totalRolls,
-    onContinue, onPause, onNewPath, onStart,
+    onPause, onNewPath, onStart,
   } = props;
+
 
   const [onbOpen, setOnbOpen] = useState(false);
   const [fbOpen, setFbOpen] = useState(false);
