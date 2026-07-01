@@ -121,9 +121,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             src={boardBg}
             alt=""
             aria-hidden
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none opacity-70"
             draggable={false}
           />
+
           <div
             aria-hidden
             className="absolute inset-0 pointer-events-none"
