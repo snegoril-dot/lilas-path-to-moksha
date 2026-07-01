@@ -125,7 +125,7 @@ function JournalPage() {
       </header>
 
       <div className="px-4 pt-3 max-w-2xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
-        {(["all", "insight", "reflection", "guru"] as const).map((k) => {
+        {(["all", ...ALL_KINDS] as const).map((k) => {
           const active = filter === k;
           const label =
             k === "all"
@@ -151,9 +151,9 @@ function JournalPage() {
         {loading && <div className="opacity-60 text-sm">Открываю свитки…</div>}
         {err && <div className="text-rose-300 text-sm">{err}</div>}
         {!loading && !err && filtered.length === 0 && (
-          <div className="opacity-60 text-sm leading-relaxed">
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 text-sm leading-relaxed text-amber-50/85">
             {filter === "all"
-              ? "Пока пусто. После змей и лестниц Гуру предложит оставить заметку — она появится здесь."
+              ? "Здесь появятся твои инсайты. После хода ты сможешь сохранить то, что откликнулось."
               : "В этом разделе пока пусто."}
           </div>
         )}
