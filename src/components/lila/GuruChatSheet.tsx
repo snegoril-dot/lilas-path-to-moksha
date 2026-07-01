@@ -329,6 +329,9 @@ export function GuruChatSheet({
                     key={m.id}
                     className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                   >
+                    {ctx && (
+                      <CellContextChip cell={ctx.cell} variant={isUser ? "user" : "assistant"} />
+                    )}
                     <div
                       className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug whitespace-pre-wrap ${
                         isUser
@@ -358,6 +361,7 @@ export function GuruChatSheet({
                   </div>
                 );
               })}
+
               {messages.length > 0 && cellPack && !busy && (() => {
                 const remaining = cellPack.prompts.filter((p) => !askedCanned.has(p.q));
                 if (remaining.length === 0) return null;
