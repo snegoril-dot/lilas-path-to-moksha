@@ -32,6 +32,7 @@ export function CurrentCellSheet({
   visitCount,
   onContinue,
   onAskGuru,
+  onTakeAsPractice,
 }: CurrentCellSheetProps) {
   const open = cellId !== null;
   const { initialRef } = useDialogA11y(open, onContinue);
