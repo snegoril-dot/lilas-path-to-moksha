@@ -791,7 +791,11 @@ function Index() {
     return (
       <>
         <WelcomeScreen onStart={startGame} onRules={() => setRulesOpen(true)} />
-        <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+        {rulesOpen && (
+          <Suspense fallback={null}>
+            <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+          </Suspense>
+        )}
         <ResumeDialog
           open={resumeOpen}
           snapshot={
