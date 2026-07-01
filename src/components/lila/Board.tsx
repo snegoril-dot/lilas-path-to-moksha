@@ -71,6 +71,12 @@ function cellCenterPct(id: number): { x: number; y: number } {
 function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const [zoom, setZoom] = useState(1);
+  // Debug-only «растяжка» сетки: не влияет на прод-рендер.
+  const [aspectW, setAspectW] = useState(COLS);
+  const [aspectH, setAspectH] = useState(ROWS);
+  const [gapPct, setGapPct] = useState(0.5);
+  const [padPct, setPadPct] = useState(0.6);
+
 
   useEffect(() => {
     purgeLegacyLayoutStorage();
