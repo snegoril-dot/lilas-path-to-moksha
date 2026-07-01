@@ -623,11 +623,19 @@ function Index() {
                   {currentLoka.name.split("·")[0].trim()}
                 </span>
               )}
+              <span
+                className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 ring-1 ring-white/15 opacity-80"
+                title={mode === "soft" ? "После 3 промахов шестёрка приходит сама" : "Врата открывает только настоящая 6"}
+              >
+                {mode === "soft" ? "🌿 Мягкий" : "🕉 Классика"}
+              </span>
             </div>
             <div className="text-[11px] opacity-60">
               {currentCell
                 ? `Клетка ${pos} · ${currentCell.name}`
-                : "Душа ждёт воплощения · нужна 🎲 6"}
+                : mode === "soft"
+                  ? `Душа ждёт воплощения · попытка ${entryMisses + 1}/4`
+                  : "Душа ждёт воплощения · нужна 🎲 6"}
             </div>
           </div>
         </div>
