@@ -275,11 +275,13 @@ function Index() {
   // чтобы игрок мог зафиксировать инсайт и решить.
   const restart = useCallback(() => {
     if (started && !won) {
+      trackEvent("session_paused", { cell: pos, sessionId: sessionIdRef.current });
       setPauseOpen(true);
     } else {
       doRestart();
     }
-  }, [started, won, doRestart]);
+  }, [started, won, pos, doRestart]);
+
 
   // On mount: check for an active in-progress session and offer to resume.
   useEffect(() => {
