@@ -325,7 +325,9 @@ export function SettingsSheet(props: Props) {
                 <li>Служебная аналитика хранит только метаданные (тип события, номер клетки, результат кубика) — без текста ваших заметок и переписки с Гуру.</li>
                 <li>Вы видите только свои данные: сессии, дневник и переписку с Гуру — другие пользователи их не увидят.</li>
               </ul>
+              <DeleteAccountButton onDone={onClose} />
             </Section>
+
 
 
             {isBeta && (
@@ -442,6 +444,67 @@ function AdminSection({ onClose }: { onClose: () => void }) {
         <span className="flex items-center gap-2"><Shield size={14} /> Админ-панель</span>
         <ChevronRight size={16} className="opacity-60" />
       </Link>
+    </div>
+  );
+}
+
+function DeleteAccountButton({ onDone }: { onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      const { deleteMyAccount } = await import("@/lib/account.functions");
+      await deleteMyAccount({ data: undefined });
+      const { supabase } = await import("@/integrations/supabase/client");
+      await supabase.auth.signOut();
+      try { localStorage.clear(); } catch { /* noop */ }
+      onDone();
+      window.location.href = "/";
+    } catch (e) {
+      alert("Не удалось удалить данные. Напишите в поддержку.");
+      console.error(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="mt-3 w-full rounded-xl bg-red-500/10 hover:bg-red-500/20 ring-1 ring-red-400/30 px-3 py-2 text-sm text-red-100"
+      >
+        Удалить мои данные
+      </button>
+    );
+  }
+  return (
+    <div className="mt-3 rounded-xl bg-red-500/10 ring-1 ring-red-400/30 p-3 space-y-2">
+      <p className="text-xs text-red-100">
+        Будут удалены: профиль, все сессии, дневник, история платежей, entitlements
+        и сам аккаунт. Действие необратимо.
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={run}
+          className="flex-1 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-50 px-3 py-2 text-sm text-white"
+        >
+          {busy ? "Удаляю…" : "Да, удалить навсегда"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setConfirming(false)}
+          className="rounded-lg bg-white/10 hover:bg-white/20 px-3 py-2 text-sm"
+        >
+          Отмена
+        </button>
+      </div>
     </div>
   );
 }
