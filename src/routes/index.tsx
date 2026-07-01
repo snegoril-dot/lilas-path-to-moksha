@@ -722,10 +722,10 @@ function Index() {
           <button
             onClick={restart}
             className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
-            aria-label="Начать заново"
-            title="Начать заново"
+            aria-label="Пауза"
+            title="Пауза"
           >
-            <RotateCcw size={18} />
+            <Pause size={18} />
           </button>
           <button
             onClick={() => { haptic("light"); setSettingsOpen(true); }}
