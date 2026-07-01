@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
-import { getCellExperience } from "@/lib/cell-experience";
+import { getCellExperience, TONE_LABEL } from "@/lib/cell-experience";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegram";
 
