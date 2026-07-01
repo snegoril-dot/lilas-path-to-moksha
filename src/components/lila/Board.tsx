@@ -114,6 +114,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (typeof window === "undefined") return;
     try { window.localStorage.setItem("lila:debug:cell-sizes", JSON.stringify(cellSizes)); } catch {}
   }, [cellSizes]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        "lila:debug:board",
+        JSON.stringify({ aspectW, aspectH, gapPct, padPct, offset, sizePct }),
+      );
+    } catch {}
+  }, [aspectW, aspectH, gapPct, padPct, offset, sizePct]);
 
   function onCellResizeStart(e: React.PointerEvent, id: number) {
     if (!debug) return;
