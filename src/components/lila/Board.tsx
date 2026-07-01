@@ -841,20 +841,17 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
               1:1
             </button>
           </div>
-          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
-            <span className="opacity-70">W</span>
-            <input type="range" min={4} max={16} step={0.1} value={aspectW}
-              onChange={(e) => setAspectW(parseFloat(e.target.value))}
-              className="w-20" />
-            <span className="tabular-nums w-8 text-right">{aspectW.toFixed(1)}</span>
-          </label>
-          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
-            <span className="opacity-70">H</span>
-            <input type="range" min={4} max={16} step={0.1} value={aspectH}
-              onChange={(e) => setAspectH(parseFloat(e.target.value))}
-              className="w-20" />
-            <span className="tabular-nums w-8 text-right">{aspectH.toFixed(1)}</span>
-          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setAspectW(IMAGE_ASPECT_W);
+              setAspectH(IMAGE_ASPECT_H);
+            }}
+            className="px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
+            title={`Сброс aspect-ratio к натуральному PNG (${IMAGE_ASPECT_W}×${IMAGE_ASPECT_H})`}
+          >
+            aspect {aspectW.toFixed(0)}×{aspectH.toFixed(0)} ⟲
+          </button>
           <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
             <span className="opacity-70">gap</span>
             <input type="range" min={0} max={3} step={0.1} value={gapPct}
