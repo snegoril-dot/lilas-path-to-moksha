@@ -391,6 +391,7 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
                 : isKailas
                   ? "ring-2 ring-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.7)]"
                   : "ring-1 ring-white/10";
+          const isVisited = !isPlayer && visitedSet.has(id);
           return (
             <div
               key={id}
@@ -405,7 +406,7 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
               className={`absolute flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight select-none p-0.5 text-center transition ${
                 debug
                   ? `bg-fuchsia-500/25 ring-2 ${brokenIds.has(id) ? "ring-red-500 bg-red-500/40" : "ring-fuchsia-300/90"} cursor-move touch-none`
-                  : `${tint} ${typeClass} cursor-pointer hover:brightness-125`
+                  : `${tint} ${typeClass} cursor-pointer hover:brightness-125 ${isVisited ? "brightness-110" : ""}`
               }`}
               style={{
                 left: `${rect.x}%`,
@@ -426,20 +427,27 @@ export function Board({ playerPos, onSelectCell, debug, token, visited }: Props)
                 </>
               ) : (
                 <>
-                  <span className={`absolute left-1 top-0.5 text-[9px] font-bold ${NUMBER_CLASS}`}>
+                  <span
+                    className={`absolute inset-0 flex items-center justify-center text-[13px] sm:text-sm font-bold ${NUMBER_CLASS}`}
+                    aria-label={cell.name}
+                    title={cell.name}
+                  >
                     {id}
                   </span>
                   <span
-                    className="absolute right-1 top-0.5 text-[9px] opacity-70 drop-shadow"
+                    className="absolute right-0.5 top-0.5 text-[9px] opacity-70 drop-shadow leading-none"
                     aria-hidden
                     title={getTattvaForCell(id).name}
                   >
                     {isKailas ? "🕉" : getTattvaForCell(id).glyph}
                   </span>
-                  <span className={`relative line-clamp-2 px-0.5 ${LABEL_CLASS}`}>
-
-                    {cell.name}
-                  </span>
+                  {isVisited && (
+                    <span
+                      aria-hidden
+                      className="absolute left-1 bottom-1 h-1.5 w-1.5 rounded-full bg-amber-200/70 shadow-[0_0_4px_rgba(251,191,36,0.7)]"
+                    />
+                  )}
+                  <span className={`sr-only ${LABEL_CLASS}`}>{cell.name}</span>
                 </>
               )}
               {isPlayer && (
