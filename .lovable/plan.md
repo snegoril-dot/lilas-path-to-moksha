@@ -1,108 +1,90 @@
-# Практика клетки → коммерческий уровень
 
-Цель: превратить «Практику» из инфраструктурной заготовки в законченный продукт — с продуманным контентом на все 72 клетки, спокойным UX запуска и возврата, полноценным журналом практики и напоминаниями через Telegram-бота. Монетизация в этой итерации не затрагивается.
+## Что делаем
 
-## 1. Контент практик (все 72 клетки, вручную)
+Закрываем два оставшихся блока: **Аналитика и рост** + **Админка**. Один admin-роут `/admin` с вкладками, плюс небольшие клиентские утилиты для рефералов и A/B цен.
 
-Единая структура для каждой клетки:
+## 1. Воронка (Аналитика)
 
-- `intent` — одна фраза-цель («что я исследую»)
-- `invitation` — 2–3 предложения мягкого введения от Гуру
-- `duration` — рекомендованная (1ч / 1д / 3д / 7д) + `minDuration`, `maxDuration`
-- `dailySteps[]` — конкретные шаги на день (2–4 микро-действия по 1–10 мин)
-- `noticePrompts[]` — 3–5 вопросов для внимания в течение дня
-- `journalPrompts[]` — 2–3 вечерних вопроса для записи
-- `completionCriteria` — как понять, что практика прожита
-- `safety` — «когда прервать», исключения (тревога, тяжёлое состояние), без медицины
-- `closingReflection` — финальный вопрос перед возвратом в игру
+События уже пишутся в `analytics_events` (`app_open`, `sankalpa_saved`, `dice_rolled`, `paywall_purchase_success`). Добавляем:
 
-Организация:
-- `src/content/practices/cells/cell-01.ts` … `cell-72.ts` (по файлу на клетку — удобно ревьюить)
-- `src/content/practices/index.ts` — реестр + типы
-- `scripts/check-practices.ts` — валидатор (все 72 присутствуют, поля не пустые, длина в границах, нет дубликатов между клетками)
-- Vitest: смоук-тест реестра
+- `src/lib/analytics.functions.ts` → `getFunnelStats({ from, to })` — считает по 5 шагам:
+  1. `install` = distinct `user_id` с `app_open`
+  2. `sankalpa` = distinct с `sankalpa_saved`
+  3. `first_roll` = distinct с `dice_rolled`
+  4. `five_rolls` = distinct у кого ≥5 `dice_rolled`
+  5. `purchase` = distinct с `paywall_purchase_success`
+- Возвращает абсолюты + % конверсии между шагами.
+- Только для admin: серверная проверка `has_role`.
 
-Тон: тёплый, «на ты», без эзотерического жаргона, без гарантий, без обещаний результата.
+## 2. DAU/MAU/ARPPU
 
-## 2. UX запуска и возврата
+- `getGrowthStats()` — DAU (сегодня), WAU (7д), MAU (30д) из `analytics_events` (distinct `user_id` за окно).
+- ARPPU: `SUM(stars_amount) / COUNT(DISTINCT user_id)` за 30д из `stars_payments WHERE refunded_at IS NULL`.
+- Total revenue (⭐) за 7/30 дней.
 
-Запуск (`PracticeChooserSheet`, доработка):
-- Заголовок «Практика клетки N — {название}»
-- Блок `intent` + `invitation`
-- Выбор длительности карточками (1ч / 1д / 3д / 7д) с оценкой нагрузки
-- Превью первого дня (шаги + вопросы внимания)
-- Явное «Что если не получится» — можно отпустить в любой момент
-- Кнопки: «Начать», «Позже», «Не сейчас, просто прочитать»
+## 3. Админ-роут `/admin`
 
-Активная практика:
-- Обновлённый `ActivePracticeBanner`: прогресс по дням (день X из Y), время до следующего чек-ина, кнопка «Открыть сегодня»
-- Экран «Сегодня» в `PracticeReturnSheet`: шаги дня, вопросы внимания, кнопка «Записать в журнал», «Отметить день», «Пропустить день»
-- Пустое/утреннее состояние («ещё рано, вернись после …»)
+Файл `src/routes/admin.tsx` (публичный роут, но `beforeLoad` через `checkIsAdmin` — редирект `/` если не админ). 4 таба:
 
-Возврат в игру:
-- `closingReflection` перед разблокировкой кубика
-- Опция «Ещё день» для 3д/7д, если игрок не готов завершить
-- Мягкое завершение при прерывании (не «провал», а «остановка»)
+- **Funnel** — таблица шагов + % drop-off.
+- **Growth** — карточки DAU/WAU/MAU/ARPPU/Revenue.
+- **Purchases** — список последних 100 из `stars_payments` (user_id, product, ⭐, дата, refund статус). Кнопка «Отменить доступ» → server fn `adminRevokeEntitlement`.
+- **Users** — поиск по user_id/telegram_id; действия: «Выдать Premium All на 30 дней» (`adminGrantEntitlement`), «Бан» (`adminBanUser` → `profiles.banned_at = now()`).
 
-Главный экран:
-- Состояние «в практике» видно всегда: банер + иконка на кнопке кубика (disabled с подсказкой)
+Все действия — server fns с проверкой admin в handler.
 
-## 3. Журнал практики
+## 4. Бан-механика
 
-`PracticeJournalSheet` доработка:
-- Таймлайн по дням: заметки, отметки «сделал/пропустил», шкала состояния (1–5) — сохранение в `practice_journal_entries`
-- Финальный экран практики: сводка (дней прожито, ключевые заметки), кнопка «Разбор с Гуру» (одноразовый запрос) → сохраняется как отдельная запись kind `practice_final`
-- Экспорт: копировать в буфер / поделиться безопасным кратким текстом
-- Связка с основным дневником (`/journal`): фильтр «Практики» + переход к конкретной практике
+Миграция:
+- `ALTER TABLE profiles ADD COLUMN banned_at timestamptz`.
+- В `guru.chat.ts` и `createStarsInvoice` — ранний отказ при `banned_at IS NOT NULL`.
 
-Серверные функции (расширение `practices.functions.ts`):
-- `addPracticeJournalEntry({ practiceId, day, mood, note, done })`
-- `getPracticeJournal(practiceId)`
-- `generatePracticeFinalInsight(practiceId)` — через Lovable AI, с safety-guardrails
+## 5. Реферальная программа
 
-## 4. Напоминания через Telegram-бота
+- Утилита `src/lib/referrals.ts`:
+  - `getReferralLink(userId)` → `https://t.me/<bot>?startapp=ref_<short_id>`.
+  - Парсинг `ref_<id>` из `start_param` в `src/routes/index.tsx` (уже есть deep-link хендлер).
+- Миграция: `referrals(id, referrer_user_id, referred_user_id UNIQUE, created_at, rewarded_at)`.
+- Server fn `claimReferral({ refCode })` — вызывается один раз после Санкальпы приглашённого; выдаёт `+7 дней DEEP_GURU` рефереру через `user_entitlements`.
+- Секция в `SettingsSheet` → «Пригласить друга» с копированием ссылки и счётчиком приглашённых.
 
-Реализация:
-- Таблица `practice_reminders` уже есть — использовать: `practice_id`, `chat_id`, `scheduled_at`, `kind` (`morning` / `evening` / `deadline`), `sent_at`
-- При старте практики: планируются напоминания на всю длительность (утро 09:00 локально, вечер 20:00, дедлайн — за час до окончания)
-- Публичный роут `src/routes/api/public/practice/send-reminders.ts`: cron-эндпоинт (`apikey` = SUPABASE_ANON_KEY), выбирает `scheduled_at <= now()` и `sent_at is null`, шлёт в Telegram через connector gateway, ставит `sent_at`
-- `pg_cron` каждые 5 минут вызывает эндпоинт
-- Настройки в `SettingsSheet`: тумблер «Напоминания в Telegram», время утра/вечера, отдельная отмена для активной практики
-- Тексты напоминаний — в `src/content/practices/reminder-copy.ts`, короткие и без давления
-- Отписка одной кнопкой; при отписке — очищать будущие reminders
+## 6. A/B цены
 
-Требования:
-- Telegram connector должен быть подключён (проверить `list_connections`); если нет — попросить подключить до фазы 4
-- `chat_id` берём из `use-telegram-auth` (уже есть в проекте)
+- `src/lib/ab-pricing.ts`:
+  - `getPriceVariant(userId): "A" | "B"` — стабильный хеш (FNV-1a) `userId → mod 2`.
+  - `getProductPrice(productId, userId)` — читает базовую цену из `STARS_PRODUCTS`, для варианта B применяет коэффициент из `AB_PRICE_OVERRIDES` (например Deep Guru: A=149, B=129).
+- `PaywallSheet` берёт цену через хелпер; событие `ab_price_shown` пишется в analytics.
+- В админке новая карточка «A/B pricing» — конверсия по вариантам (`purchase_success` группировано по хешу).
 
-## 5. Аналитика, приватность, безопасность
+## 7. Технические детали
 
-- События: `practice_started`, `practice_day_logged`, `practice_completed`, `practice_abandoned`, `practice_reminder_sent`, `practice_reminder_opt_out`, `practice_final_insight_generated`
-- Все текстовые заметки — приватные, в `TO auth.uid()` RLS (уже так); в аналитике — только метаданные
-- Safety-guardrails в AI-разборе: тот же `GURU_SYSTEM_PROMPT` + запрет медицинских/юридических/финансовых советов
-- В UX практики — плашка «Это не терапия. Если тяжело — остановись и обратись к специалисту»
+- Все server fns админки: middleware `requireSupabaseAuth` + внутри `supabase.rpc("has_role")`; при `false` → `throw new Response("Forbidden", { status: 403 })`.
+- Тяжёлые SQL агрегаты — через `supabaseAdmin.rpc(...)` с новыми SQL функциями `admin_funnel_stats`, `admin_growth_stats`, `admin_ab_stats` (SECURITY DEFINER, внутри проверяют `has_role`).
+- UI: shadcn `Tabs`, `Table`, `Card`. Никакой новой темы — тот же тёмный лиловый.
 
-## 6. Поэтапная доставка
+## Файлы
 
-Реалистично разбить на PR:
+Новые:
+- `src/routes/admin.tsx`
+- `src/lib/analytics.functions.ts`
+- `src/lib/admin-ops.functions.ts` (grant/revoke/ban)
+- `src/lib/referrals.ts` + `src/lib/referrals.functions.ts`
+- `src/lib/ab-pricing.ts`
+- `src/components/admin/FunnelTable.tsx`, `GrowthCards.tsx`, `PurchasesTable.tsx`, `UsersPanel.tsx`
 
-1. **Схема контента + 10 клеток «маяков»** (1, 9, 10, 12, 28, 41, 51, 63, 68, 72) + валидатор + смоук-тесты. Уже даёт продуктовое ощущение.
-2. **UX запуска и возврата** на новой схеме (Chooser, Banner, Return, ClosingReflection).
-3. **Журнал практики** (таймлайн, финальный разбор, связка с /journal).
-4. **Оставшиеся 62 клетки** — авторский контент партиями по 10–15, каждая партия через `check-practices.ts`.
-5. **Telegram-напоминания** (таблица уже есть → cron-эндпоинт → настройки → тексты).
-6. Полировка: пустые/ошибочные состояния, копирайт, a11y, тесты.
+Правки:
+- `src/components/lila/SettingsSheet.tsx` — секция «Пригласить друга» + ссылка на `/admin` для админов.
+- `src/components/lila/PaywallSheet.tsx` — цена через `getProductPrice`.
+- `src/routes/index.tsx` — обработка `ref_<id>` в start_param.
+- `src/routes/api/guru.chat.ts` и `src/lib/entitlements.functions.ts` — проверка бана.
 
-## Технические детали
+Миграции:
+- `profiles.banned_at`.
+- Таблица `referrals` + GRANT + RLS.
+- SQL функции `admin_funnel_stats`, `admin_growth_stats`, `admin_ab_stats`.
 
-- Файлы: `src/content/practices/cells/cell-XX.ts`, `src/content/practices/index.ts`, `src/content/practices/reminder-copy.ts`, `src/lib/practices.functions.ts` (расширение), `src/routes/api/public/practice/send-reminders.ts`, `scripts/check-practices.ts`
-- Компоненты: `PracticeChooserSheet`, `ActivePracticeBanner`, `PracticeReturnSheet`, `PracticeJournalSheet`, новый `PracticeClosingSheet`
-- Миграции: добавить поля `mood int`, `done bool`, `day int` в `practice_journal_entries` (если ещё нет); индекс `practice_reminders(scheduled_at) where sent_at is null`
-- Cron: `pg_cron` + `pg_net`, каждые 5 минут → `POST /api/public/practice/send-reminders`
-- Telegram-коннектор используется по документированному gateway-паттерну; проверяем подключение до 5-й фазы
+## Что вне scope
 
-## Что просить у пользователя перед стартом
-
-- Подтверждение приоритета фаз (или изменить порядок)
-- Готовность подключить Telegram-коннектор к фазе 5 (для напоминаний)
-- Согласие на объём: 72 авторских практики — это ~15–25 итераций по контенту (я разложу на партии, каждая проходит через валидатор)
+- Внешний BI (Metabase/Grafana) — админ-панели встроенной достаточно для беты.
+- Пуш-уведомления реферера при регистрации — через существующие Telegram напоминания позже.
+- Полноценный banning с апелляциями — MVP: флаг + отказ в API.
