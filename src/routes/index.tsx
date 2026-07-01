@@ -266,6 +266,7 @@ function Index() {
         data: {
           id: sessionIdRef.current,
           sankalpa: sankalpa || undefined,
+          mode,
           result: "in_progress",
           currentCell: pos,
           movesCount: totalRolls,
