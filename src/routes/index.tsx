@@ -861,6 +861,15 @@ function Index() {
         keyCells={keyCells}
         currentCell={pos}
       />
+      <BirthIntroCard
+        open={birthIntroOpen && pos === 0 && !won}
+        sankalpa={sankalpa}
+        onRoll={() => {
+          setBirthIntroOpen(false);
+          setTimeout(() => handleRoll(), 60);
+        }}
+        onClose={() => setBirthIntroOpen(false)}
+      />
       <SettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
