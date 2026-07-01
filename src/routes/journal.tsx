@@ -1,15 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronDown, Sparkles, Feather, MessageCircle } from "lucide-react";
+import { ArrowLeft, ChevronDown, Sparkles, Feather, MessageCircle, TrendingDown, TrendingUp, Flag } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { getJournal } from "@/lib/guru.functions";
 import { useAuth } from "@/hooks/use-auth";
+import { getCellExperience } from "@/lib/cell-experience";
 
 export const Route = createFileRoute("/journal")({
   component: JournalPage,
 });
 
-type Kind = "reflection" | "insight" | "guru";
+type Kind =
+  | "reflection"
+  | "insight"
+  | "final_insight"
+  | "guru"
+  | "guru_note"
+  | "snake_lesson"
+  | "ladder_gift";
 type Entry = {
   id: string;
   cell: number | null;
@@ -24,11 +32,18 @@ type Entry = {
 const KIND_META: Record<Kind, { label: string; emoji: string; icon: typeof Feather; cls: string }> = {
   reflection: { label: "Заметка", emoji: "🪶", icon: Feather, cls: "bg-white/10 text-white/80" },
   insight: { label: "Инсайт", emoji: "🌟", icon: Sparkles, cls: "bg-amber-300/20 text-amber-100" },
-  guru: { label: "Гуру", emoji: "🕉", icon: MessageCircle, cls: "bg-indigo-400/20 text-indigo-100" },
+  final_insight: { label: "Итог", emoji: "🏁", icon: Flag, cls: "bg-amber-400/25 text-amber-100" },
+  guru: { label: "Вопрос к Гуру", emoji: "🕉", icon: MessageCircle, cls: "bg-indigo-400/20 text-indigo-100" },
+  guru_note: { label: "Вопрос к Гуру", emoji: "🕉", icon: MessageCircle, cls: "bg-indigo-400/20 text-indigo-100" },
+  snake_lesson: { label: "Урок змеи", emoji: "🐍", icon: TrendingDown, cls: "bg-rose-500/20 text-rose-100" },
+  ladder_gift: { label: "Дар лестницы", emoji: "🪜", icon: TrendingUp, cls: "bg-emerald-500/20 text-emerald-100" },
 };
 
+const ALL_KINDS: Kind[] = ["insight", "final_insight", "reflection", "snake_lesson", "ladder_gift", "guru_note"];
+
 function normalizeKind(k: string): Kind {
-  return k === "insight" || k === "guru" ? k : "reflection";
+  if (k in KIND_META) return k as Kind;
+  return "reflection";
 }
 
 function fmtDay(iso: string): string {
