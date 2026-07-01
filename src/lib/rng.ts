@@ -21,10 +21,13 @@ export function rollDice(rng: Rng = Math.random): number {
 
 /**
  * Подключение seed через URL (?seed=123) или window.__LILA_SEED__ — удобно
- * для e2e-тестов: бросок становится полностью предсказуемым.
+ * для e2e-тестов: бросок становится полностью предсказуемым. В prod-сборке
+ * этот механизм отключён, чтобы игроки не могли подменять результат кубика.
  */
 export function getRuntimeRng(): Rng {
   if (typeof window === "undefined") return Math.random;
+  // В прод-сборке никакие URL/window-хуки не действуют.
+  if (import.meta.env.PROD) return Math.random;
   const w = window as unknown as { __LILA_SEED__?: number; __LILA_RNG__?: Rng };
   if (w.__LILA_RNG__) return w.__LILA_RNG__;
   let seed: number | undefined = w.__LILA_SEED__;
@@ -39,3 +42,4 @@ export function getRuntimeRng(): Rng {
   w.__LILA_RNG__ = rng;
   return rng;
 }
+
