@@ -135,6 +135,7 @@ const KeyCellEntry = z.object({
 const UpsertSessionInput = z.object({
   id: z.string().uuid().nullable().optional(),
   sankalpa: z.string().max(400).optional(),
+  mode: z.enum(["classic", "soft"]).default("classic"),
   result: z.enum(["moksha", "abandoned", "in_progress"]),
   currentCell: z.number().int().min(0).max(72),
   movesCount: z.number().int().min(0),
@@ -152,6 +153,7 @@ export const upsertSession = createServerFn({ method: "POST" })
     const payload = {
       user_id: context.userId,
       sankalpa: data.sankalpa ?? null,
+      mode: data.mode,
       result: data.result,
       current_cell: data.currentCell,
       moves_count: data.movesCount,
