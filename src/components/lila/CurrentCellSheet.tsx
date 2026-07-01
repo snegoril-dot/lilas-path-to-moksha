@@ -16,6 +16,8 @@ export interface CurrentCellSheetProps {
   jumpKind?: "snake" | "ladder" | null;
   sankalpa?: string;
   sessionId?: string | null;
+  /** Сколько раз эта клетка уже встречалась на текущем пути (включая текущее посещение). */
+  visitCount?: number;
   onContinue: () => void;
   onAskGuru: (cellId: number, opts?: { prompt?: string }) => void;
 }
@@ -26,6 +28,7 @@ export function CurrentCellSheet({
   jumpKind,
   sankalpa,
   sessionId,
+  visitCount,
   onContinue,
   onAskGuru,
 }: CurrentCellSheetProps) {
@@ -168,6 +171,11 @@ export function CurrentCellSheet({
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 text-sm leading-relaxed">
+              {visitCount && visitCount > 1 && (
+                <div className="text-xs px-3 py-2 rounded-xl bg-white/5 ring-1 ring-white/10 opacity-85">
+                  Эта тема уже встречалась в твоём пути. Может быть, стоит задержаться и заметить что-то новое.
+                </div>
+              )}
               {jumpKind && fromExp && (
                 <div
                   className={`text-xs px-3 py-2 rounded-xl ring-1 ${

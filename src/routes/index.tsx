@@ -828,6 +828,11 @@ function Index() {
         jumpKind={landed?.kind ?? null}
         sankalpa={sankalpa}
         sessionId={sessionIdRef.current}
+        visitCount={
+          landed?.cell
+            ? pathLog.filter((p) => p.cell === landed.cell).length
+            : undefined
+        }
         onContinue={() => setLandedOpen(false)}
         onAskGuru={(cellId, opts) => {
           setLandedOpen(false);

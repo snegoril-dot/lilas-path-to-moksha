@@ -1,11 +1,15 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
 import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
+import { getProfileSummary } from "@/lib/profile-summary.functions";
 
 export function WelcomeScreen({
   onStart,
@@ -24,6 +28,20 @@ export function WelcomeScreen({
   useEffect(() => {
     if (!hasSeenOnboarding()) setOnbOpen(true);
   }, []);
+
+  const fetchSummary = useServerFn(getProfileSummary);
+  const { data: summary } = useQuery({
+    queryKey: ["profile-summary"],
+    queryFn: () => fetchSummary({ data: {} }),
+    staleTime: 60_000,
+    retry: false,
+  });
+  // «Возвращение к пути» — только когда прошлые сессии есть, но активной нет.
+  // Случай активной сессии уже показывает ResumeDialog.
+  const showReturning = Boolean(
+    summary && summary.hasPreviousSessions && !summary.hasActiveSession,
+  );
+
 
   const [touched, setTouched] = useState(false);
   const trimmed = sankalpa.trim();
@@ -95,6 +113,26 @@ export function WelcomeScreen({
       <div className="mt-4 w-full max-w-sm">
         <DailyCard />
       </div>
+
+      {showReturning && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 w-full max-w-sm rounded-2xl bg-white/5 ring-1 ring-white/10 px-4 py-3 text-left"
+        >
+          <div className="text-sm opacity-90">
+            Ты уже проходил путь раньше. Можно начать новую Санкальпу или заглянуть в дневник.
+          </div>
+          <Link
+            to="/journal"
+            className="mt-2 inline-flex items-center gap-1 text-[12px] text-amber-200 hover:text-amber-100"
+          >
+            📖 Открыть дневник
+          </Link>
+        </motion.div>
+      )}
+
+
 
 
 
