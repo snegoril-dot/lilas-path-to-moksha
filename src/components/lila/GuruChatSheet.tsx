@@ -230,11 +230,11 @@ export function GuruChatSheet({
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <div className="text-sm opacity-70 leading-relaxed">
-                    Гуру — это зеркало, а не оракул. Ответы стоит воспринимать как повод для
-                    размышления, а не как истину в последней инстанции.
+                    Гуру здесь — это зеркало, а не оракул. Его ответы — повод
+                    задать себе более честный вопрос, а не готовая истина.
                   </div>
                   <div className="text-[11px] uppercase tracking-wider opacity-50">
-                    Быстрые вопросы
+                    С чего можно начать
                   </div>
                   <div className="flex flex-col gap-2">
                     {prompts.map((p) => (
