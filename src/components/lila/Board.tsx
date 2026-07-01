@@ -155,8 +155,27 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>(() => loadLayout());
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const v = Number(window.localStorage.getItem("lila:debug-zoom"));
+    return Number.isFinite(v) && v >= 0.5 && v <= 4 ? v : 1;
+  });
+  const [pan, setPan] = useState<{ x: number; y: number }>(() => {
+    if (typeof window === "undefined") return { x: 0, y: 0 };
+    try {
+      const raw = window.localStorage.getItem("lila:debug-pan");
+      if (!raw) return { x: 0, y: 0 };
+      const p = JSON.parse(raw);
+      if (typeof p?.x === "number" && typeof p?.y === "number") return p;
+    } catch {}
+    return { x: 0, y: 0 };
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("lila:debug-zoom", String(zoom));
+  }, [zoom]);
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("lila:debug-pan", JSON.stringify(pan));
+  }, [pan]);
   const visitedSet = useMemo(() => {
     if (!visited) return new Set<number>();
     return visited instanceof Set ? visited : new Set(visited);
@@ -165,6 +184,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   useEffect(() => {
     setLayout(loadLayout());
   }, []);
+
 
   const layoutIssues = useMemo(
     () => [...MAPPING_ISSUES, ...verifyLayoutGeometry(layout), ...validateJumpConnections(layout)],
