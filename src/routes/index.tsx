@@ -439,11 +439,14 @@ function Index() {
 
   const openLanded = useCallback(
     (cell: number, opts?: { from?: number; kind?: "snake" | "ladder" }) => {
+      // Не открываем шит автоматически — оставляем как заметный CTA
+      // «Осмыслить клетку», чтобы игрок мог выдохнуть после хода.
       setLanded({ cell, from: opts?.from, kind: opts?.kind });
-      setLandedOpen(true);
+      setLandedOpen(false);
     },
     []
   );
+
 
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
@@ -462,10 +465,15 @@ function Index() {
     });
     trackEvent("dice_rolled", { dice: value, cell: pos, sessionId: sessionIdRef.current });
     play("roll");
-    addMsg(`🎲 Бросок: ${value}`, "player");
+    addMsg("🎲 Кубик катится…", "system");
 
 
     const diceDelay = reduceMotion ? 280 : 1150;
+    // Раскрываем результат чуть раньше, чем начнётся движение — небольшая пауза-«вдох».
+    setTimeout(() => {
+      addMsg(`🎲 Выпало: ${value}`, "player");
+    }, Math.max(180, diceDelay - 220));
+
 
     // Фаза входа в игру: pos = 0, нужна 6 (в мягком режиме — милость после 3-х промахов).
     if (pos === 0) {
@@ -538,7 +546,7 @@ function Index() {
 
       if (overshoot) {
         const need = 68 - pos;
-        addMsg(`Ход: ${pos} → 68 → ${pos}`, "system");
+        addMsg(`Шаг: ${pos} → 68 → ${pos}`, "system");
         // Визуальный «отскок»: фишка идёт вперёд до 68, затем возвращается на N лишних шагов.
         animateStep(pos, 68, () => {
           addMsg(
@@ -557,7 +565,7 @@ function Index() {
         return;
       }
 
-      addMsg(`Ход: ${pos} → ${target}`, "system");
+      addMsg(`Шаг: ${pos} → ${target}`, "system");
 
       animateStep(pos, target, () => {
         const { final, jumped } = resolveJump(target);
@@ -820,12 +828,14 @@ function Index() {
         landed={landed}
         landedOpen={landedOpen}
         pos={pos}
+        sankalpa={sankalpa}
         onRoll={handleRoll}
         onOpenWin={() => setWinOpen(true)}
         onOpenLanded={() => setLandedOpen(true)}
         onOpenCell={() => setCellOpen(pos === 0 ? 1 : pos)}
         onAskGuru={() => { trackEvent("guru_opened", { cell: pos, sessionId: sessionIdRef.current }); setGuruCtx(buildGuruCtx()); }}
       />
+
 
 
       <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />

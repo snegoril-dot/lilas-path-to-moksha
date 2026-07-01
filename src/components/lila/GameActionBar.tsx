@@ -10,6 +10,7 @@ interface GameActionBarProps {
   landed: MoveEvent | null;
   landedOpen: boolean;
   pos: number;
+  sankalpa?: string;
   onRoll: () => void;
   onOpenWin: () => void;
   onOpenLanded: () => void;
@@ -20,6 +21,8 @@ interface GameActionBarProps {
 /**
  * Sticky bottom action bar: dice + adaptive primary CTA (Roll / Осмыслить / Итог)
  * + Клетка + Гуру buttons. Purely presentational.
+ *
+ * Перед броском кратко напоминает Санкальпу — маленькая точка опоры перед действием.
  */
 export function GameActionBar({
   dice,
@@ -27,14 +30,26 @@ export function GameActionBar({
   won,
   landed,
   landedOpen,
+  sankalpa,
   onRoll,
   onOpenWin,
   onOpenLanded,
   onOpenCell,
   onAskGuru,
 }: GameActionBarProps) {
+  const showSankalpaHint =
+    !rolling && !won && !(landed && !landedOpen) && !!sankalpa && sankalpa.trim().length > 0;
   return (
     <div className="sticky bottom-0 shrink-0 z-30 px-3 pt-2 pb-safe bg-[var(--lila-surface)]/95 backdrop-blur-md border-t border-white/10">
+      {showSankalpaHint && (
+        <div
+          className="mb-2 mx-0.5 px-3 py-1.5 rounded-full bg-amber-300/10 ring-1 ring-amber-300/25 text-[11px] text-amber-100/90 truncate"
+          title={sankalpa}
+        >
+          <span className="opacity-60 mr-1">Санкальпа:</span>«{sankalpa}»
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <Dice value={dice} rolling={rolling} />
         {won ? (
