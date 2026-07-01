@@ -396,6 +396,9 @@ export function SettingsSheet(props: Props) {
               </ul>
             </Section>
 
+            <ReferralSection />
+            <AdminSection onClose={onClose} />
+
           </div>
         </SheetContent>
       </Sheet>
