@@ -70,6 +70,7 @@ function Index() {
     id: string;
     currentCell: number;
     sankalpa: string | null;
+    mode: GameMode;
     movesCount: number;
     updatedAt: string | null;
     entryMisses: number;
