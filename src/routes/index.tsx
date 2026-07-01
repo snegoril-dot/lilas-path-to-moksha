@@ -173,7 +173,11 @@ function Index() {
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
-    setMessages((m) => [...m, { id: `${Date.now()}-${idRef.current}`, text, kind }]);
+    const randomPart =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setMessages((m) => [...m, { id: `${idRef.current}-${randomPart}`, text, kind }]);
   }, []);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
