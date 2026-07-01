@@ -1,14 +1,17 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X } from "lucide-react";
+import { MessageSquarePlus, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton } from "@/hooks/use-telegram";
 import { OnboardingModal } from "./OnboardingModal";
+import { FeedbackModal } from "./FeedbackModal";
 
 export function RulesModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { initialRef } = useDialogA11y(open, onClose);
   useTelegramBackButton(open, onClose);
   const [onbOpen, setOnbOpen] = useState(false);
+  const [fbOpen, setFbOpen] = useState(false);
+
   const titleId = "rules-modal-title";
   return (
     <AnimatePresence>
