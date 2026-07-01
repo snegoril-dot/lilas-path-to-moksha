@@ -191,8 +191,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   })();
-  const [aspectW, setAspectW] = useState<number>(debugInit?.aspectW ?? IMAGE_ASPECT_W);
-  const [aspectH, setAspectH] = useState<number>(debugInit?.aspectH ?? IMAGE_ASPECT_H);
+  // Aspect ratio жёстко привязан к натуральному размеру фонового PNG,
+  // чтобы координаты клеток в % совпадали на ПК и мобильном. Старые
+  // сохранённые значения (например, из слайдеров 4..16) игнорируются.
+  const savedAspectW = typeof debugInit?.aspectW === "number" && debugInit.aspectW > 100 ? debugInit.aspectW : IMAGE_ASPECT_W;
+  const savedAspectH = typeof debugInit?.aspectH === "number" && debugInit.aspectH > 100 ? debugInit.aspectH : IMAGE_ASPECT_H;
+  const [aspectW, setAspectW] = useState<number>(savedAspectW);
+  const [aspectH, setAspectH] = useState<number>(savedAspectH);
   const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? DEFAULT_GAP_PCT);
   const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? DEFAULT_PAD_PCT);
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
@@ -557,7 +562,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             loading="lazy"
             decoding="async"
             fetchPriority="low"
-            className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none opacity-70"
+            className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none opacity-70"
             draggable={false}
           />
 
@@ -836,20 +841,17 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
               1:1
             </button>
           </div>
-          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
-            <span className="opacity-70">W</span>
-            <input type="range" min={4} max={16} step={0.1} value={aspectW}
-              onChange={(e) => setAspectW(parseFloat(e.target.value))}
-              className="w-20" />
-            <span className="tabular-nums w-8 text-right">{aspectW.toFixed(1)}</span>
-          </label>
-          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
-            <span className="opacity-70">H</span>
-            <input type="range" min={4} max={16} step={0.1} value={aspectH}
-              onChange={(e) => setAspectH(parseFloat(e.target.value))}
-              className="w-20" />
-            <span className="tabular-nums w-8 text-right">{aspectH.toFixed(1)}</span>
-          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setAspectW(IMAGE_ASPECT_W);
+              setAspectH(IMAGE_ASPECT_H);
+            }}
+            className="px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
+            title={`Сброс aspect-ratio к натуральному PNG (${IMAGE_ASPECT_W}×${IMAGE_ASPECT_H})`}
+          >
+            aspect {aspectW.toFixed(0)}×{aspectH.toFixed(0)} ⟲
+          </button>
           <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
             <span className="opacity-70">gap</span>
             <input type="range" min={0} max={3} step={0.1} value={gapPct}
