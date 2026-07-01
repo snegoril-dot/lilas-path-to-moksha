@@ -653,14 +653,6 @@ function Index() {
               kind,
             });
           }, reduceMotion ? 500 : 1300);
-
-              fromId: landed.id,
-              fromName: landed.name,
-              toId: final,
-              toName: dest.name,
-              kind,
-            });
-          }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
@@ -668,8 +660,8 @@ function Index() {
           openLanded(landed.id);
           finishTurn();
         }
-
       });
+
     }, diceDelay);
   }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded]);
 
