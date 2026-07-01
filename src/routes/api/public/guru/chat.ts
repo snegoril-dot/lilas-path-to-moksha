@@ -84,7 +84,7 @@ function log(status: string, extra: Record<string, unknown> = {}) {
   }
 }
 
-export const Route = createFileRoute("/api/guru/chat")({
+export const Route = createFileRoute("/api/public/guru/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {

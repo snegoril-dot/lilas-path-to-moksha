@@ -15,11 +15,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as ApiPublicHealthcheckRouteImport } from './routes/api/public/healthcheck'
-import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
 import { Route as ApiAuthTelegramRouteImport } from './routes/api/auth.telegram'
 import { Route as ApiPublicWeeklySendDigestRouteImport } from './routes/api/public/weekly/send-digest'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as ApiPublicPracticeSendRemindersRouteImport } from './routes/api/public/practice/send-reminders'
+import { Route as ApiPublicGuruChatRouteImport } from './routes/api/public/guru/chat'
 
 const JournalRoute = JournalRouteImport.update({
   id: '/journal',
@@ -51,11 +51,6 @@ const ApiPublicHealthcheckRoute = ApiPublicHealthcheckRouteImport.update({
   path: '/api/public/healthcheck',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGuruChatRoute = ApiGuruChatRouteImport.update({
-  id: '/api/guru/chat',
-  path: '/api/guru/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiAuthTelegramRoute = ApiAuthTelegramRouteImport.update({
   id: '/api/auth/telegram',
   path: '/api/auth/telegram',
@@ -79,6 +74,11 @@ const ApiPublicPracticeSendRemindersRoute =
     path: '/api/public/practice/send-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicGuruChatRoute = ApiPublicGuruChatRouteImport.update({
+  id: '/api/public/guru/chat',
+  path: '/api/public/guru/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,8 +87,8 @@ export interface FileRoutesByFullPath {
   '/journal': typeof JournalRoute
   '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
-  '/api/guru/chat': typeof ApiGuruChatRoute
   '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
+  '/api/public/guru/chat': typeof ApiPublicGuruChatRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/weekly/send-digest': typeof ApiPublicWeeklySendDigestRoute
@@ -100,8 +100,8 @@ export interface FileRoutesByTo {
   '/journal': typeof JournalRoute
   '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
-  '/api/guru/chat': typeof ApiGuruChatRoute
   '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
+  '/api/public/guru/chat': typeof ApiPublicGuruChatRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/weekly/send-digest': typeof ApiPublicWeeklySendDigestRoute
@@ -114,8 +114,8 @@ export interface FileRoutesById {
   '/journal': typeof JournalRoute
   '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
-  '/api/guru/chat': typeof ApiGuruChatRoute
   '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
+  '/api/public/guru/chat': typeof ApiPublicGuruChatRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/weekly/send-digest': typeof ApiPublicWeeklySendDigestRoute
@@ -129,8 +129,8 @@ export interface FileRouteTypes {
     | '/journal'
     | '/legal/$doc'
     | '/api/auth/telegram'
-    | '/api/guru/chat'
     | '/api/public/healthcheck'
+    | '/api/public/guru/chat'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/weekly/send-digest'
@@ -142,8 +142,8 @@ export interface FileRouteTypes {
     | '/journal'
     | '/legal/$doc'
     | '/api/auth/telegram'
-    | '/api/guru/chat'
     | '/api/public/healthcheck'
+    | '/api/public/guru/chat'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/weekly/send-digest'
@@ -155,8 +155,8 @@ export interface FileRouteTypes {
     | '/journal'
     | '/legal/$doc'
     | '/api/auth/telegram'
-    | '/api/guru/chat'
     | '/api/public/healthcheck'
+    | '/api/public/guru/chat'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
     | '/api/public/weekly/send-digest'
@@ -169,8 +169,8 @@ export interface RootRouteChildren {
   JournalRoute: typeof JournalRoute
   LegalDocRoute: typeof LegalDocRoute
   ApiAuthTelegramRoute: typeof ApiAuthTelegramRoute
-  ApiGuruChatRoute: typeof ApiGuruChatRoute
   ApiPublicHealthcheckRoute: typeof ApiPublicHealthcheckRoute
+  ApiPublicGuruChatRoute: typeof ApiPublicGuruChatRoute
   ApiPublicPracticeSendRemindersRoute: typeof ApiPublicPracticeSendRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
   ApiPublicWeeklySendDigestRoute: typeof ApiPublicWeeklySendDigestRoute
@@ -220,13 +220,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthcheckRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/guru/chat': {
-      id: '/api/guru/chat'
-      path: '/api/guru/chat'
-      fullPath: '/api/guru/chat'
-      preLoaderRoute: typeof ApiGuruChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/auth/telegram': {
       id: '/api/auth/telegram'
       path: '/api/auth/telegram'
@@ -255,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPracticeSendRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/guru/chat': {
+      id: '/api/public/guru/chat'
+      path: '/api/public/guru/chat'
+      fullPath: '/api/public/guru/chat'
+      preLoaderRoute: typeof ApiPublicGuruChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -265,8 +265,8 @@ const rootRouteChildren: RootRouteChildren = {
   JournalRoute: JournalRoute,
   LegalDocRoute: LegalDocRoute,
   ApiAuthTelegramRoute: ApiAuthTelegramRoute,
-  ApiGuruChatRoute: ApiGuruChatRoute,
   ApiPublicHealthcheckRoute: ApiPublicHealthcheckRoute,
+  ApiPublicGuruChatRoute: ApiPublicGuruChatRoute,
   ApiPublicPracticeSendRemindersRoute: ApiPublicPracticeSendRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
   ApiPublicWeeklySendDigestRoute: ApiPublicWeeklySendDigestRoute,
