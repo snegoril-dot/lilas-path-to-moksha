@@ -216,6 +216,11 @@ function Index() {
         setSettingsOpen(true);
       } else if (sp === "journal") {
         window.location.assign("/journal");
+      } else if (/^ref_[0-9a-f]{6,32}$/i.test(sp)) {
+        const code = sp.slice(4);
+        void import("@/lib/referrals.functions")
+          .then((m) => m.claimReferral({ data: { refCode: code } }))
+          .catch(() => { /* silent */ });
       } else {
         const m = /^cell[_-]?(\d{1,2})$/i.exec(sp);
         if (m) {
