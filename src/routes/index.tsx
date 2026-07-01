@@ -226,6 +226,7 @@ function Index() {
           id: row.id as string,
           currentCell: (row.current_cell as number) ?? 0,
           sankalpa: (row.sankalpa as string | null) ?? null,
+          mode: ((row as { mode?: string }).mode === "soft" ? "soft" : "classic") as GameMode,
           movesCount: (row.moves_count as number) ?? 0,
           updatedAt: (row.updated_at as string | null) ?? null,
           entryMisses: (row.entry_misses as number) ?? 0,
