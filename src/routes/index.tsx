@@ -392,8 +392,19 @@ function Index() {
     [reduceMotion]
   );
 
+  const openLanded = useCallback(
+    (cell: number, opts?: { from?: number; kind?: "snake" | "ladder" }) => {
+      setLanded({ cell, from: opts?.from, kind: opts?.kind });
+      setLandedOpen(true);
+    },
+    []
+  );
+
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
+    // New roll → hide any previous landed sheet.
+    setLandedOpen(false);
+    setLanded(null);
     setRolling(true);
     // Классическое правило: игрок должен сам выбросить шестёрку, чтобы войти в игру.
     const value = rollDice(getRuntimeRng());
