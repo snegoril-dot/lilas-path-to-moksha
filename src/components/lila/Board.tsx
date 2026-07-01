@@ -540,7 +540,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
         })}
       </div>
       {debug && (
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           <button
             onClick={exportLayout}
             className="px-3 py-1.5 rounded-lg bg-fuchsia-500/30 ring-1 ring-fuchsia-300/60 text-fuchsia-50 hover:bg-fuchsia-500/40"
@@ -553,8 +553,40 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           >
             Сбросить
           </button>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <button
+              onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+              className="h-6 w-6 rounded hover:bg-white/10"
+              aria-label="Уменьшить"
+            >
+              −
+            </button>
+            <span className="min-w-[3ch] text-center tabular-nums">{Math.round(zoom * 100)}%</span>
+            <button
+              onClick={() => setZoom((z) => Math.min(4, +(z + 0.1).toFixed(2)))}
+              className="h-6 w-6 rounded hover:bg-white/10"
+              aria-label="Увеличить"
+            >
+              +
+            </button>
+            <button
+              onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+              className="ml-1 px-2 h-6 rounded hover:bg-white/10"
+              aria-label="Сбросить масштаб"
+            >
+              1:1
+            </button>
+          </div>
+          {zoom > 1 && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+              <button onClick={() => setPan((p) => ({ ...p, x: p.x + 40 }))} className="h-6 w-6 rounded hover:bg-white/10" aria-label="Влево">←</button>
+              <button onClick={() => setPan((p) => ({ ...p, y: p.y + 40 }))} className="h-6 w-6 rounded hover:bg-white/10" aria-label="Вверх">↑</button>
+              <button onClick={() => setPan((p) => ({ ...p, y: p.y - 40 }))} className="h-6 w-6 rounded hover:bg-white/10" aria-label="Вниз">↓</button>
+              <button onClick={() => setPan((p) => ({ ...p, x: p.x - 40 }))} className="h-6 w-6 rounded hover:bg-white/10" aria-label="Вправо">→</button>
+            </div>
+          )}
           <span className="opacity-60 self-center">
-            Тяни клетку • уголок — размер • двойной клик — размер всем • Shift+двойной клик — выровнять весь ряд по этой клетке
+            Тяни клетку • уголок — размер • двойной клик — размер всем • Shift+двойной клик — выровнять ряд
           </span>
         </div>
       )}
