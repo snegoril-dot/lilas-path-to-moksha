@@ -26,7 +26,7 @@ export function ChatFeed({ messages }: { messages: ChatMessage[] }) {
       aria-live="polite"
       aria-relevant="additions"
       aria-label="Сообщения Гуру"
-      className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 bg-[var(--lila-bg)]"
+      className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 bg-[var(--lila-bg)] [scroll-padding-bottom:5rem]"
     >
       <AnimatePresence initial={false}>
         {messages.map((m) => (
