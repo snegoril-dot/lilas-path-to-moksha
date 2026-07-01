@@ -10,7 +10,9 @@ const SaveReflectionInput = z.object({
   withAi: z.boolean().default(false),
   prompt: z.string().max(400).optional(),
   sankalpa: z.string().max(400).optional(),
-  kind: z.enum(["reflection", "insight", "guru"]).default("reflection"),
+  kind: z
+    .enum(["reflection", "insight", "final_insight", "guru", "guru_note", "snake_lesson", "ladder_gift"])
+    .default("reflection"),
 });
 
 export const saveReflection = createServerFn({ method: "POST" })
