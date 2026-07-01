@@ -9,7 +9,7 @@ import { DailyCard } from "./DailyCard";
 import { MorningSankalpaCard } from "./MorningSankalpaCard";
 import { AchievementsModal } from "./AchievementsModal";
 import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
-import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
+import type { GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 import { getProfileSummary } from "@/lib/profile-summary.functions";
 import {
@@ -19,8 +19,8 @@ import {
   BAD_EXAMPLES,
 } from "@/lib/sankalpa-validation";
 
-type Step = 0 | 1 | 2;
-const STEP_TITLES = ["Приветствие", "Санкальпа", "Режим и старт"] as const;
+type Step = 0 | 1;
+const STEP_TITLES = ["Приветствие", "Санкальпа"] as const;
 
 export function WelcomeScreen({
   onStart,
@@ -31,7 +31,6 @@ export function WelcomeScreen({
 }) {
   const [step, setStep] = useState<Step>(0);
   const [sankalpa, setSankalpa] = useState("");
-  const [mode, setMode] = useState<GameMode>("classic");
 
   const [achOpen, setAchOpen] = useState(false);
   const [onbOpen, setOnbOpen] = useState(false);
@@ -68,19 +67,17 @@ export function WelcomeScreen({
     startedRef.current = true;
     try { haptic("medium"); } catch { /* noop outside TG */ }
     const finalSankalpa = canStart ? trimmed : DEFAULT_SANKALPA;
-    onStart(finalSankalpa, mode);
+    onStart(finalSankalpa, "classic");
   };
 
   const goNext = () => {
     try { haptic("light"); } catch { /* noop */ }
-    setStep((s) => (Math.min(2, s + 1) as Step));
+    setStep((s) => (Math.min(1, s + 1) as Step));
   };
   const goBack = () => {
     try { haptic("light"); } catch { /* noop */ }
     setStep((s) => (Math.max(0, s - 1) as Step));
   };
-
-
 
   const applySuggestion = (s: string) => {
     setSankalpa(s);
@@ -88,15 +85,14 @@ export function WelcomeScreen({
     setShowRewrite(false);
   };
 
-  const mainBtnText = step < 2 ? "Далее →" : "🎲 Начать игру";
-  // Sync MainButton enabled state with the current step:
-  // step 1 requires a valid Санкальпа, other steps are always active.
+  const mainBtnText = step < 1 ? "Далее →" : "🎲 Начать игру";
+  // On step 1 (Sankalpa) the button starts the game; allow default fallback when empty.
   const mainBtnActive = step === 1 ? canStart || trimmed.length === 0 : true;
   useTelegramMainButton({
     text: mainBtnText,
     visible: inTg && !achOpen,
     active: mainBtnActive,
-    onClick: step < 2 ? goNext : handleStart,
+    onClick: step < 1 ? goNext : handleStart,
   });
 
 
@@ -113,7 +109,7 @@ export function WelcomeScreen({
           <ChevronLeft size={18} />
         </button>
         <div className="flex items-center gap-1.5">
-          {[0, 1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <button
               key={i}
               onClick={() => {
@@ -198,7 +194,7 @@ export function WelcomeScreen({
               transition={{ duration: 0.25 }}
               className="max-w-sm mx-auto text-left"
             >
-              <div className="text-xs uppercase tracking-wider opacity-60 ml-1">Шаг 2 из 3</div>
+              <div className="text-xs uppercase tracking-wider opacity-60 ml-1">Шаг 2 из 2</div>
               <h2 className="text-xl font-semibold mt-1">Сформулируй Санкальпу</h2>
               <p className="mt-1 text-sm opacity-75 leading-relaxed">
                 Один честный вопрос или намерение, с которым войдёшь в путь.
@@ -289,65 +285,6 @@ export function WelcomeScreen({
               </div>
             </motion.div>
           )}
-
-          {step === 2 && (
-            <motion.div
-              key="s2"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.25 }}
-              className="max-w-sm mx-auto text-left"
-            >
-              <div className="text-xs uppercase tracking-wider opacity-60 ml-1">Шаг 3 из 3</div>
-              <h2 className="text-xl font-semibold mt-1">Выбери режим</h2>
-
-              <fieldset className="mt-3">
-                <legend className="sr-only">Режим игры</legend>
-                <div className="grid grid-cols-1 gap-2">
-                  {(["classic", "soft"] as GameMode[]).map((m) => {
-                    const active = mode === m;
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setMode(m)}
-                        aria-pressed={active}
-                        className={`text-left rounded-2xl px-4 py-3 ring-1 transition ${
-                          active
-                            ? "bg-amber-400/15 ring-amber-300/60"
-                            : "bg-[var(--lila-surface)] ring-white/10 hover:ring-white/20"
-                        }`}
-                      >
-                        <div className="text-sm font-semibold flex items-center gap-2">
-                          <span aria-hidden>{m === "classic" ? "🕉" : "🌿"}</span>
-                          {MODE_LABEL[m]}
-                        </div>
-                        <div className="text-[11px] opacity-70 mt-0.5 leading-snug">
-                          {MODE_DESCRIPTION[m]}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              <div className="mt-4 rounded-2xl bg-white/5 ring-1 ring-white/10 px-4 py-3 text-[12px] leading-relaxed">
-                <div className="opacity-70 text-[11px] uppercase tracking-wider">Твоя Санкальпа</div>
-                <div className="mt-1 opacity-95">
-                  {trimmed || <span className="opacity-50">— ещё не задана</span>}
-                </div>
-                {!canStart && (
-                  <button
-                    onClick={() => setStep(1)}
-                    className="mt-2 text-[11px] underline text-amber-200"
-                  >
-                    ← Вернуться и уточнить
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
       </div>
 
@@ -362,7 +299,7 @@ export function WelcomeScreen({
             >
               <ChevronLeft size={16} /> Назад
             </button>
-            {step < 2 ? (
+            {step < 1 ? (
               <button
                 onClick={goNext}
                 className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow-xl hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-1"
