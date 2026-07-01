@@ -398,10 +398,26 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   ? "ring-2 ring-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.7)]"
                   : "ring-1 ring-white/10";
           const isVisited = !isPlayer && visitedSet.has(id);
+          const stateLabel = isPlayer
+            ? "текущая клетка"
+            : cell.type === "snake"
+              ? "змея — спуск"
+              : cell.type === "ladder"
+                ? "стрела — подъём"
+                : isKailas
+                  ? "Мокша"
+                  : isVisited
+                    ? "пройдено"
+                    : "";
+          const fullLabel = `Клетка ${id}${stateLabel ? `, ${stateLabel}` : ""}: ${cell.name}`;
           return (
             <div
               key={id}
               data-cell-id={id}
+              role={debug ? undefined : "button"}
+              tabIndex={debug ? undefined : 0}
+              aria-label={debug ? undefined : fullLabel}
+              aria-current={isPlayer ? "location" : undefined}
               onPointerDown={(e) => beginDrag(e, id, "move")}
               onDoubleClick={(e) => {
                 if (!debug) return;
@@ -409,7 +425,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 else applyToAll(id);
               }}
               onClick={() => !debug && onSelectCell?.(id)}
-              className={`absolute flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight select-none p-0.5 text-center transition ${
+              onKeyDown={(e) => {
+                if (debug) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectCell?.(id);
+                }
+              }}
+              className={`absolute flex items-end justify-center rounded-[4px] text-[9px] font-medium leading-tight select-none p-0.5 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:z-20 ${
                 debug
                   ? `bg-fuchsia-500/25 ring-2 ${brokenIds.has(id) ? "ring-red-500 bg-red-500/40" : "ring-fuchsia-300/90"} cursor-move touch-none`
                   : `${tint} ${typeClass} cursor-pointer hover:brightness-125 ${isVisited ? "brightness-110" : ""}`
@@ -435,7 +458,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                 <>
                   <span
                     className={`absolute inset-0 flex items-center justify-center text-[15px] sm:text-base font-extrabold ${NUMBER_CLASS}`}
-                    aria-label={cell.name}
+                    aria-hidden
                     title={cell.name}
                   >
                     {id}
@@ -447,13 +470,22 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   >
                     {isKailas ? "🕉" : getTattvaForCell(id).glyph}
                   </span>
+                  {(cell.type === "snake" || cell.type === "ladder") && (
+                    <span
+                      aria-hidden
+                      className={`absolute left-0.5 top-0.5 text-[10px] font-bold leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
+                        cell.type === "snake" ? "text-rose-200" : "text-amber-200"
+                      }`}
+                    >
+                      {cell.type === "snake" ? "↓" : "↑"}
+                    </span>
+                  )}
                   {isVisited && (
                     <span
                       aria-hidden
                       className="absolute left-1 bottom-1 h-1.5 w-1.5 rounded-full bg-amber-200/70 shadow-[0_0_4px_rgba(251,191,36,0.7)]"
                     />
                   )}
-                  <span className={`sr-only ${LABEL_CLASS}`}>{cell.name}</span>
                 </>
               )}
               {isPlayer && (
