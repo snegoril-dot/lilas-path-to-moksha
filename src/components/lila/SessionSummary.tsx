@@ -7,6 +7,8 @@ import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
 import { buildShareText as buildShareTextLib, shareToTelegram, type ShareResult } from "@/lib/share";
 import type { KeyCell } from "./WinOverlay";
+import { FeedbackModal } from "./FeedbackModal";
+
 
 export type SessionResult = "in_progress" | "moksha" | "paused";
 
