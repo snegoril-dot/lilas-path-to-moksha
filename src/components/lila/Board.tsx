@@ -319,7 +319,22 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   data-cell-id={id}
                   aria-label={fullLabel}
                   aria-current={isPlayer ? "location" : undefined}
-                  onClick={() => onSelectCell?.(id)}
+                  onClick={(e) => {
+                    if (debug && suppressClickRef.current === id) {
+                      suppressClickRef.current = null;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    onSelectCell?.(id);
+                  }}
+                  onDoubleClick={(e) => {
+                    if (debug && e.shiftKey) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      alignRowTo(id);
+                    }
+                  }}
                   style={{
                     gridColumn: col + 1,
                     gridRow: visualRow + 1,
