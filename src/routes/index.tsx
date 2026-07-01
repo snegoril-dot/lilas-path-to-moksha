@@ -65,6 +65,11 @@ const PracticeReturnSheet = lazy(() => import("@/components/lila/PracticeReturnS
 const PracticeJournalSheet = lazy(() => import("@/components/lila/PracticeJournalSheet").then(m => ({ default: m.PracticeJournalSheet })));
 import { ActivePracticeBanner } from "@/components/lila/ActivePracticeBanner";
 import { useActivePractice } from "@/hooks/useActivePractice";
+import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
+
+/** Мягкий лимит: после N ходов свободной игры предлагаем расширить путь. */
+const FREE_ROLLS_LIMIT = 30;
+
 
 
 
