@@ -31,6 +31,9 @@ export function WinOverlay({
   keyCells = [],
   totalRolls,
   mode,
+  startedAt = null,
+  sessionId = null,
+  currentCell = 68,
 }: {
   open: boolean;
   onRestart: () => void;
@@ -38,6 +41,9 @@ export function WinOverlay({
   keyCells?: KeyCell[];
   totalRolls?: number;
   mode?: "classic" | "soft";
+  startedAt?: string | null;
+  sessionId?: string | null;
+  currentCell?: number;
 }) {
   const loadSessions = useServerFn(getMySessions);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
