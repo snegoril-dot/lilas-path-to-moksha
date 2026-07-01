@@ -30,7 +30,7 @@ import { saveSession, upsertSession, getActiveSession, abandonSession, saveRefle
 import { registerOnlineFlush } from "@/lib/note-queue";
 import { saveLastCell } from "@/lib/last-cell-cache";
 import { ReturnBanner } from "@/components/lila/ReturnBanner";
-import { useTelegramInit, hapticNotify, isInTelegram } from "@/hooks/use-telegram";
+import { useTelegramInit, hapticNotify, isInTelegram, getTg } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
@@ -172,8 +172,30 @@ function Index() {
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
   const { isAdmin } = useIsAdmin();
+  const [telegramAdminHint, setTelegramAdminHint] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const check = () => {
+      const user = (getTg() as unknown as {
+        initDataUnsafe?: { user?: { id?: number; username?: string | null } };
+      } | undefined)?.initDataUnsafe?.user;
+      const allowed = user?.id === 253752301 || user?.username?.toLowerCase() === "snegoril";
+      if (allowed && !cancelled) setTelegramAdminHint(true);
+      return !!allowed;
+    };
+    if (check()) return;
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      if (check() || Date.now() - startedAt > 3000) window.clearInterval(timer);
+    }, 150);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
   const isTelegramSnegoril =
-    tgAuth.status === "authenticated" &&
+    telegramAdminHint ||
+    (tgAuth.status === "authenticated" &&
     (tgAuth.profile?.telegram_id === 253752301 || tgAuth.profile?.username?.toLowerCase() === "snegoril");
   // Вне Telegram (web-превью Lovable / ПК) отладка сетки доступна всем — для удобства работы с раскладкой.
   const debugAllowed = isAdmin || isTelegramSnegoril || !isInTelegram();

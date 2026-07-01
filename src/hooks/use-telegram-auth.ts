@@ -42,9 +42,16 @@ export function useTelegramAuth(authReady: boolean) {
     let cancelled = false;
 
     const run = async () => {
-      const tg = getTg();
-      const initData =
-        (tg as unknown as { initData?: string } | undefined)?.initData ?? "";
+      setState((s) => ({ ...s, status: "loading" }));
+
+      let initData = "";
+      const startedAt = Date.now();
+      while (!cancelled && Date.now() - startedAt < 2500) {
+        const tg = getTg();
+        initData = (tg as unknown as { initData?: string } | undefined)?.initData ?? "";
+        if (initData) break;
+        await new Promise((resolve) => window.setTimeout(resolve, 100));
+      }
 
       if (!initData) {
         if (!cancelled) {
@@ -57,7 +64,6 @@ export function useTelegramAuth(authReady: boolean) {
         return;
       }
 
-      setState((s) => ({ ...s, status: "loading" }));
       try {
         const { data: sess } = await supabase.auth.getSession();
         const token = sess.session?.access_token;
