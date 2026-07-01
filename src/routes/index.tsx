@@ -154,6 +154,25 @@ function Index() {
     trackEvent("app_opened");
   }, []);
 
+  // Contextual hints — shown once per user (localStorage).
+  useEffect(() => {
+    if (!started || won) return;
+    if (pos === 0 && totalRolls === 0) {
+      showHint(
+        "before_first_roll",
+        "Чтобы войти в путь, дождись рождения через кубик.",
+      );
+    }
+    if (pos >= 63 && pos < 68) {
+      showHint(
+        "near_moksha",
+        "До Мокши нужен точный шаг. Если выпало больше, путь продолжается.",
+      );
+    }
+  }, [started, won, pos, totalRolls, showHint]);
+
+
+
 
 
   const startGame = useCallback(
