@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { BOARD, getLoka } from "@/lib/lila-board";
 import { getCellMeta, getTattvaForCell } from "@/lib/lila-wisdom-full";
+import { getCellExperience } from "@/lib/cell-experience";
+
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton } from "@/hooks/use-telegram";
 import { Glyph } from "./Glyph";
