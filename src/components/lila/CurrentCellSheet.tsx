@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Feather, MessageCircle, ArrowRight, Loader2, Check } from "lucide-react";
+import { X, Feather, MessageCircle, ArrowRight, Loader2, Check, BookOpen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
 import { getCellExperience } from "@/lib/cell-experience";
