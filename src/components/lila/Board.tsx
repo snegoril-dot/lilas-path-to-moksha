@@ -348,16 +348,18 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           {layoutIssues.length > 1 ? ` (+${layoutIssues.length - 1})` : ""}
         </div>
       )}
+      <div className={debug && zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : ""}>
       <div
         data-lila-board
         ref={containerRef}
-        className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING}`}
+        className={`relative w-full rounded-2xl shadow-2xl ring-1 ${debug ? "overflow-visible" : "overflow-hidden"} ${FRAME_RING}`}
         style={{
           aspectRatio: "9 / 8",
           background: BOARD_BG,
           transform: debug ? `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` : undefined,
           transformOrigin: "top left",
           transition: debug ? "transform 120ms ease-out" : undefined,
+
         }}
       >
         <img
@@ -555,6 +557,8 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           );
         })}
       </div>
+      </div>
+
       {debug && (
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           <button
