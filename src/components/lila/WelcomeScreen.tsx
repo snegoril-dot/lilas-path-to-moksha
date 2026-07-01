@@ -1,11 +1,15 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
 import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
+import { getProfileSummary } from "@/lib/profile-summary.functions";
 
 export function WelcomeScreen({
   onStart,
@@ -24,6 +28,20 @@ export function WelcomeScreen({
   useEffect(() => {
     if (!hasSeenOnboarding()) setOnbOpen(true);
   }, []);
+
+  const fetchSummary = useServerFn(getProfileSummary);
+  const { data: summary } = useQuery({
+    queryKey: ["profile-summary"],
+    queryFn: () => fetchSummary({ data: {} }),
+    staleTime: 60_000,
+    retry: false,
+  });
+  // «Возвращение к пути» — только когда прошлые сессии есть, но активной нет.
+  // Случай активной сессии уже показывает ResumeDialog.
+  const showReturning = Boolean(
+    summary && summary.hasPreviousSessions && !summary.hasActiveSession,
+  );
+
 
   const [touched, setTouched] = useState(false);
   const trimmed = sankalpa.trim();
