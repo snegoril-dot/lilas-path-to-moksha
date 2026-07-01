@@ -27,7 +27,9 @@ export type AnalyticsEventName =
   | "share_completed"
   | "new_session_started"
   | "feedback_opened"
-  | "feedback_submitted";
+  | "feedback_submitted"
+  | "guru_path_analysis_requested"
+  | "guru_path_analysis_saved";
 
 
 export interface TrackMeta {
