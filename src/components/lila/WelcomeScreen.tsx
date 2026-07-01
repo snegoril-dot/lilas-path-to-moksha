@@ -47,12 +47,15 @@ export function WelcomeScreen({
   const trimmed = sankalpa.trim();
   const canStart = trimmed.length > 0;
 
+  const startedRef = useRef(false);
   const handleStart = () => {
     if (!canStart) {
       setTouched(true);
       haptic("light");
       return;
     }
+    if (startedRef.current) return;
+    startedRef.current = true;
     haptic("medium");
     onStart(trimmed, mode);
   };
