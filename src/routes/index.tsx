@@ -1044,7 +1044,7 @@ function Index() {
           className="mx-auto w-full"
           style={{
             maxHeight: "min(38dvh, 42svh)",
-            maxWidth: "min(100%, calc(min(38dvh, 42svh) * 9 / 8))",
+            maxWidth: "min(100%, calc(min(38dvh, 42svh) * 1330 / 1182))",
           }}
         >
           <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
