@@ -1,7 +1,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { memo, useEffect, useMemo, useState } from "react";
 import { BOARD } from "@/lib/lila-board";
-import boardBg from "@/assets/lila-board-cosmos.jpg";
+import boardBgAsset from "@/assets/lila-board-cosmos.png.asset.json";
+const boardBg = boardBgAsset.url;
 import { getTattvaForCell } from "@/lib/lila-wisdom-full";
 import {
   COLS,
