@@ -604,7 +604,7 @@ function Index() {
             });
           }, reduceMotion ? 500 : 1300);
         } else {
-          addMsg(`Ты постигаешь «${landed.name}». ${landed.wisdom}`, "guru");
+          addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
           openLanded(landed.id);
           finishTurn();
