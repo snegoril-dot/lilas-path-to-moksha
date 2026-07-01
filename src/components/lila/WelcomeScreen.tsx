@@ -84,7 +84,7 @@ export function WelcomeScreen({
 
 
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[var(--lila-bg)] via-[var(--lila-bg)] to-[var(--lila-bg-2)]">
+    <div className="min-h-[100dvh] max-h-[100dvh] overflow-y-auto overscroll-contain flex flex-col items-center px-6 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-center bg-gradient-to-b from-[var(--lila-bg)] via-[var(--lila-bg)] to-[var(--lila-bg-2)]">
       <button
         onClick={() => setAchOpen(true)}
         aria-label="Достижения"
