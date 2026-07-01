@@ -798,7 +798,7 @@ function Index() {
         onOpenWin={() => setWinOpen(true)}
         onOpenLanded={() => setLandedOpen(true)}
         onOpenCell={() => setCellOpen(pos === 0 ? 1 : pos)}
-        onAskGuru={() => setGuruCtx(buildGuruCtx())}
+        onAskGuru={() => { trackEvent("guru_opened", { cell: pos, sessionId: sessionIdRef.current }); setGuruCtx(buildGuruCtx()); }}
       />
 
 
