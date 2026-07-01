@@ -11,6 +11,7 @@ import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
 import { CellContextChip } from "./CellContextChip";
+import { Glyph } from "./Glyph";
 
 
 
@@ -224,8 +225,8 @@ export function GuruChatSheet({
             <div className="flex items-start justify-between p-4 border-b border-white/5 shrink-0 gap-2">
               <div className="min-w-0 flex-1">
                 <h3 id={titleId} className="text-base font-semibold flex items-center gap-2">
-                  <span className="inline-block h-7 w-7 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-sm shrink-0">
-                    🕉
+                  <span className="inline-flex h-7 w-7 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 items-center justify-center shrink-0">
+                    <Glyph name="om" size={16} alt="Гуру" />
                   </span>
                   ИИ-Гуру
                 </h3>

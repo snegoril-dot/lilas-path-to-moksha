@@ -4,6 +4,7 @@ import { BOARD, getLoka } from "@/lib/lila-board";
 import { getCellMeta, getTattvaForCell } from "@/lib/lila-wisdom-full";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton } from "@/hooks/use-telegram";
+import { Glyph } from "./Glyph";
 
 export function CellModal({ cellId, onClose }: { cellId: number | null; onClose: () => void }) {
   const cell = cellId ? BOARD[cellId - 1] : null;
@@ -83,9 +84,9 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
             {cell.jumpTo && (
               <div className="mt-3 text-xs">
                 {cell.type === "snake" ? (
-                  <span className="text-rose-300">🐍 Падение → клетка {cell.jumpTo} ({BOARD[cell.jumpTo - 1].name})</span>
+                  <span className="text-rose-300 inline-flex items-center gap-1.5"><Glyph name="snake" size={14} /> Падение → клетка {cell.jumpTo} ({BOARD[cell.jumpTo - 1].name})</span>
                 ) : (
-                  <span className="text-amber-300">🪜 Подъём → клетка {cell.jumpTo} ({BOARD[cell.jumpTo - 1].name})</span>
+                  <span className="text-amber-300 inline-flex items-center gap-1.5"><Glyph name="ladder" size={14} /> Подъём → клетка {cell.jumpTo} ({BOARD[cell.jumpTo - 1].name})</span>
                 )}
               </div>
             )}

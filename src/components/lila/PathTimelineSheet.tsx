@@ -5,6 +5,7 @@ import { BOARD } from "@/lib/lila-board";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useTelegramBackButton } from "@/hooks/use-telegram";
 import type { KeyCell } from "./WinOverlay";
+import { Glyph } from "./Glyph";
 
 export interface PathTimelineSheetProps {
   open: boolean;
@@ -69,7 +70,7 @@ export function PathTimelineSheet({
           >
             <div className="shrink-0 flex items-center gap-3 px-4 pt-4 pb-3 border-b border-white/5">
               <div className="shrink-0 h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-600 text-stone-900 flex items-center justify-center shadow">
-                🕉
+                <Glyph name="om" size={22} alt="Гуру" />
               </div>
               <div className="flex-1 min-w-0">
                 <h2 id={titleId} className="text-base font-semibold leading-tight">
@@ -147,14 +148,15 @@ export function PathTimelineSheet({
                             {dest !== undefined && (
                               <>
                                 <ArrowRight size={14} className={isSnake ? "text-rose-300" : "text-emerald-300"} />
-                                <span className={`font-medium ${isSnake ? "text-rose-100" : "text-emerald-100"}`}>
-                                  {isSnake ? "🐍 " : isLadder ? "🪜 " : ""}
+                                <span className={`font-medium ${isSnake ? "text-rose-100" : "text-emerald-100"} inline-flex items-center gap-1`}>
+                                  {isSnake && <Glyph name="snake" size={12} />}
+                                  {isLadder && <Glyph name="ladder" size={12} />}
                                   {dest}. {cellName(dest)}
                                 </span>
                               </>
                             )}
                             {isMoksha && (
-                              <span className="text-amber-200 font-semibold">✨ Кайлас</span>
+                              <span className="text-amber-200 font-semibold inline-flex items-center gap-1"><Glyph name="sparkle" size={12} /> Кайлас</span>
                             )}
                           </div>
                           {note && (
