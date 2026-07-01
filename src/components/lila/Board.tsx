@@ -487,9 +487,9 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
                   <span
                     className="absolute right-0.5 top-0.5 text-[9px] opacity-70 drop-shadow leading-none"
                     aria-hidden
-                    title={getTattvaForCell(id).name}
+                    title={getTattvaForCell(id)?.name ?? cell.name}
                   >
-                    {isKailas ? "🕉" : getTattvaForCell(id).glyph}
+                    {isKailas ? "🕉" : (getTattvaForCell(id)?.glyph ?? "·")}
                   </span>
                   {(cell.type === "snake" || cell.type === "ladder") && (
                     <span
