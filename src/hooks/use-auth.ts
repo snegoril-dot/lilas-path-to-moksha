@@ -30,7 +30,7 @@ export function useAuth() {
         setAuthDiagnosticState({ authReady: true, stage: "timeout_guest", timedOut: true });
         setReady(true);
       }
-    }, 3500);
+    }, 1500);
 
     const ensureSession = async () => {
       try {
