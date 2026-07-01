@@ -25,6 +25,11 @@ export function ResumeDialog({
 }) {
   const [confirming, setConfirming] = useState(false);
   const cell = snapshot && snapshot.currentCell > 0 ? BOARD[snapshot.currentCell - 1] : null;
+  useTelegramBackButton(open, () => {
+    if (confirming) setConfirming(false);
+    else onResume();
+  });
+
 
   const handleFreshClick = () => {
     if (!confirming) {
