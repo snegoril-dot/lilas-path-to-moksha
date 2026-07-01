@@ -109,7 +109,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           data-lila-board
           className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING}`}
           style={{
-            aspectRatio: `${COLS} / ${ROWS}`,
+            aspectRatio: debug ? `${aspectW} / ${aspectH}` : `${COLS} / ${ROWS}`,
             background: BOARD_BG,
             transform: debug && zoom !== 1 ? `scale(${zoom})` : undefined,
             transformOrigin: "top left",
@@ -135,12 +135,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
 
           {/* Строгая сетка 9×8 — единственный источник геометрии клеток */}
           <div
-            className="absolute inset-0 grid p-[0.6%] gap-[0.5%]"
+            className="absolute inset-0 grid"
             style={{
+              padding: `${debug ? padPct : 0.6}%`,
+              gap: `${debug ? gapPct : 0.5}%`,
               gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
             }}
           >
+
             {ids.map((id) => {
               const cell = BOARD[id - 1];
               const { row, col } = rowColForId(id);
