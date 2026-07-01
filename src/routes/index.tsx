@@ -217,13 +217,13 @@ function Index() {
     if (!started || pos === 0) return;
     const cell = BOARD[pos - 1];
     if (!cell) return;
-    saveLastCell(tgAuth.userId ?? null, {
+    const userKey = tgAuth.profile?.telegram_id ? String(tgAuth.profile.telegram_id) : null;
+    saveLastCell(userKey, {
       cellId: cell.id,
       name: cell.name,
       wisdom: cell.wisdom,
-      reflection: cell.reflection ?? null,
     });
-  }, [started, pos, tgAuth.userId]);
+  }, [started, pos, tgAuth.profile]);
 
   // Contextual hints — shown once per user (localStorage).
   useEffect(() => {
