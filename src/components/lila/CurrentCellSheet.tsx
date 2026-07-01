@@ -17,7 +17,7 @@ export interface CurrentCellSheetProps {
   sankalpa?: string;
   sessionId?: string | null;
   onContinue: () => void;
-  onAskGuru: (cellId: number) => void;
+  onAskGuru: (cellId: number, opts?: { prompt?: string }) => void;
 }
 
 export function CurrentCellSheet({
@@ -210,6 +210,41 @@ export function CurrentCellSheet({
                   Практика на сегодня
                 </div>
                 <div className="text-amber-50">{dailyPractice}</div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[11px] uppercase tracking-wider opacity-60">
+                  Спросить Гуру
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {(cell.type === "snake"
+                    ? [
+                        "Что эта змея возвращает мне для осознания?",
+                        "Какое качество я не хочу видеть в себе сейчас?",
+                      ]
+                    : cell.type === "ladder"
+                      ? [
+                          "Какое качество помогло мне подняться?",
+                          "Как удержать это состояние в жизни?",
+                        ]
+                      : [
+                          "Что эта клетка показывает в моей Санкальпе?",
+                          "Какой вопрос мне стоит себе задать?",
+                          "Что здесь является тенью, а что даром?",
+                        ]
+                  ).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => {
+                        haptic("light");
+                        onAskGuru(cell.id, { prompt: p });
+                      }}
+                      className="text-left text-xs rounded-xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/25 text-amber-100 px-3 py-2 transition"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {showInsight && (
