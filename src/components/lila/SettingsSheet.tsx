@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
-  Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight,
+  Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import type { PlayerToken } from "@/lib/player-tokens";
 import { BOARD } from "@/lib/lila-board";
 import { OnboardingModal } from "./OnboardingModal";
 import { FeedbackModal } from "./FeedbackModal";
+import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
 
 interface Props {
   open: boolean;
@@ -99,6 +100,7 @@ export function SettingsSheet(props: Props) {
 
   const [onbOpen, setOnbOpen] = useState(false);
   const [fbOpen, setFbOpen] = useState(false);
+  const [weeklyOpen, setWeeklyOpen] = useState(false);
 
   const isBeta = true;
   const cellInfo = currentCell > 0 ? BOARD[currentCell - 1] : null;
@@ -172,6 +174,7 @@ export function SettingsSheet(props: Props) {
             )}
             <Row icon={<BookOpen size={18} />} label="Дневник" hint="История пути" asLink to="/journal" onClick={onClose} />
             <Row icon={<Sparkles size={18} />} label="Недельный план" hint="Рекомендации Гуру" asLink to="/insights" onClick={onClose} />
+            <Row icon={<CalendarDays size={18} />} label="Что показала неделя" hint="Обзор последних 3 клеток" onClick={() => setWeeklyOpen(true)} />
           </div>
 
           {/* Секции */}
@@ -346,6 +349,7 @@ export function SettingsSheet(props: Props) {
 
       <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
       <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="settings" />
+      <WeeklyReviewSheet open={weeklyOpen} onClose={() => setWeeklyOpen(false)} />
     </>
   );
 }
