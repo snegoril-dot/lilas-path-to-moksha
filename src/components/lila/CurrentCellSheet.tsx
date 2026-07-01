@@ -57,7 +57,7 @@ export function CurrentCellSheet({
   if (cellId === null) return null;
   const exp = getCellExperience(cellId);
   if (!exp) return null;
-  const { cell, lokaName, shortMeaning, reflectionQuestion, dailyPractice } = exp;
+  const { cell, lokaName, shortMeaning, reflectionQuestion, dailyPractice, tone, keywords } = exp;
 
   const fromExp = fromCellId ? getCellExperience(fromCellId) : null;
 
