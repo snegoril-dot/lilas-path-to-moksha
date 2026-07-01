@@ -1066,6 +1066,48 @@ function Index() {
           Не удалось подтвердить вход через Telegram. Попробуй открыть игру из бота ещё раз.
         </div>
       )}
+      {activePractice.session && (
+        <ActivePracticeBanner
+          session={activePractice.session}
+          onOpenReturn={() => setPracticeReturnOpen(true)}
+          onOpenJournal={() => setPracticeJournalOpen(true)}
+        />
+      )}
+      {practiceChooserCell !== null && (
+        <Suspense fallback={null}>
+          <PracticeChooserSheet
+            cellId={practiceChooserCell}
+            sankalpa={sankalpa}
+            onClose={() => setPracticeChooserCell(null)}
+            onStarted={() => {
+              setPracticeChooserCell(null);
+              void activePractice.refresh();
+            }}
+          />
+        </Suspense>
+      )}
+      {practiceReturnOpen && activePractice.session && (
+        <Suspense fallback={null}>
+          <PracticeReturnSheet
+            session={activePractice.session}
+            onClose={() => setPracticeReturnOpen(false)}
+            onCompleted={() => {
+              setPracticeReturnOpen(false);
+              void activePractice.refresh();
+            }}
+          />
+        </Suspense>
+      )}
+      {practiceJournalOpen && (
+        <Suspense fallback={null}>
+          <PracticeJournalSheet
+            open={practiceJournalOpen}
+            onClose={() => setPracticeJournalOpen(false)}
+            sessionId={activePractice.session?.id ?? null}
+            cellId={activePractice.session?.cell_id ?? pos}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
