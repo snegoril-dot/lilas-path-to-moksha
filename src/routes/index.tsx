@@ -116,7 +116,9 @@ function Index() {
       setTotalRolls(0);
       setCellVisits({});
       setPathLog([]);
+      setDiceHistory([]);
       sessionSavedRef.current = false;
+      sessionIdRef.current = null;
       setSankalpa(userSankalpa);
       setTimeout(() => {
         if (userSankalpa) {
@@ -136,7 +138,55 @@ function Index() {
     [addMsg]
   );
 
+  const resumeGame = useCallback(() => {
+    if (!resumeData) return;
+    sessionIdRef.current = resumeData.id;
+    setSankalpa(resumeData.sankalpa ?? "");
+    setPos(resumeData.currentCell);
+    setTotalRolls(resumeData.movesCount);
+    setEntryMisses(resumeData.entryMisses);
+    setSixStreak(resumeData.sixStreak);
+    setPathLog(resumeData.path);
+    setDiceHistory(resumeData.diceHistory);
+    setKeyCells(resumeData.keyCells);
+    setCellVisits(resumeData.cellVisits);
+    setWon(false);
+    setEntryGrace(false);
+    setMessages([]);
+    sessionSavedRef.current = false;
+    setStarted(true);
+    setResumeOpen(false);
+    setTimeout(() => {
+      addMsg("🌿 Ты возвращаешься на свой путь. Продолжай.");
+      if (resumeData.currentCell === 0) {
+        addMsg("Душа ещё ждёт воплощения — брось шестёрку для рождения.", "system");
+      } else {
+        const cell = BOARD[resumeData.currentCell - 1];
+        if (cell) addMsg(`Ты стоишь на клетке ${cell.id} · ${cell.name}.`, "system");
+      }
+    }, 200);
+  }, [resumeData, addMsg]);
+
+  const startFresh = useCallback(async () => {
+    setResumeOpen(false);
+    const prev = resumeData;
+    setResumeData(null);
+    if (prev?.id) {
+      persistAbandon({ data: { id: prev.id } }).catch((e) =>
+        console.error("[abandonSession]", e)
+      );
+    }
+  }, [resumeData, persistAbandon]);
+
   const restart = useCallback(() => {
+    // Abandon current in-progress session (if any) before returning to welcome.
+    const prevId = sessionIdRef.current;
+    if (prevId) {
+      persistAbandon({ data: { id: prevId } }).catch((e) =>
+        console.error("[abandonSession]", e)
+      );
+    }
+    sessionIdRef.current = null;
     setStarted(false);
     setWon(false);
     setPos(0);
@@ -148,24 +198,131 @@ function Index() {
     setTotalRolls(0);
     setCellVisits({});
     setPathLog([]);
+    setDiceHistory([]);
     sessionSavedRef.current = false;
     setReflection(null);
     setSankalpa("");
-  }, []);
+  }, [persistAbandon]);
+
+  // On mount: check for an active in-progress session and offer to resume.
+  useEffect(() => {
+    if (resumeCheckedRef.current) return;
+    resumeCheckedRef.current = true;
+    fetchActiveSession()
+      .then((row) => {
+        if (!row) return;
+        // Reconstruct cellVisits from key_cells log.
+        const kc = (row.key_cells as KeyCell[] | null) ?? [];
+        const visits: Record<number, number> = {};
+        for (const k of kc) {
+          visits[k.id] = (visits[k.id] ?? 0) + 1;
+        }
+        setResumeData({
+          id: row.id as string,
+          currentCell: (row.current_cell as number) ?? 0,
+          sankalpa: (row.sankalpa as string | null) ?? null,
+          movesCount: (row.moves_count as number) ?? 0,
+          updatedAt: (row.updated_at as string | null) ?? null,
+          entryMisses: (row.entry_misses as number) ?? 0,
+          sixStreak: (row.six_streak as number) ?? 0,
+          path: ((row.path as Array<{ cell: number; kind: string; to?: number }>) ?? []),
+          diceHistory: ((row.dice_history as number[]) ?? []),
+          keyCells: kc,
+          cellVisits: visits,
+        });
+        setResumeOpen(true);
+      })
+      .catch((e) => console.error("[getActiveSession]", e));
+  }, [fetchActiveSession]);
+
+  // Debounced autosave of in-progress state (skips the initial idle mount).
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedIndicatorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!started || won) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      setSaveState("saving");
+      persistUpsert({
+        data: {
+          id: sessionIdRef.current,
+          sankalpa: sankalpa || undefined,
+          result: "in_progress",
+          currentCell: pos,
+          movesCount: totalRolls,
+          entryMisses,
+          sixStreak,
+          path: pathLog.slice(-500),
+          diceHistory: diceHistory.slice(-500),
+          keyCells: keyCells.slice(-200),
+        },
+      })
+        .then((row) => {
+          if (row?.id) sessionIdRef.current = row.id as string;
+          setSaveState("saved");
+          if (savedIndicatorTimerRef.current) clearTimeout(savedIndicatorTimerRef.current);
+          savedIndicatorTimerRef.current = setTimeout(() => setSaveState("idle"), 1400);
+        })
+        .catch((e) => {
+          console.error("[upsertSession]", e);
+          setSaveState("error");
+          if (savedIndicatorTimerRef.current) clearTimeout(savedIndicatorTimerRef.current);
+          savedIndicatorTimerRef.current = setTimeout(() => setSaveState("idle"), 2200);
+        });
+    }, 700);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [
+    started,
+    won,
+    pos,
+    totalRolls,
+    entryMisses,
+    sixStreak,
+    pathLog,
+    diceHistory,
+    keyCells,
+    sankalpa,
+    persistUpsert,
+  ]);
 
   // Persist the game session when player reaches Moksha.
   useEffect(() => {
     if (!won || sessionSavedRef.current) return;
     sessionSavedRef.current = true;
-    persistSession({
-      data: {
-        sankalpa: sankalpa || undefined,
-        result: "moksha",
-        movesCount: totalRolls,
-        path: pathLog.slice(-200),
-      },
-    }).catch((e) => console.error("[saveSession]", e));
-  }, [won, sankalpa, totalRolls, pathLog, persistSession]);
+    // Prefer updating the existing session row if we have one, otherwise insert.
+    if (sessionIdRef.current) {
+      persistUpsert({
+        data: {
+          id: sessionIdRef.current,
+          sankalpa: sankalpa || undefined,
+          result: "moksha",
+          currentCell: pos,
+          movesCount: totalRolls,
+          entryMisses,
+          sixStreak,
+          path: pathLog.slice(-500),
+          diceHistory: diceHistory.slice(-500),
+          keyCells: keyCells.slice(-200),
+        },
+      })
+        .then(() => {
+          sessionIdRef.current = null;
+        })
+        .catch((e) => console.error("[upsertSession moksha]", e));
+    } else {
+      persistSession({
+        data: {
+          sankalpa: sankalpa || undefined,
+          result: "moksha",
+          movesCount: totalRolls,
+          path: pathLog.slice(-200),
+        },
+      }).catch((e) => console.error("[saveSession]", e));
+    }
+  }, [won, sankalpa, totalRolls, pathLog, diceHistory, keyCells, pos, entryMisses, sixStreak, persistSession, persistUpsert]);
+
 
   const animateStep = useCallback(
     (from: number, to: number, onDone: () => void) => {
