@@ -87,7 +87,7 @@ export function WinOverlay({
         /* ignore */
       }
       try {
-        const rows = (await loadSessions()) as unknown as SessionSummary[];
+        const rows = (await loadSessions()) as unknown as SessionSummaryData[];
         const unlocked = computeUnlocked({ sessions: rows });
         const fresh = diffNewUnlocks(unlocked);
         if (cancelled) return;
