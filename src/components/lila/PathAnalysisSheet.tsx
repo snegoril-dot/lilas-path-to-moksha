@@ -108,7 +108,6 @@ export function PathAnalysisSheet({ ctx, onClose }: Props) {
           onClick={onClose}
         >
           <motion.div
-            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label="Разбор пути с Гуру"
