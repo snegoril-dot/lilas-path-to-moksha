@@ -9,6 +9,7 @@ interface GameHeaderProps {
   currentCell: Cell | null;
   mode: GameMode;
   entryMisses: number;
+  sixStreak?: number;
   onOpenTimeline: () => void;
   onPause: () => void;
   onOpenSettings: () => void;
@@ -23,6 +24,7 @@ export function GameHeader({
   currentCell,
   mode,
   entryMisses,
+  sixStreak = 0,
   onOpenTimeline,
   onPause,
   onOpenSettings,
@@ -54,6 +56,14 @@ export function GameHeader({
                 {currentLoka.name.split("·")[0].trim()}
               </span>
             )}
+            {sixStreak > 0 && (
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 font-semibold"
+                title="Шестёрки подряд — при трёх бросок сгорит"
+              >
+                🎲 6×{sixStreak}
+              </span>
+            )}
           </div>
 
           <div className="text-[12px] text-white/85 font-medium truncate">
@@ -65,6 +75,7 @@ export function GameHeader({
           </div>
         </div>
       </div>
+
       <div className="flex items-center gap-0.5 shrink-0">
         <button
           onClick={() => {

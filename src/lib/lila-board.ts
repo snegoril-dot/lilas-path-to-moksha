@@ -289,3 +289,33 @@ export function applySixRule(consecutiveSixes: number, roll: number): SixRuleRes
   }
   return { applyMove: true, extraTurn: true, nextConsecutiveSixes: consecutiveSixes + 1, forfeited: false };
 }
+
+/**
+ * Классические клетки-ловушки Лилы (Хариш Джохари).
+ * Игрок остаётся на клетке, пока не выпадет одно из разрешённых чисел.
+ *
+ * - 8 «Матсара» (чувственный план / зависть) — выход только при 4.
+ * - 71 «Раджа Гуна» (План Истины) — выход только при 1.
+ *
+ * Клетка 68 «Кайлас» — это Мокша / финал: там игра заканчивается,
+ * ловушка не применяется. Для симметрии с классикой оставляем комментарий.
+ */
+export const EXIT_CONSTRAINTS: Record<number, number[]> = {
+  8: [4],
+  71: [1],
+};
+
+/** Может ли игрок покинуть текущую клетку с данным броском. */
+export function canExitCell(pos: number, roll: number): boolean {
+  const allowed = EXIT_CONSTRAINTS[pos];
+  if (!allowed) return true;
+  return allowed.includes(roll);
+}
+
+/** Человекочитаемая подсказка для клеток с условием выхода. */
+export function exitHint(pos: number): string | null {
+  const allowed = EXIT_CONSTRAINTS[pos];
+  if (!allowed || allowed.length === 0) return null;
+  if (allowed.length === 1) return `Выход из этой клетки — только при 🎲 ${allowed[0]}.`;
+  return `Выход из этой клетки — при 🎲 ${allowed.join(" или ")}.`;
+}

@@ -6,7 +6,7 @@ import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { PathLoadingSkeleton } from "@/components/lila/PathLoadingSkeleton";
 import { CellModal } from "@/components/lila/CellModal";
-import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
+import { BOARD, computeNewPosition, resolveJump, applySixRule, canExitCell, exitHint } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
 import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import type { GuruChatContext } from "@/components/lila/GuruChatSheet";
@@ -65,6 +65,11 @@ const PracticeReturnSheet = lazy(() => import("@/components/lila/PracticeReturnS
 const PracticeJournalSheet = lazy(() => import("@/components/lila/PracticeJournalSheet").then(m => ({ default: m.PracticeJournalSheet })));
 import { ActivePracticeBanner } from "@/components/lila/ActivePracticeBanner";
 import { useActivePractice } from "@/hooks/useActivePractice";
+import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
+
+/** Мягкий лимит: после N ходов свободной игры предлагаем расширить путь. */
+const FREE_ROLLS_LIMIT = 30;
+
 
 
 
@@ -143,6 +148,9 @@ function Index() {
   const { ready: authReady, userId } = useAuth(); // ensures anonymous session when storage/network allow it
   const activePractice = useActivePractice(authReady && !!userId);
   const tgAuth = useTelegramAuth(authReady);
+  const { ent } = useEntitlements();
+  const paywallShownRef = useRef(false);
+
   const persistSession = useServerFn(saveSession);
   const persistUpsert = useServerFn(upsertSession);
   const persistAbandon = useServerFn(abandonSession);
@@ -285,6 +293,23 @@ function Index() {
       );
     }
   }, [started, won, pos, totalRolls, showHint]);
+
+  // Мягкий paywall: после N бросков напоминаем, что «однажды начатая игра
+  // должна быть закончена». Один раз за сессию, только для non-premium.
+  useEffect(() => {
+    if (!started || won || paywallShownRef.current) return;
+    if (totalRolls < FREE_ROLLS_LIMIT) return;
+    if (ent?.isPremium) return;
+    paywallShownRef.current = true;
+    trackEvent("paywall_viewed", { extra: { trigger: "free_rolls_limit", rolls: totalRolls } });
+    addMsg(
+      `«Однажды начатая игра должна быть закончена» — таково правило Лилы.\nТы уже прошёл ${totalRolls} бросков. Чтобы пройти путь до конца без ограничений, открой полный доступ.`,
+      "guru",
+    );
+    setTimeout(() => openPaywallGlobal("free_rolls_limit"), 600);
+  }, [started, won, totalRolls, ent, addMsg]);
+
+
 
 
 
@@ -726,6 +751,21 @@ function Index() {
         return;
       }
 
+      // Классические клетки-ловушки: выход только при определённых числах.
+      if (!canExitCell(pos, value)) {
+        hapticNotify("warning");
+        const hint = exitHint(pos);
+        addMsg(
+          `Такой ход невозможен. ${hint ?? ""} Останься здесь ещё на один вдох и подумай ещё — какая ключевая мысль удерживает тебя в этом состоянии?`.trim(),
+          "guru"
+        );
+        trackEvent("cell_landed", { cell: pos, sessionId: sessionIdRef.current, extra: { blocked: true, dice: value } });
+        setRolling(false);
+        return;
+      }
+
+
+
       const target = computeNewPosition(pos, value);
       const overshoot = pos + value > 68;
 
@@ -974,10 +1014,12 @@ function Index() {
         currentCell={currentCell}
         mode={mode}
         entryMisses={entryMisses}
+        sixStreak={sixStreak}
         onOpenTimeline={() => setTimelineOpen(true)}
         onPause={restart}
         onOpenSettings={() => setSettingsOpen(true)}
       />
+
 
       {returnBanner && (
         <ReturnBanner

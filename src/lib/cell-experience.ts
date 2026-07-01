@@ -14,6 +14,8 @@ export interface CellExperience {
   shortMeaning: string;
   /** One direct question tied to the Sankalpa. */
   reflectionQuestion: string;
+  /** 2–3 расширенных вопроса саморефлексии (первый — совпадает с reflectionQuestion). */
+  reflectionQuestions: string[];
   /** One small practical observation/action for today. */
   dailyPractice: string;
   /** Emotional / spiritual register of the cell. */
@@ -21,6 +23,55 @@ export interface CellExperience {
   /** 3–6 short Russian keywords. */
   keywords: string[];
 }
+
+/** Расширенные наборы вопросов для ключевых клеток. */
+const EXTRA_QUESTIONS: Record<number, string[]> = {
+  8: [
+    "Какая привязанность к удовольствию сейчас держит меня крепче всего?",
+    "Что я боюсь потерять, если отпущу этот вкус?",
+  ],
+  37: [
+    "Какое знание я ношу как украшение, а не как живой опыт?",
+    "Готов ли я расстаться с любимой концепцией ради истины?",
+  ],
+  66: [
+    "Где в моей жизни уже есть блаженство без причины — и как часто я его замечаю?",
+    "Что я делаю, когда радость приходит без повода: раскрываюсь или ищу ей объяснение?",
+  ],
+  68: [
+    "Что для меня значит «прийти домой» — не в мыслях, а прямо сейчас?",
+    "Если игра уже завершена, каким становится моё следующее действие?",
+  ],
+  71: [
+    "Какая внутренняя правда просит быть сказанной, даже если это неудобно?",
+    "Где я подменяю Истину — правотой?",
+  ],
+};
+
+/** Тон-специфичные подсказки, когда для клетки нет расширенного набора. */
+const TONE_QUESTIONS: Record<CellTone, string[]> = {
+  shadow: [
+    "Что в моей Санкальпе питает эту тень?",
+    "Какой один маленький шаг мог бы её ослабить сегодня?",
+  ],
+  gift: [
+    "Как я могу принять этот дар, не приписав его себе?",
+    "Кому в моей жизни он может пригодиться сейчас?",
+  ],
+  neutral: [
+    "Что именно я наблюдаю здесь без оценки?",
+    "О чём это состояние молчит?",
+  ],
+  transition: [
+    "От чего я ухожу и к чему приближаюсь?",
+    "Что можно оставить на пороге?",
+  ],
+  liberation: [
+    "Чему уже пора завершиться во мне?",
+    "Как звучит тишина, если убрать все ответы?",
+  ],
+};
+
 
 /** Curated short meanings (1 sentence, warm & reflective). */
 const SHORT: Record<number, string> = {
@@ -394,16 +445,22 @@ export function getCellExperience(id: number): CellExperience | null {
   const cell = BOARD[id - 1];
   if (!cell) return null;
   const loka = getLoka(id);
+  const tone = TONE_OVERRIDE[id] ?? fallbackTone(cell);
+  const primary = QUESTION[id] ?? DEFAULT_QUESTION;
+  const extra = EXTRA_QUESTIONS[id] ?? TONE_QUESTIONS[tone] ?? [];
+  const reflectionQuestions = [primary, ...extra.filter((q) => q !== primary)].slice(0, 3);
   return {
     cell,
     lokaName: loka?.name ?? null,
     shortMeaning: SHORT[id] ?? firstSentence(cell.wisdom),
-    reflectionQuestion: QUESTION[id] ?? DEFAULT_QUESTION,
+    reflectionQuestion: primary,
+    reflectionQuestions,
     dailyPractice: PRACTICE[id] ?? DEFAULT_PRACTICE,
-    tone: TONE_OVERRIDE[id] ?? fallbackTone(cell),
+    tone,
     keywords: KEYWORDS[id] ?? [],
   };
 }
+
 
 export const TONE_LABEL: Record<CellTone, string> = {
   shadow: "Тень",
