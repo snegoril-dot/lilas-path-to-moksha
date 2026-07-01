@@ -11,7 +11,7 @@ const SaveReflectionInput = z.object({
   prompt: z.string().max(400).optional(),
   sankalpa: z.string().max(400).optional(),
   kind: z
-    .enum(["reflection", "insight", "final_insight", "guru", "guru_note", "snake_lesson", "ladder_gift"])
+    .enum(["reflection", "insight", "final_insight", "guru", "guru_note", "guru_path_analysis", "snake_lesson", "ladder_gift"])
     .default("reflection"),
 });
 
@@ -347,3 +347,148 @@ export const generateWeekly = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row;
   });
+
+// --- Guru path analysis (optional, on-demand summary of the current path) ---
+const PathAnalysisInput = z.object({
+  sankalpa: z.string().max(400).optional(),
+  currentCell: z.number().int().min(0).max(72),
+  path: z
+    .array(
+      z.object({
+        cell: z.number().int().min(0).max(72),
+        kind: z.string().max(32),
+        to: z.number().int().min(0).max(72).optional(),
+      }),
+    )
+    .max(500)
+    .default([]),
+  includeNotes: z.boolean().default(false),
+});
+
+const PATH_ANALYSIS_DAILY_LIMIT = 10;
+
+export const analyzePath = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => PathAnalysisInput.parse(d))
+  .handler(async ({ data, context }) => {
+    // Require some depth before analysis is meaningful.
+    const meaningfulMoves = data.path.filter((p) => p.cell > 0).length;
+    if (meaningfulMoves < 5) {
+      throw new Error("Слишком рано для разбора — сделай ещё несколько ходов.");
+    }
+
+    // Rate limit (reuse the daily Guru budget).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rl, error: rlErr } = await supabaseAdmin.rpc("increment_guru_usage", {
+      _user_id: context.userId,
+      _limit: PATH_ANALYSIS_DAILY_LIMIT,
+    });
+    if (rlErr) throw new Error("Гуру сейчас недоступен. Попробуй чуть позже.");
+    const row = Array.isArray(rl) ? rl[0] : rl;
+    if (!row?.allowed) {
+      throw new Error(`Достигнут дневной лимит обращений к Гуру (${PATH_ANALYSIS_DAILY_LIMIT}/день).`);
+    }
+
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Гуру сейчас молчит. Попробуй позже.");
+
+    const { BOARD, getLoka } = await import("@/lib/lila-board");
+    const { createLovableAiGatewayProvider, GURU_SYSTEM_PROMPT } = await import(
+      "@/lib/ai-gateway.server"
+    );
+    const { generateText } = await import("ai");
+
+    // Compact visited/events summary.
+    const visited = new Map<number, { id: number; name: string; count: number }>();
+    const snakes: Array<{ from: number; to: number; name: string }> = [];
+    const ladders: Array<{ from: number; to: number; name: string }> = [];
+    for (const step of data.path) {
+      if (step.cell > 0 && step.cell <= 72) {
+        const c = BOARD[step.cell - 1];
+        const prev = visited.get(step.cell);
+        if (prev) prev.count += 1;
+        else visited.set(step.cell, { id: c.id, name: c.name, count: 1 });
+      }
+      if (step.kind === "snake" && step.to) {
+        const c = BOARD[step.cell - 1];
+        snakes.push({ from: step.cell, to: step.to, name: c?.name ?? "" });
+      }
+      if (step.kind === "ladder" && step.to) {
+        const c = BOARD[step.cell - 1];
+        ladders.push({ from: step.cell, to: step.to, name: c?.name ?? "" });
+      }
+    }
+    const visitedList = [...visited.values()]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 24)
+      .map((v) => `${v.id} «${v.name}»${v.count > 1 ? ` ×${v.count}` : ""}`)
+      .join(", ");
+
+    const currentCell = data.currentCell > 0 ? BOARD[data.currentCell - 1] : null;
+    const currentLoka = data.currentCell > 0 ? getLoka(data.currentCell) : null;
+
+    // Optional private notes (only if user explicitly opted in).
+    let notesBlock = "";
+    if (data.includeNotes) {
+      const { data: notes } = await context.supabase
+        .from("journal_entries")
+        .select("cell, user_text, kind, created_at")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (notes && notes.length) {
+        notesBlock =
+          "Игрок разрешил учесть свои заметки (используй бережно, не цитируй дословно длинно):\n" +
+          notes
+            .map((n) => `- клетка ${n.cell}: ${(n.user_text ?? "").slice(0, 240)}`)
+            .join("\n");
+      }
+    }
+
+    const system =
+      GURU_SYSTEM_PROMPT +
+      "\n\nСейчас ты делаешь ОБЩИЙ РАЗБОР ПУТИ игрока. " +
+      "Отвечай по-русски, спокойно, как отражающий проводник. " +
+      "Избегай диагнозов, пророчеств, категоричных утверждений «ты такой» и указаний «ты должен». " +
+      "Используй мягкие формулировки: «можно посмотреть так…», «похоже, путь поднимает тему…», " +
+      "«в контексте твоей Санкальпы это может быть приглашением…», «проверь это внутри себя». " +
+      "Строго следуй структуре разделов с заголовками ниже, коротко (2–5 предложений на раздел):\n" +
+      "## Главная тема пути\n## Что повторяется\n## Змеи как уроки\n## Лестницы как дары\n## Вопрос для следующего шага\n## Мягкая практика на сегодня";
+
+    const prompt = [
+      data.sankalpa
+        ? `Санкальпа игрока: «${data.sankalpa}».`
+        : "Санкальпа не задана — не додумывай её, скажи об этом мягко и предложи её сформулировать.",
+      currentCell
+        ? `Текущая клетка: ${currentCell.id} — «${currentCell.name}» (${currentCell.wisdom}).`
+        : "Игрок ещё не воплощён на доске.",
+      currentLoka ? `План сознания сейчас: ${currentLoka.name}.` : "",
+      `Всего значимых ходов: ${meaningfulMoves}.`,
+      visitedList ? `Пройденные клетки (для контекста, не пересказывай списком): ${visitedList}.` : "",
+      snakes.length
+        ? "Змеи (уроки, возвраты):\n" +
+          snakes.map((s) => `- ${s.from} «${s.name}» → ${s.to}`).join("\n")
+        : "Змей на пути пока не было.",
+      ladders.length
+        ? "Стрелы/лестницы (дары, подъёмы):\n" +
+          ladders.map((l) => `- ${l.from} «${l.name}» → ${l.to}`).join("\n")
+        : "Стрел на пути пока не было.",
+      notesBlock,
+      "Дай разбор строго по указанной структуре разделов. Заголовки — как есть, начиная с «## ». Не добавляй других разделов.",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    try {
+      const gateway = createLovableAiGatewayProvider(key);
+      const res = await generateText({
+        model: gateway("google/gemini-3-flash-preview"),
+        system,
+        prompt,
+      });
+      return { text: res.text };
+    } catch (e) {
+      console.error("[analyzePath] AI failed", e);
+      throw new Error("Гуру сейчас молчит. Попробуй позже.");
+    }
+  });
+
