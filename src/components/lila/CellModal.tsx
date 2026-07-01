@@ -79,11 +79,28 @@ export function CellModal({ cellId, onClose }: { cellId: number | null; onClose:
               {meta?.full ?? cell.wisdom}
             </p>
 
+            {experience && experience.reflectionQuestions.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-white/10">
+                <div className="text-[10px] uppercase tracking-wider opacity-55 mb-2">
+                  Вопросы для саморефлексии
+                </div>
+                <ul className="space-y-1.5 text-sm opacity-90">
+                  {experience.reflectionQuestions.map((q, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-amber-300/80 shrink-0">·</span>
+                      <span className="leading-snug">{q}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {meta?.source && (
               <div className="mt-3 pt-3 border-t border-white/10 text-[11px] opacity-55 italic">
                 — {meta.source}
               </div>
             )}
+
 
             {cell.jumpTo && (
               <div className="mt-3 text-xs">
