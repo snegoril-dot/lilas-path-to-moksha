@@ -114,6 +114,26 @@ export function WelcomeScreen({
         <DailyCard />
       </div>
 
+      {showReturning && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 w-full max-w-sm rounded-2xl bg-white/5 ring-1 ring-white/10 px-4 py-3 text-left"
+        >
+          <div className="text-sm opacity-90">
+            Ты уже проходил путь раньше. Можно начать новую Санкальпу или заглянуть в дневник.
+          </div>
+          <Link
+            to="/journal"
+            className="mt-2 inline-flex items-center gap-1 text-[12px] text-amber-200 hover:text-amber-100"
+          >
+            📖 Открыть дневник
+          </Link>
+        </motion.div>
+      )}
+
+
+
 
 
       <motion.div
