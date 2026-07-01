@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
 import { Route as ApiAuthTelegramRouteImport } from './routes/api/auth.telegram'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
@@ -30,6 +31,11 @@ const InsightsRoute = InsightsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGuruChatRoute = ApiGuruChatRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/'
     | '/insights'
     | '/journal'
+    | '/legal/$doc'
     | '/api/auth/telegram'
     | '/api/guru/chat'
     | '/api/public/practice/send-reminders'
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/'
     | '/insights'
     | '/journal'
+    | '/legal/$doc'
     | '/api/auth/telegram'
     | '/api/guru/chat'
     | '/api/public/practice/send-reminders'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/'
     | '/insights'
     | '/journal'
+    | '/legal/$doc'
     | '/api/auth/telegram'
     | '/api/guru/chat'
     | '/api/public/practice/send-reminders'
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InsightsRoute: typeof InsightsRoute
   JournalRoute: typeof JournalRoute
+  LegalDocRoute: typeof LegalDocRoute
   ApiAuthTelegramRoute: typeof ApiAuthTelegramRoute
   ApiGuruChatRoute: typeof ApiGuruChatRoute
   ApiPublicPracticeSendRemindersRoute: typeof ApiPublicPracticeSendRemindersRoute
@@ -144,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/guru/chat': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InsightsRoute: InsightsRoute,
   JournalRoute: JournalRoute,
+  LegalDocRoute: LegalDocRoute,
   ApiAuthTelegramRoute: ApiAuthTelegramRoute,
   ApiGuruChatRoute: ApiGuruChatRoute,
   ApiPublicPracticeSendRemindersRoute: ApiPublicPracticeSendRemindersRoute,

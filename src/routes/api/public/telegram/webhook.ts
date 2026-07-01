@@ -32,12 +32,20 @@ interface TgSuccessfulPayment {
   telegram_payment_charge_id: string;
   provider_payment_charge_id?: string;
 }
+interface TgRefundedPayment {
+  currency: string;
+  total_amount: number;
+  invoice_payload: string;
+  telegram_payment_charge_id: string;
+  provider_payment_charge_id?: string;
+}
 interface TgMessage {
   message_id: number;
   chat: TgChat;
   from?: TgUser;
   text?: string;
   successful_payment?: TgSuccessfulPayment;
+  refunded_payment?: TgRefundedPayment;
 }
 interface TgPreCheckoutQuery {
   id: string;
