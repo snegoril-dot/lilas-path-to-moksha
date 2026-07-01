@@ -38,6 +38,9 @@ import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
 import { GameHeader } from "@/components/lila/GameHeader";
 import { GameActionBar } from "@/components/lila/GameActionBar";
+import { trackEvent } from "@/lib/analytics";
+
+
 
 
 export const Route = createFileRoute("/")({
