@@ -304,6 +304,7 @@ function Index() {
     diceHistory,
     keyCells,
     sankalpa,
+    mode,
     persistUpsert,
   ]);
 
