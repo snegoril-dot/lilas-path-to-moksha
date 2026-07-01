@@ -9,7 +9,7 @@ import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegra
 import { supabase } from "@/integrations/supabase/client";
 import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
-import { getGuruCellAnswer } from "@/content/guru-cell-answers";
+import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
 
 
 export type GuruEventKind = "normal" | "snake" | "ladder" | "moksha" | "waiting";
@@ -146,6 +146,24 @@ export function GuruChatSheet({
     sendMessage({ text });
   };
 
+  /** Insert a pre-written Q&A locally, without hitting the AI. */
+  const sendCanned = (q: string, a: string) => {
+    if (busy) return;
+    haptic("light");
+    trackEvent("guru_message_sent", {
+      cell: ctx?.cell ?? null,
+      sessionId: ctx?.sessionId ?? null,
+      extra: { length: q.length, quick: true, canned: true },
+    });
+    const now = Date.now();
+    setMessages((prev) => [
+      ...prev,
+      { id: `canned-q-${now}`, role: "user", parts: [{ type: "text", text: q }] },
+      { id: `canned-a-${now}`, role: "assistant", parts: [{ type: "text", text: a }] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ] as any);
+  };
+
 
   const saveAnswerToJournal = async (msgId: string, text: string) => {
     if (!ctx || savedMsgIds.has(msgId) || !text.trim()) return;
@@ -171,7 +189,8 @@ export function GuruChatSheet({
   };
 
   const badge = EVENT_BADGE[eventKind];
-  const prompts = QUICK_PROMPTS[eventKind];
+  const cellPack = ctx ? getGuruCellPack(ctx.cell) : null;
+  const eventPrompts = QUICK_PROMPTS[eventKind];
 
   return (
     <AnimatePresence>
@@ -260,12 +279,27 @@ export function GuruChatSheet({
                     С чего можно начать
                   </div>
                   <div className="flex flex-col gap-2">
-                    {prompts.map((p) => (
+                    {cellPack?.prompts.map((p) => (
+                      <button
+                        key={p.q}
+                        onClick={() => sendCanned(p.q, p.a)}
+                        disabled={busy}
+                        className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-50"
+                      >
+                        {p.q}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-[11px] uppercase tracking-wider opacity-40 pt-1">
+                    Или спросить Гуру напрямую
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {eventPrompts.map((p) => (
                       <button
                         key={p}
                         onClick={() => sendQuick(p)}
                         disabled={busy}
-                        className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-50"
+                        className="text-left text-sm rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[var(--tg-theme-text-color,#fff)]/80 px-3 py-2 transition disabled:opacity-50"
                       >
                         {p}
                       </button>
