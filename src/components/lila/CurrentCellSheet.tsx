@@ -125,9 +125,33 @@ export function CurrentCellSheet({
                 <h2 id={titleId} className="text-base font-semibold leading-tight truncate">
                   {cell.name}
                 </h2>
-                {lokaName && (
-                  <div className="text-[11px] opacity-60 truncate mt-0.5">{lokaName}</div>
-                )}
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  {lokaName && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 ring-1 ring-white/10 opacity-80">
+                      {lokaName}
+                    </span>
+                  )}
+                  {cell.type === "snake" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-500/20 ring-1 ring-rose-300/40 text-rose-100">
+                      🐍 Змея
+                    </span>
+                  )}
+                  {cell.type === "ladder" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 ring-1 ring-emerald-300/40 text-emerald-100">
+                      🪜 Стрела
+                    </span>
+                  )}
+                  {cell.type === "end" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-400/25 ring-1 ring-amber-200/50 text-amber-100">
+                      ✨ Мокша
+                    </span>
+                  )}
+                  {cell.type === "start" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-sky-500/20 ring-1 ring-sky-300/40 text-sky-100">
+                      🌱 Рождение
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 ref={initialRef}
