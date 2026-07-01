@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+import { Glyph } from "./Glyph";
 
 export interface ChatMessage {
   id: string;
