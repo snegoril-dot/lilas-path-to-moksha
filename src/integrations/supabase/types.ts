@@ -434,6 +434,8 @@ export type Database = {
           product_id: string
           provider_payment_charge_id: string | null
           raw_payload: Json | null
+          refund_charge_id: string | null
+          refunded_at: string | null
           stars_amount: number
           telegram_payment_charge_id: string
           telegram_user_id: number | null
@@ -446,6 +448,8 @@ export type Database = {
           product_id: string
           provider_payment_charge_id?: string | null
           raw_payload?: Json | null
+          refund_charge_id?: string | null
+          refunded_at?: string | null
           stars_amount: number
           telegram_payment_charge_id: string
           telegram_user_id?: number | null
@@ -458,6 +462,8 @@ export type Database = {
           product_id?: string
           provider_payment_charge_id?: string | null
           raw_payload?: Json | null
+          refund_charge_id?: string | null
+          refunded_at?: string | null
           stars_amount?: number
           telegram_payment_charge_id?: string
           telegram_user_id?: number | null

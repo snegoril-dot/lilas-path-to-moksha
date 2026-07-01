@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Sparkles, Check, RefreshCw, Loader2, Bug } from "lucide-react";
 import { STARS_PRODUCTS, FEATURE_CATALOG, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
@@ -251,6 +252,21 @@ export function PaywallSheet({ open, onClose }: Props) {
               </button>
             </div>
           )}
+        </div>
+
+        <div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-white/50">
+          <Link to="/legal/$doc" params={{ doc: "offer" }} onClick={onClose} className="hover:text-white/80 underline underline-offset-2">
+            Оферта
+          </Link>
+          <Link to="/legal/$doc" params={{ doc: "refunds" }} onClick={onClose} className="hover:text-white/80 underline underline-offset-2">
+            Возвраты
+          </Link>
+          <Link to="/legal/$doc" params={{ doc: "privacy" }} onClick={onClose} className="hover:text-white/80 underline underline-offset-2">
+            Конфиденциальность
+          </Link>
+          <Link to="/legal/$doc" params={{ doc: "terms" }} onClick={onClose} className="hover:text-white/80 underline underline-offset-2">
+            Условия
+          </Link>
         </div>
       </SheetContent>
     </Sheet>

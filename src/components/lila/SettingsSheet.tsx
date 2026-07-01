@@ -3,6 +3,7 @@ import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
+  Receipt, Scale,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -14,6 +15,8 @@ import { FeedbackModal } from "./FeedbackModal";
 import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
 import { RemindersToggles } from "./RemindersToggles";
 import { PaywallSheet } from "./PaywallSheet";
+import { MyPurchasesSheet } from "./MyPurchasesSheet";
+import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { BellRing } from "lucide-react";
 
@@ -107,6 +110,7 @@ export function SettingsSheet(props: Props) {
   const [fbOpen, setFbOpen] = useState(false);
   const [weeklyOpen, setWeeklyOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [purchasesOpen, setPurchasesOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => onPaywallOpen(() => setPaywallOpen(true)), []);
@@ -358,6 +362,40 @@ export function SettingsSheet(props: Props) {
               </button>
             </Section>
 
+            <Section title="Мои покупки" icon={<Receipt size={16} />}>
+              <p className="opacity-80">
+                История оплат звёздами Telegram и статус доступа. Возвраты закрывают доступ автоматически.
+              </p>
+              <button
+                type="button"
+                onClick={handle(() => setPurchasesOpen(true))}
+                className="mt-2 w-full rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 px-3 py-2 text-sm flex items-center justify-center gap-2"
+              >
+                <Receipt size={14} /> Открыть историю
+              </button>
+            </Section>
+
+            <Section title="Юридическая информация" icon={<Scale size={16} />}>
+              <ul className="space-y-1">
+                {LEGAL_INDEX.map((d) => (
+                  <li key={d.id}>
+                    <Link
+                      to="/legal/$doc"
+                      params={{ doc: d.id }}
+                      onClick={onClose}
+                      className="flex items-center justify-between rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 px-3 py-2 text-sm"
+                    >
+                      <span>
+                        <span className="block">{d.title}</span>
+                        <span className="block text-[11px] opacity-60">{d.hint}</span>
+                      </span>
+                      <ChevronRight size={16} className="opacity-50" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+
           </div>
         </SheetContent>
       </Sheet>
@@ -366,6 +404,7 @@ export function SettingsSheet(props: Props) {
       <FeedbackModal open={fbOpen} onClose={() => setFbOpen(false)} context="settings" />
       <WeeklyReviewSheet open={weeklyOpen} onClose={() => setWeeklyOpen(false)} />
       <PaywallSheet open={paywallOpen} onClose={() => setPaywallOpen(false)} />
+      <MyPurchasesSheet open={purchasesOpen} onClose={() => setPurchasesOpen(false)} />
     </>
   );
 }

@@ -83,4 +83,17 @@ export const getLastPayment = createServerFn({ method: "GET" })
     return data ?? null;
   });
 
+export const listMyPurchases = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({}).default({}).parse(d ?? {}))
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("stars_payments")
+      .select("id, product_id, stars_amount, telegram_payment_charge_id, created_at, refunded_at")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    return data ?? [];
+  });
+
 export const STARS_CATALOG = STARS_PRODUCTS;

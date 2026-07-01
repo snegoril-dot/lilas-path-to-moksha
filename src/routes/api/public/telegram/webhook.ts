@@ -32,12 +32,20 @@ interface TgSuccessfulPayment {
   telegram_payment_charge_id: string;
   provider_payment_charge_id?: string;
 }
+interface TgRefundedPayment {
+  currency: string;
+  total_amount: number;
+  invoice_payload: string;
+  telegram_payment_charge_id: string;
+  provider_payment_charge_id?: string;
+}
 interface TgMessage {
   message_id: number;
   chat: TgChat;
   from?: TgUser;
   text?: string;
   successful_payment?: TgSuccessfulPayment;
+  refunded_payment?: TgRefundedPayment;
 }
 interface TgPreCheckoutQuery {
   id: string;
@@ -221,6 +229,53 @@ async function handleSuccessfulPayment(token: string, msg: TgMessage): Promise<v
   });
 }
 
+async function handleRefundedPayment(token: string, msg: TgMessage): Promise<void> {
+  const ref = msg.refunded_payment;
+  if (!ref) return;
+
+  const { data: payment } = await supabaseAdmin
+    .from("stars_payments")
+    .select("id, user_id, product_id, refunded_at")
+    .eq("telegram_payment_charge_id", ref.telegram_payment_charge_id)
+    .maybeSingle();
+
+  if (!payment) {
+    console.error("stars refund: unknown charge_id", ref.telegram_payment_charge_id);
+    return;
+  }
+  if (payment.refunded_at) return;
+
+  const { error: markErr } = await supabaseAdmin
+    .from("stars_payments")
+    .update({
+      refunded_at: new Date().toISOString(),
+      refund_charge_id: ref.provider_payment_charge_id ?? null,
+    })
+    .eq("id", payment.id);
+  if (markErr) {
+    console.error("stars refund mark failed", markErr);
+    return;
+  }
+
+  const { error: entErr } = await supabaseAdmin
+    .from("user_entitlements")
+    .update({ status: "refunded" })
+    .eq("user_id", payment.user_id!)
+    .eq("stars_charge_id", ref.telegram_payment_charge_id);
+  if (entErr) {
+    console.error("stars refund entitlements update failed", entErr);
+  }
+
+  await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: msg.chat.id,
+      text: `Возврат по покупке «${payment.product_id}» получен. Доступ закрыт, звёзды вернулись на баланс Telegram.`,
+    }),
+  });
+}
+
 
 export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
@@ -281,6 +336,16 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             await handleSuccessfulPayment(token, msg);
           } catch (err) {
             console.error("telegram successful_payment error", err);
+          }
+          return ok();
+        }
+
+        // --- Telegram Stars: refunded_payment ---
+        if (msg.refunded_payment) {
+          try {
+            await handleRefundedPayment(token, msg);
+          } catch (err) {
+            console.error("telegram refunded_payment error", err);
           }
           return ok();
         }
