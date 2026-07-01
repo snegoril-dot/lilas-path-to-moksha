@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
+import { useTelegramBackButton, hapticNotify, haptic } from "@/hooks/use-telegram";
 
 export interface ReflectionPayload {
   fromId: number;
