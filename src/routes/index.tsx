@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Menu, Sparkles, Eye } from "lucide-react";
+import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, RotateCcw, Menu, Sparkles, Eye, Route as RouteIcon } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { Dice } from "@/components/lila/Dice";
@@ -27,6 +27,7 @@ import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
+import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,6 +71,7 @@ function Index() {
   const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
   const [landedOpen, setLandedOpen] = useState(false);
   const [winOpen, setWinOpen] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -626,6 +628,14 @@ function Index() {
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
   const currentLoka = useMemo(() => getLoka(pos), [pos]);
+  const visitedCells = useMemo(() => {
+    const s = new Set<number>();
+    for (const p of pathLog) {
+      s.add(p.cell);
+      if (p.to !== undefined) s.add(p.to);
+    }
+    return s;
+  }, [pathLog]);
 
   if (!started) {
     return (
@@ -687,6 +697,14 @@ function Index() {
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => { haptic("light"); setTimelineOpen(true); }}
+            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
+            aria-label="Мой путь"
+            title="Мой путь"
+          >
+            <RouteIcon size={18} />
+          </button>
           <Link
             to="/journal"
             className="hidden xs:inline-flex p-2 rounded-full hover:bg-white/10 active:scale-95 transition"
@@ -716,7 +734,7 @@ function Index() {
 
       {/* Board */}
       <div className="relative z-20 shrink-0 px-3 pt-3 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} />
+        <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
       </div>
 
       {/* Chat */}
@@ -832,6 +850,14 @@ function Index() {
       />
 
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
+      <PathTimelineSheet
+        open={timelineOpen}
+        onClose={() => setTimelineOpen(false)}
+        pathLog={pathLog}
+        diceHistory={diceHistory}
+        keyCells={keyCells}
+        currentCell={pos}
+      />
       <SettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}

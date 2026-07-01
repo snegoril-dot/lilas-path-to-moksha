@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Feather, MessageCircle, ArrowRight, Loader2, Check } from "lucide-react";
+import { X, Feather, MessageCircle, ArrowRight, Loader2, Check, BookOpen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection } from "@/lib/guru.functions";
 import { getCellExperience } from "@/lib/cell-experience";
@@ -124,9 +125,33 @@ export function CurrentCellSheet({
                 <h2 id={titleId} className="text-base font-semibold leading-tight truncate">
                   {cell.name}
                 </h2>
-                {lokaName && (
-                  <div className="text-[11px] opacity-60 truncate mt-0.5">{lokaName}</div>
-                )}
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  {lokaName && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 ring-1 ring-white/10 opacity-80">
+                      {lokaName}
+                    </span>
+                  )}
+                  {cell.type === "snake" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-500/20 ring-1 ring-rose-300/40 text-rose-100">
+                      🐍 Змея
+                    </span>
+                  )}
+                  {cell.type === "ladder" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 ring-1 ring-emerald-300/40 text-emerald-100">
+                      🪜 Стрела
+                    </span>
+                  )}
+                  {cell.type === "end" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-400/25 ring-1 ring-amber-200/50 text-amber-100">
+                      ✨ Мокша
+                    </span>
+                  )}
+                  {cell.type === "start" && (
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-sky-500/20 ring-1 ring-sky-300/40 text-sky-100">
+                      🌱 Рождение
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 ref={initialRef}
@@ -218,13 +243,14 @@ export function CurrentCellSheet({
 
             {/* Actions */}
             {!showInsight && (
-              <div className="shrink-0 grid grid-cols-3 gap-2 p-3 border-t border-white/5 bg-black/20">
+              <div className="shrink-0 grid grid-cols-4 gap-2 p-3 border-t border-white/5 bg-black/20">
                 <button
                   onClick={() => {
                     haptic("light");
                     setShowInsight(true);
                   }}
-                  className="h-12 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-xs font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[11px] font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Записать инсайт"
                 >
                   <Feather size={16} />
                   Инсайт
@@ -234,17 +260,28 @@ export function CurrentCellSheet({
                     haptic("light");
                     onAskGuru(cell.id);
                   }}
-                  className="h-12 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-200 text-xs font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-200 text-[11px] font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Спросить Гуру"
                 >
                   <MessageCircle size={16} />
                   Гуру
                 </button>
+                <Link
+                  to="/journal"
+                  onClick={() => haptic("light")}
+                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[11px] font-medium inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Открыть дневник"
+                >
+                  <BookOpen size={16} />
+                  Дневник
+                </Link>
                 <button
                   onClick={() => {
                     haptic("medium");
                     onContinue();
                   }}
-                  className="h-12 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 text-xs font-bold inline-flex flex-col items-center justify-center gap-0.5"
+                  className="h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 text-[11px] font-bold inline-flex flex-col items-center justify-center gap-0.5"
+                  title="Продолжить путь"
                 >
                   <ArrowRight size={16} />
                   Продолжить
