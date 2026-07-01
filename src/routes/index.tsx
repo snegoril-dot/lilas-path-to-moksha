@@ -769,11 +769,12 @@ function Index() {
             <button
               onClick={() => { haptic("medium"); handleRoll(); }}
               disabled={rolling}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Бросить кубик"
+              aria-busy={rolling}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-bold text-base shadow-lg active:scale-[0.97] transition disabled:opacity-70 disabled:cursor-not-allowed"
+              aria-label={rolling ? "Кубик катится" : "Бросить кубик"}
             >
-              <DiceIcon size={20} />
-              Бросить кубик
+              <DiceIcon size={20} className={rolling ? "animate-spin" : ""} />
+              {rolling ? "Кубик катится…" : "Бросить кубик"}
             </button>
           )}
           <button
