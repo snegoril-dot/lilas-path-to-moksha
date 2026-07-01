@@ -426,6 +426,84 @@ export type Database = {
         }
         Relationships: []
       }
+      stars_payments: {
+        Row: {
+          created_at: string
+          id: string
+          invoice_payload: string | null
+          product_id: string
+          provider_payment_charge_id: string | null
+          raw_payload: Json | null
+          stars_amount: number
+          telegram_payment_charge_id: string
+          telegram_user_id: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invoice_payload?: string | null
+          product_id: string
+          provider_payment_charge_id?: string | null
+          raw_payload?: Json | null
+          stars_amount: number
+          telegram_payment_charge_id: string
+          telegram_user_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invoice_payload?: string | null
+          product_id?: string
+          provider_payment_charge_id?: string | null
+          raw_payload?: Json | null
+          stars_amount?: number
+          telegram_payment_charge_id?: string
+          telegram_user_id?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_entitlements: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          feature: string
+          id: string
+          product_id: string | null
+          source: string
+          stars_charge_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          feature: string
+          id?: string
+          product_id?: string | null
+          source?: string
+          stars_charge_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          feature?: string
+          id?: string
+          product_id?: string | null
+          source?: string
+          stars_charge_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
