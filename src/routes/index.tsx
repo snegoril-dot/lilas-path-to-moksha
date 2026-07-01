@@ -452,6 +452,7 @@ function Index() {
           if (!entry.mercy) {
             addMsg("🎲 По правилу шестёрки — бросай ещё раз.", "system");
           }
+          openLanded(1);
           setRolling(false);
         });
       }, diceDelay);
