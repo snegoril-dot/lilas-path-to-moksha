@@ -208,7 +208,7 @@ function Index() {
       }
     } catch { /* noop */ }
     if (!sp) return;
-    trackEvent("deep_link_opened", { param: sp.slice(0, 32) });
+    trackEvent("deep_link_opened", { extra: { param: sp.slice(0, 32) } });
     const t = setTimeout(() => {
       if (sp === "paywall") {
         window.dispatchEvent(new CustomEvent("lila:paywall-open"));
