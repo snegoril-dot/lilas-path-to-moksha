@@ -35,6 +35,17 @@ import { GameActionBar } from "@/components/lila/GameActionBar";
 import type { PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
 import { HintToast, hasSeenHint, markHintSeen, type HintId } from "@/components/lila/HintToast";
+import {
+  narrateMoksha,
+  narrateOvershoot,
+  narrateSnake,
+  narrateLadder,
+  narrateRepeat,
+  HINT_FIRST_SNAKE,
+  HINT_FIRST_LADDER,
+  HINT_NEAR_MOKSHA,
+  HINT_BEFORE_FIRST_ROLL,
+} from "@/content/narration";
 
 // Lazy-loaded heavy modals — only fetched when the user opens them.
 const RulesModal = lazy(() => import("@/components/lila/RulesModal").then(m => ({ default: m.RulesModal })));
@@ -51,11 +62,13 @@ const PathAnalysisSheet = lazy(() => import("@/components/lila/PathAnalysisSheet
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Лила — Игра Самопознания" },
-      { name: "description", content: "Классическая индийская духовная игра Лила. Путь души к Освобождению через 72 таттвы." },
-      { property: "og:title", content: "Лила — Игра Самопознания" },
-      { property: "og:description", content: "Telegram Mini App: древняя игра о карме, добродетелях и Мокше." },
+      { title: "Лила — Путь к Мокше · рефлексивная игра" },
+      { name: "description", content: "Классическая индийская игра Лила как Telegram Mini App: 72 клетки, Санкальпа, Гуру-зеркало и дневник инсайтов." },
+      { property: "og:title", content: "Лила — Путь к Мокше" },
+      { property: "og:description", content: "Тихая рефлексивная практика: пройди 72 клетки Лилы и услышь свою Санкальпу." },
+      { property: "og:url", content: "https://lilas-path-to-moksha.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://lilas-path-to-moksha.lovable.app/" }],
   }),
   component: Index,
 });
