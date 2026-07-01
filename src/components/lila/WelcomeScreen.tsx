@@ -119,11 +119,18 @@ export function WelcomeScreen({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-5 max-w-sm rounded-2xl bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] px-4 py-3 text-sm leading-relaxed text-left shadow-md ring-1 ring-white/5"
+        className="mt-5 max-w-sm rounded-2xl bg-[var(--lila-bubble-bg)] text-[var(--lila-bubble-fg)] px-4 py-3 text-sm leading-relaxed text-left shadow-md ring-1 ring-white/5 space-y-2"
       >
-        <b>Намасте, странник.</b> 🙏<br />
-        <b>Санкальпа</b> — это вопрос или намерение, с которым ты входишь в
-        путь. Чем честнее формулировка, тем глубже откликается игра.
+        <div><b>Намасте, странник.</b> 🙏</div>
+        <div>
+          <b>Санкальпа</b> — это вопрос или намерение, с которым ты входишь в путь.
+          Она помогает посмотреть внутрь себя: что я сейчас не вижу, где теряю опору,
+          какой урок проходит через эту ситуацию, какой честный шаг мне доступен.
+        </div>
+        <div className="opacity-90">
+          Лила лучше работает не как предсказание, а как зеркало. Сформулируй Санкальпу так,
+          чтобы она возвращала внимание к тебе, твоему выбору и твоему пути.
+        </div>
       </motion.div>
 
       <div className="mt-4 w-full max-w-sm">
