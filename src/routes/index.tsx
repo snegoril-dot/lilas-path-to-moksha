@@ -524,7 +524,7 @@ function Index() {
 
         const finishTurn = () => {
           if (rule.extraTurn && final !== 68) {
-            addMsg("🎲 Шестёрка дарует дополнительный ход.", "system");
+            addMsg("🎲 Шестёрка даёт ещё один бросок.", "system");
           }
           setRolling(false);
         };
