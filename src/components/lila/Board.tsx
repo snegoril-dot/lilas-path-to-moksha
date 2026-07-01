@@ -80,21 +80,60 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [sizePct, setSizePct] = useState(100); // ширина в % от контейнера
   const [dragging, setDragging] = useState(false);
+  const [cellOffsets, setCellOffsets] = useState<Record<number, { x: number; y: number }>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem("lila:debug:cell-offsets");
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem("lila:debug:cell-offsets", JSON.stringify(cellOffsets)); } catch {}
+  }, [cellOffsets]);
 
   function onDragStart(e: React.PointerEvent) {
     if (!debug) return;
-    if ((e.target as HTMLElement).closest("[data-cell-id]")) return;
+    const cellEl = (e.target as HTMLElement).closest("[data-cell-id]") as HTMLElement | null;
+    if (cellEl) {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = Number(cellEl.dataset.cellId);
+      const cur = cellOffsets[id] ?? { x: 0, y: 0 };
+      cellEl.setPointerCapture(e.pointerId);
+      (cellEl as any)._cellDrag = { id, startX: e.clientX, startY: e.clientY, ox: cur.x, oy: cur.y, moved: false };
+      return;
+    }
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setDragging(true);
     (e.currentTarget as any)._drag = { startX: e.clientX, startY: e.clientY, ox: offset.x, oy: offset.y };
   }
   function onDragMove(e: React.PointerEvent) {
+    if (!debug) return;
+    const cellEl = (e.target as HTMLElement).closest("[data-cell-id]") as HTMLElement | null;
+    const cd = cellEl && (cellEl as any)._cellDrag;
+    if (cd) {
+      const nx = cd.ox + (e.clientX - cd.startX);
+      const ny = cd.oy + (e.clientY - cd.startY);
+      if (Math.abs(nx - cd.ox) + Math.abs(ny - cd.oy) > 3) cd.moved = true;
+      setCellOffsets((prev) => ({ ...prev, [cd.id]: { x: nx, y: ny } }));
+      return;
+    }
     if (!dragging) return;
     const d = (e.currentTarget as any)._drag;
     if (!d) return;
     setOffset({ x: d.ox + (e.clientX - d.startX), y: d.oy + (e.clientY - d.startY) });
   }
   function onDragEnd(e: React.PointerEvent) {
+    const cellEl = (e.target as HTMLElement).closest("[data-cell-id]") as HTMLElement | null;
+    const cd = cellEl && (cellEl as any)._cellDrag;
+    if (cd) {
+      try { cellEl!.releasePointerCapture(e.pointerId); } catch {}
+      if (cd.moved) { e.stopPropagation(); e.preventDefault(); }
+      delete (cellEl as any)._cellDrag;
+      return;
+    }
     setDragging(false);
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
   }
