@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
 import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
-import { PathLoadingSkeleton } from "@/components/lila/PathLoadingSkeleton";
+
 import { CellModal } from "@/components/lila/CellModal";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, canExitCell, exitHint } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
