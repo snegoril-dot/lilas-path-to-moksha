@@ -505,6 +505,12 @@ function Index() {
 
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
+    if (activePractice.session) {
+      // Мягкая блокировка: пока активна практика, кубик не бросается.
+      hapticNotify("warning");
+      setPracticeReturnOpen(true);
+      return;
+    }
     // New roll → hide any previous landed sheet.
     setLandedOpen(false);
     setLanded(null);
