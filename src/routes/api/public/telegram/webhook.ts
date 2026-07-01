@@ -342,6 +342,16 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           return ok();
         }
 
+        // --- Telegram Stars: refunded_payment ---
+        if (msg.refunded_payment) {
+          try {
+            await handleRefundedPayment(token, msg);
+          } catch (err) {
+            console.error("telegram refunded_payment error", err);
+          }
+          return ok();
+        }
+
         try {
           await handleCommand(token, miniAppUrl, msg);
         } catch (err) {
