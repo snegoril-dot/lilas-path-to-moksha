@@ -77,6 +77,28 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const [aspectH, setAspectH] = useState(ROWS);
   const [gapPct, setGapPct] = useState(0.5);
   const [padPct, setPadPct] = useState(0.6);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [sizePct, setSizePct] = useState(100); // ширина в % от контейнера
+  const dragRef = useState<{ startX: number; startY: number; ox: number; oy: number } | null>(null)[0];
+  const [dragging, setDragging] = useState(false);
+
+  function onDragStart(e: React.PointerEvent) {
+    if (!debug) return;
+    if ((e.target as HTMLElement).closest("[data-cell-id]")) return;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDragging(true);
+    (e.currentTarget as any)._drag = { startX: e.clientX, startY: e.clientY, ox: offset.x, oy: offset.y };
+  }
+  function onDragMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    const d = (e.currentTarget as any)._drag;
+    if (!d) return;
+    setOffset({ x: d.ox + (e.clientX - d.startX), y: d.oy + (e.clientY - d.startY) });
+  }
+  function onDragEnd(e: React.PointerEvent) {
+    setDragging(false);
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  }
 
 
   useEffect(() => {
