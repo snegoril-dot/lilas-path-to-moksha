@@ -169,6 +169,7 @@ export function WelcomeScreen({
 
       </motion.div>
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
+      <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
     </div>
   );
 }
