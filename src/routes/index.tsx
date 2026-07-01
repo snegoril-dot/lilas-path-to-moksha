@@ -148,6 +148,9 @@ function Index() {
   const { ready: authReady, userId } = useAuth(); // ensures anonymous session when storage/network allow it
   const activePractice = useActivePractice(authReady && !!userId);
   const tgAuth = useTelegramAuth(authReady);
+  const { ent } = useEntitlements();
+  const paywallShownRef = useRef(false);
+
   const persistSession = useServerFn(saveSession);
   const persistUpsert = useServerFn(upsertSession);
   const persistAbandon = useServerFn(abandonSession);
