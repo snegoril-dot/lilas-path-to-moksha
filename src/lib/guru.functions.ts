@@ -82,7 +82,7 @@ export const getJournal = createServerFn({ method: "GET" })
     return rows ?? [];
   });
 
-// --- Save game session summary ---
+// --- Save game session summary (legacy: only used at Moksha completion) ---
 const SaveSessionInput = z.object({
   sankalpa: z.string().max(400).optional(),
   result: z.enum(["moksha", "abandoned", "in_progress"]),
@@ -118,6 +118,102 @@ export const saveSession = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row;
   });
+
+// --- Upsert an in-progress (or finished) session with full state ---
+const PathEntry = z.object({
+  cell: z.number().int(),
+  kind: z.string(),
+  to: z.number().int().optional(),
+});
+const KeyCellEntry = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  kind: z.enum(["snake", "ladder"]),
+  visitCount: z.number().int().min(1).optional(),
+  note: z.string().max(800).optional(),
+});
+const UpsertSessionInput = z.object({
+  id: z.string().uuid().nullable().optional(),
+  sankalpa: z.string().max(400).optional(),
+  result: z.enum(["moksha", "abandoned", "in_progress"]),
+  currentCell: z.number().int().min(0).max(72),
+  movesCount: z.number().int().min(0),
+  entryMisses: z.number().int().min(0).default(0),
+  sixStreak: z.number().int().min(0).default(0),
+  path: z.array(PathEntry).max(1000).default([]),
+  diceHistory: z.array(z.number().int().min(1).max(6)).max(1000).default([]),
+  keyCells: z.array(KeyCellEntry).max(200).default([]),
+});
+
+export const upsertSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => UpsertSessionInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const payload = {
+      user_id: context.userId,
+      sankalpa: data.sankalpa ?? null,
+      result: data.result,
+      current_cell: data.currentCell,
+      moves_count: data.movesCount,
+      entry_misses: data.entryMisses,
+      six_streak: data.sixStreak,
+      path: data.path,
+      dice_history: data.diceHistory,
+      key_cells: data.keyCells,
+      finished_at: data.result === "in_progress" ? null : new Date().toISOString(),
+    };
+
+    if (data.id) {
+      // Scope by user_id defensively even though RLS enforces it.
+      const { data: row, error } = await context.supabase
+        .from("game_sessions")
+        .update(payload)
+        .eq("id", data.id)
+        .eq("user_id", context.userId)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return row;
+    }
+
+    const { data: row, error } = await context.supabase
+      .from("game_sessions")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+// --- Load the current active (in_progress) session, if any ---
+export const getActiveSession = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("game_sessions")
+      .select("*")
+      .eq("result", "in_progress")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ?? null;
+  });
+
+// --- Mark a session as abandoned ---
+export const abandonSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("game_sessions")
+      .update({ result: "abandoned", finished_at: new Date().toISOString() })
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 
 // --- All sessions of the current user (for achievements) ---
 export const getMySessions = createServerFn({ method: "GET" })
