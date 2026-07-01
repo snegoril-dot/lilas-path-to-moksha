@@ -12,8 +12,10 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "content:check": "vitest run src/content/content-tone.test.ts src/content/content-integrity.test.ts",
+    "content:check": "vitest run src/content/content-tone.test.ts src/content/content-integrity.test.ts && bun run scripts/check-guru-answers.ts",
+    "content:check:guru": "bun run scripts/check-guru-answers.ts",
     "check": "vitest run && vite build"
+
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.0",
