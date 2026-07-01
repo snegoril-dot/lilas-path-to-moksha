@@ -52,12 +52,15 @@ interface TgWebApp {
   themeParams?: TgThemeParams;
   viewportStableHeight?: number;
   viewportHeight?: number;
+  safeAreaInset?: { top?: number; bottom?: number; left?: number; right?: number };
+  contentSafeAreaInset?: { top?: number; bottom?: number; left?: number; right?: number };
   onEvent?: (event: string, cb: () => void) => void;
   offEvent?: (event: string, cb: () => void) => void;
   disableVerticalSwipes?: () => void;
   platform?: string;
   version?: string;
 }
+
 
 export function getTg(): TgWebApp | undefined {
   if (typeof window === "undefined") return undefined;
