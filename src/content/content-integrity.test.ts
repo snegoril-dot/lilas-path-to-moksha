@@ -32,8 +32,9 @@ describe("content integrity", () => {
   it("every cell has reflection fallback via getCellExperience", () => {
     for (const c of BOARD) {
       const exp = getCellExperience(c.id);
-      expect(exp.reflectionQuestion.trim().length).toBeGreaterThan(0);
-      expect(exp.shortMeaning.trim().length).toBeGreaterThan(0);
+      expect(exp, `experience for cell ${c.id}`).toBeTruthy();
+      expect(exp!.reflectionQuestion.trim().length).toBeGreaterThan(0);
+      expect(exp!.shortMeaning.trim().length).toBeGreaterThan(0);
     }
   });
 
