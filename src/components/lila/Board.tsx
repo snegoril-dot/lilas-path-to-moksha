@@ -151,9 +151,13 @@ function loadLayout(): Layout {
   }
 }
 
-export function Board({ playerPos, onSelectCell, debug, token }: Props) {
+export function Board({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>(() => loadLayout());
+  const visitedSet = useMemo(() => {
+    if (!visited) return new Set<number>();
+    return visited instanceof Set ? visited : new Set(visited);
+  }, [visited]);
 
   useEffect(() => {
     setLayout(loadLayout());
