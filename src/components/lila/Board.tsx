@@ -289,7 +289,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
     if (!Object.keys(cellOffsets).length && !Object.keys(cellSizes).length) return;
     const hasLegacyPx = [...Object.values(cellOffsets), ...Object.values(cellSizes)].some((v) => v?._legacyPx);
     if (hasLegacyPx) return;
-    setCellRects(mergeLegacyLayoutIntoRects(cellOffsets, cellSizes, padPct, gapPct));
+    setCellRects(
+      mergeLegacyLayoutIntoRects(
+        cellOffsets as Record<string, any>,
+        cellSizes as Record<string, any>,
+        padPct,
+        gapPct,
+      ),
+    );
     hadSavedRectsRef.current = true;
   }, [cellOffsets, cellSizes, gapPct, padPct]);
 
