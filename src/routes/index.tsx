@@ -38,6 +38,7 @@ import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
 import { GameHeader } from "@/components/lila/GameHeader";
 import { GameActionBar } from "@/components/lila/GameActionBar";
+import { PathAnalysisSheet, type PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
 
 
