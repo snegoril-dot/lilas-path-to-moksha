@@ -809,6 +809,7 @@ function Index() {
       <ReflectionModal
         data={reflection}
         sankalpa={sankalpa}
+        sessionId={sessionIdRef.current}
         onSubmit={(note) => closeReflection(note)}
         onSkip={() => closeReflection(null)}
       />
