@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { useTelegramBackButton } from "@/hooks/use-telegram";
+
 
 
 const STORAGE_KEY = "lila.onboarding.v1";
