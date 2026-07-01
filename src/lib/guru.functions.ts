@@ -223,7 +223,7 @@ export const getMySessions = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("game_sessions")
-      .select("id, result, moves_count, started_at, finished_at, sankalpa, path")
+      .select("id, result, moves_count, started_at, finished_at, sankalpa, mode, path")
       .order("started_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
