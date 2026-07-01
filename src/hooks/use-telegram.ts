@@ -279,7 +279,7 @@ export function useTelegramMainButton(opts: {
 
     return () => {
       cancelled = true;
-      try { mb.offClick(handler); } catch { /* noop */ }
+      try { mb?.offClick(handler); } catch { /* noop */ }
     };
   }, []);
 
