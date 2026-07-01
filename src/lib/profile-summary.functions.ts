@@ -1,21 +1,48 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
+
+const EMPTY_SUMMARY = {
+  totalStarted: 0,
+  totalCompleted: 0,
+  lastActiveAt: null as string | null,
+  lastCurrentCell: null as number | null,
+  hasActiveSession: false,
+  hasPreviousSessions: false,
+  insightsCount: 0,
+  guruUses: 0,
+  topCells: [] as Array<{ cell: number; count: number }>,
+};
 
 /**
- * Сводка профиля пути — агрегация из существующих таблиц
- * (`game_sessions`, `journal_entries`, `guru_usage`).
- *
- * Никаких «психологических ярлыков» и выводов о личности:
- * только счётчики и id клеток. Тексты Санкальпы и заметок не возвращаются.
+ * Сводка профиля пути. Публичный server fn: если запрос без Supabase-сессии
+ * (анонимный вход отключён), возвращаем пустую сводку, чтобы главная
+ * страница «/» не падала в error boundary. С сессией — обычная агрегация.
  */
 export const getProfileSummary = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({}).default({}).parse(d ?? {}),
   )
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+  .handler(async () => {
+    const auth = getRequestHeader("authorization");
+    const token = auth?.toLowerCase().startsWith("bearer ")
+      ? auth.slice(7).trim()
+      : null;
+    if (!token) return EMPTY_SUMMARY;
+
+    const supabase = createClient<Database>(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      {
+        auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      },
+    );
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return EMPTY_SUMMARY;
 
     // Игровые сессии — берём последние 100 для агрегатов по клеткам.
     const { data: sessions } = await supabase
