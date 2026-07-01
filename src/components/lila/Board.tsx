@@ -191,8 +191,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   })();
-  const [aspectW, setAspectW] = useState<number>(debugInit?.aspectW ?? IMAGE_ASPECT_W);
-  const [aspectH, setAspectH] = useState<number>(debugInit?.aspectH ?? IMAGE_ASPECT_H);
+  // Aspect ratio жёстко привязан к натуральному размеру фонового PNG,
+  // чтобы координаты клеток в % совпадали на ПК и мобильном. Старые
+  // сохранённые значения (например, из слайдеров 4..16) игнорируются.
+  const savedAspectW = typeof debugInit?.aspectW === "number" && debugInit.aspectW > 100 ? debugInit.aspectW : IMAGE_ASPECT_W;
+  const savedAspectH = typeof debugInit?.aspectH === "number" && debugInit.aspectH > 100 ? debugInit.aspectH : IMAGE_ASPECT_H;
+  const [aspectW, setAspectW] = useState<number>(savedAspectW);
+  const [aspectH, setAspectH] = useState<number>(savedAspectH);
   const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? DEFAULT_GAP_PCT);
   const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? DEFAULT_PAD_PCT);
   const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
