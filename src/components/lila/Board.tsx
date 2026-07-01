@@ -536,6 +536,41 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           >
             Сброс
           </button>
+          <button
+            onClick={async () => {
+              const payload = JSON.stringify({
+                aspectW, aspectH, gapPct, padPct, sizePct, offset,
+                cellOffsets, cellSizes,
+              }, null, 2);
+              try { await navigator.clipboard.writeText(payload); alert("Layout скопирован в буфер обмена. Пришлите его мне — сохраню как дефолт."); }
+              catch { window.prompt("Скопируйте JSON вручную:", payload); }
+            }}
+            className="px-2 h-7 rounded-lg bg-emerald-500/20 ring-1 ring-emerald-400/40 hover:bg-emerald-500/30"
+            title="Скопировать текущую разметку в буфер обмена"
+          >
+            Export
+          </button>
+          <button
+            onClick={() => {
+              const raw = window.prompt("Вставьте ранее экспортированный layout (JSON):");
+              if (!raw) return;
+              try {
+                const p = JSON.parse(raw);
+                if (typeof p.aspectW === "number") setAspectW(p.aspectW);
+                if (typeof p.aspectH === "number") setAspectH(p.aspectH);
+                if (typeof p.gapPct === "number") setGapPct(p.gapPct);
+                if (typeof p.padPct === "number") setPadPct(p.padPct);
+                if (typeof p.sizePct === "number") setSizePct(p.sizePct);
+                if (p.offset) setOffset(p.offset);
+                if (p.cellOffsets) setCellOffsets(p.cellOffsets);
+                if (p.cellSizes) setCellSizes(p.cellSizes);
+              } catch { alert("Не удалось распарсить JSON."); }
+            }}
+            className="px-2 h-7 rounded-lg bg-sky-500/20 ring-1 ring-sky-400/40 hover:bg-sky-500/30"
+            title="Загрузить разметку из JSON"
+          >
+            Import
+          </button>
         </div>
       )}
 
