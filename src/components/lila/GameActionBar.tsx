@@ -77,18 +77,20 @@ export function GameActionBar({
             {rolling ? "Кубик катится…" : "Бросить кубик"}
           </button>
         )}
-        <button
-          onClick={() => {
-            haptic("light");
-            onOpenCell();
-          }}
-          className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
-          aria-label="О текущей клетке"
-          title="Клетка"
-        >
-          <MapIcon size={20} />
-          <span className="text-[10px] mt-0.5 opacity-70">Клетка</span>
-        </button>
+        {!won && !(landed && !landedOpen) && (
+          <button
+            onClick={() => {
+              haptic("light");
+              onOpenCell();
+            }}
+            className="shrink-0 inline-flex flex-col items-center justify-center h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 active:scale-95 transition"
+            aria-label="О текущей клетке"
+            title="Клетка"
+          >
+            <MapIcon size={20} />
+            <span className="text-[10px] mt-0.5 opacity-70">Клетка</span>
+          </button>
+        )}
         <button
           onClick={() => {
             haptic("light");
