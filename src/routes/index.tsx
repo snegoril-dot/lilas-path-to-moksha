@@ -836,9 +836,9 @@ function Index() {
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
-      {/* Board — capped so chat stays visible on short phones. */}
+      {/* Board — capped so the current action stays visible on short phones. */}
       <div className="relative z-20 shrink-0 px-2 pt-2 bg-[var(--lila-bg)] shadow-[0_8px_16px_-12px_rgba(0,0,0,0.6)]">
-        <div className="mx-auto w-full" style={{ maxHeight: "48dvh", maxWidth: "min(100%, calc((48dvh) * 9 / 8))" }}>
+        <div className="mx-auto w-full" style={{ maxHeight: "44dvh", maxWidth: "min(100%, calc((44dvh) * 9 / 8))" }}>
           <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
         </div>
       </div>
@@ -846,8 +846,13 @@ function Index() {
       {/* Chat */}
       <ChatFeed messages={messages} />
 
-      {started && !won && totalRolls >= 5 && (
-        <div className="shrink-0 px-3 pt-2 bg-[var(--lila-surface)]/70 backdrop-blur-md">
+      {/*
+        Вторичное действие — «Разобрать путь с Гуру».
+        Скрыто, если есть основной CTA (осмыслить клетку / итог / бросок),
+        чтобы на экране всегда было одно очевидное главное действие.
+      */}
+      {started && !won && !rolling && !(landed && !landedOpen) && totalRolls >= 5 && (
+        <div className="shrink-0 px-3 pt-1.5 bg-[var(--lila-surface)]/70 backdrop-blur-md">
           <button
             onClick={() => {
               hapticNotify("success");
@@ -863,7 +868,7 @@ function Index() {
                 sessionId: sessionIdRef.current,
               });
             }}
-            className="w-full h-11 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/30 text-amber-100 text-sm font-medium inline-flex items-center justify-center gap-2 active:scale-[0.99] transition"
+            className="w-full h-8 rounded-full bg-white/5 hover:bg-white/10 ring-1 ring-amber-300/20 text-amber-100/80 text-[12px] inline-flex items-center justify-center gap-1.5 active:scale-[0.99] transition"
             aria-label="Разобрать путь с Гуру"
           >
             ✨ Разобрать путь с Гуру
