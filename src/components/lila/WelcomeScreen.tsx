@@ -50,8 +50,10 @@ export function WelcomeScreen({
 
 
   const [touched, setTouched] = useState(false);
+  const [showRewrite, setShowRewrite] = useState(false);
   const trimmed = sankalpa.trim();
-  const canStart = trimmed.length > 0;
+  const validation: SankalpaValidation = validateSankalpa(trimmed);
+  const canStart = trimmed.length > 0 && validation.ok;
 
   const startedRef = useRef(false);
   const handleStart = () => {
@@ -64,6 +66,12 @@ export function WelcomeScreen({
     startedRef.current = true;
     haptic("medium");
     onStart(trimmed, mode);
+  };
+
+  const applySuggestion = (s: string) => {
+    setSankalpa(s);
+    setTouched(false);
+    setShowRewrite(false);
   };
 
   useTelegramMainButton({
