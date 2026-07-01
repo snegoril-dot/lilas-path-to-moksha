@@ -429,6 +429,7 @@ function Index() {
 
     setTimeout(() => {
       if (rule.forfeited) {
+        hapticNotify("warning");
         addMsg(
           "🔥 Три шестёрки подряд. Карма перегорела — этот бросок не считается. Фишка остаётся на месте.",
           "system"
