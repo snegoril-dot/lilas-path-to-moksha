@@ -125,6 +125,24 @@ export function PracticeChooserSheet({ cellId, sankalpa, onClose, onStarted }: P
                     <div className="text-xs uppercase tracking-wider opacity-60">Практика</div>
                     <div className="font-medium mt-1">{selected.title}</div>
                     <div className="text-xs opacity-75 mt-1">{selected.intention}</div>
+                    {selected.quote && (
+                      <blockquote className="mt-3 border-l-2 border-amber-300/60 pl-3 text-xs italic opacity-85">
+                        «{selected.quote.text}»
+                        {selected.quote.source && (
+                          <div className="not-italic text-[10px] opacity-60 mt-0.5">
+                            — {selected.quote.source}
+                          </div>
+                        )}
+                      </blockquote>
+                    )}
+                    {selected.karmicTransition && (
+                      <div className="mt-3 rounded-xl bg-amber-300/5 ring-1 ring-amber-300/20 px-2.5 py-2">
+                        <div className="text-[10px] uppercase tracking-wider text-amber-200/80">
+                          Кармический переход
+                        </div>
+                        <div className="text-xs opacity-85 mt-1">{selected.karmicTransition}</div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="text-xs opacity-70 mb-2">На сколько ты берёшь эту практику?</div>
