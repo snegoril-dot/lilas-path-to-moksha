@@ -151,11 +151,11 @@ export function GuruChatSheet({
               )}
               {error && (
                 <div className="text-xs text-rose-300 bg-rose-500/10 rounded-xl px-3 py-2">
-                  Гуру сейчас не отвечает. {error.message?.includes("429")
-                    ? "Слишком много запросов — попробуй позже."
-                    : error.message?.includes("402")
-                      ? "Закончились AI-кредиты."
-                      : "Попробуй ещё раз."}
+                  {error.message?.includes("429")
+                    ? "Достигнут дневной лимит сообщений Гуру. Возвращайся завтра."
+                    : error.message?.includes("401")
+                      ? "Нужен вход в приложение, чтобы говорить с Гуру."
+                      : "Гуру сейчас молчит. Попробуй вернуться к вопросу чуть позже."}
                 </div>
               )}
             </div>
