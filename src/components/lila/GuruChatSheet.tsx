@@ -285,16 +285,19 @@ export function GuruChatSheet({
                     С чего можно начать
                   </div>
                   <div className="flex flex-col gap-2">
-                    {cellPack?.prompts.map((p) => (
-                      <button
-                        key={p.q}
-                        onClick={() => sendCanned(p.q, p.a)}
-                        disabled={busy}
-                        className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-50"
-                      >
-                        {p.q}
-                      </button>
-                    ))}
+                    {cellPack?.prompts.map((p) => {
+                      const asked = askedCanned.has(p.q);
+                      return (
+                        <button
+                          key={p.q}
+                          onClick={() => sendCanned(p.q, p.a)}
+                          disabled={busy || asked}
+                          className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-40"
+                        >
+                          {asked ? "✓ " : ""}{p.q}
+                        </button>
+                      );
+                    })}
                   </div>
                   <div className="text-[11px] uppercase tracking-wider opacity-40 pt-1">
                     Или спросить Гуру напрямую
