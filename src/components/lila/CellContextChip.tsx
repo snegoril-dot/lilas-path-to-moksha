@@ -48,8 +48,9 @@ export function CellContextChip({
       {marker && (
         <>
           <span className="opacity-40">·</span>
-          <span className={marker.cls}>
-            {marker.icon} {marker.text}
+          <span className={`${marker.cls} inline-flex items-center gap-1`}>
+            <Glyph name={marker.icon} size={12} />
+            {marker.text}
           </span>
         </>
       )}
