@@ -827,6 +827,7 @@ function Index() {
         startedAt={startedAt}
         sessionId={sessionIdRef.current}
         currentCell={pos}
+        pathLog={pathLog}
       />
       <CurrentCellSheet
         cellId={landedOpen ? landed?.cell ?? null : null}
