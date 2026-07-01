@@ -3,15 +3,17 @@ import { Trophy } from "lucide-react";
 import { useState } from "react";
 import { DailyCard } from "./DailyCard";
 import { AchievementsModal } from "./AchievementsModal";
+import { MODE_DESCRIPTION, MODE_LABEL, type GameMode } from "@/lib/game-mode";
 
 export function WelcomeScreen({
   onStart,
   onRules,
 }: {
-  onStart: (sankalpa: string) => void;
+  onStart: (sankalpa: string, mode: GameMode) => void;
   onRules: () => void;
 }) {
   const [sankalpa, setSankalpa] = useState("");
+  const [mode, setMode] = useState<GameMode>("classic");
 
   const [achOpen, setAchOpen] = useState(false);
 
