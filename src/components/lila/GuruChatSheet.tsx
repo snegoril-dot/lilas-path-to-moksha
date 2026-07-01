@@ -23,6 +23,7 @@ export function GuruChatSheet({
 }) {
   const open = !!ctx;
   const { initialRef } = useDialogA11y(open, onClose);
+  useTelegramBackButton(open, onClose);
   const [input, setInput] = useState("");
   const titleId = "guru-chat-title";
 
