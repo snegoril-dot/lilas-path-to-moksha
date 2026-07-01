@@ -317,6 +317,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
 
       <div className={debug ? "overflow-auto max-h-[80dvh] rounded-2xl" : (zoom > 1 ? "overflow-auto max-h-[80dvh] rounded-2xl" : "")}>
         <div
+          ref={boardRef}
           data-lila-board
           onPointerDown={onDragStart}
           onPointerMove={onDragMove}
