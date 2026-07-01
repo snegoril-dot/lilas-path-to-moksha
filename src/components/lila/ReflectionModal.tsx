@@ -106,8 +106,12 @@ export function ReflectionModal({
         } catch {}
       }
     }
+    if (trimmed.length > 0) {
+      trackEvent("reflection_saved", { cell: data.fromId, sessionId: sessionId ?? null, extra: { length: trimmed.length } });
+    }
     onSubmit(trimmed);
   };
+
 
   return (
     <AnimatePresence>
