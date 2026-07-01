@@ -46,6 +46,28 @@ export function rowColForId(id: number): BoardCoord {
   };
 }
 
+/**
+ * Публичные алиасы для явного маппинга «ID ↔ визуальная позиция».
+ * Используй их в UI и тестах, чтобы намерение читалось однозначно.
+ *
+ * Ориентация доски: 8 рядов × 9 колонок. row=0 — визуально НИЖНИЙ ряд
+ * (клетки 1..9), row=7 — ВЕРХНИЙ (64..72, Мокша=68 по центру).
+ * Нумерация — бустрофедон (змейкой): чётные ряды слева-направо,
+ * нечётные справа-налево. Если позже подложим кастомную картинку
+ * доски, менять нужно только эти три функции.
+ */
+export const getCellCoordinates = rowColForId;
+export const getCellIdByCoordinates = idForRowCol;
+
+/**
+ * Явная матрица доски в визуальном порядке: BOARD_MATRIX[0] — ВЕРХНИЙ ряд
+ * на экране (row=7), BOARD_MATRIX[7] — нижний (row=0). Удобно для отладки
+ * и снапшот-тестов.
+ */
+export const BOARD_MATRIX: number[][] = Array.from({ length: ROWS }, (_, i) =>
+  rowIds(ROWS - 1 - i),
+);
+
 /** Массив ID одной визуальной строки в порядке слева→направо на экране. */
 export function rowIds(row: number): number[] {
   return Array.from({ length: COLS }, (_, c) => idForRowCol(row, c));
