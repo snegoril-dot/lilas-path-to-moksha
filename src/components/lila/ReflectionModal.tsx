@@ -27,6 +27,7 @@ export function ReflectionModal({
 }) {
   const open = !!data;
   const { initialRef } = useDialogA11y(open, onSkip);
+  useTelegramBackButton(open, onSkip);
   const [note, setNote] = useState("");
   const [aiText, setAiText] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
