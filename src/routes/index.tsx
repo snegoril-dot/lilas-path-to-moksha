@@ -63,6 +63,8 @@ function Index() {
   const [diceHistory, setDiceHistory] = useState<number[]>([]);
   const sessionSavedRef = useRef(false);
   const pendingResume = useRef<(() => void) | null>(null);
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [pauseOpen, setPauseOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
