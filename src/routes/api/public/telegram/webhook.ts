@@ -192,8 +192,37 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           return new Response("Bad Request", { status: 400 });
         }
 
+        // --- Telegram Stars: pre_checkout_query ---
+        if (update.pre_checkout_query) {
+          const q = update.pre_checkout_query;
+          const [productId] = (q.invoice_payload ?? "").split(":");
+          const product = findProductById(productId ?? "");
+          const okay =
+            !!product && q.currency === "XTR" && q.total_amount === product.stars;
+          await fetch(`${TELEGRAM_API}/bot${token}/answerPreCheckoutQuery`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pre_checkout_query_id: q.id,
+              ok: okay,
+              error_message: okay ? undefined : "Продукт недоступен, попробуй позже.",
+            }),
+          });
+          return ok();
+        }
+
         const msg = update.message ?? update.edited_message;
         if (!msg?.chat?.id) return ok({ ignored: true });
+
+        // --- Telegram Stars: successful_payment ---
+        if (msg.successful_payment) {
+          try {
+            await handleSuccessfulPayment(token, msg);
+          } catch (err) {
+            console.error("telegram successful_payment error", err);
+          }
+          return ok();
+        }
 
         try {
           await handleCommand(token, miniAppUrl, msg);
@@ -201,6 +230,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           console.error("telegram handleCommand error", err);
         }
         return ok();
+
       },
     },
   },
