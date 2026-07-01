@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "content:check": "vitest run src/content/content-tone.test.ts src/content/content-integrity.test.ts",
     "check": "vitest run && vite build"
   },
   "dependencies": {
