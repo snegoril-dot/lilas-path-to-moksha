@@ -71,6 +71,12 @@ function cellCenterPct(id: number): { x: number; y: number } {
 function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const [zoom, setZoom] = useState(1);
+  // Debug-only «растяжка» сетки: не влияет на прод-рендер.
+  const [aspectW, setAspectW] = useState(COLS);
+  const [aspectH, setAspectH] = useState(ROWS);
+  const [gapPct, setGapPct] = useState(0.5);
+  const [padPct, setPadPct] = useState(0.6);
+
 
   useEffect(() => {
     purgeLegacyLayoutStorage();
@@ -103,7 +109,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
           data-lila-board
           className={`relative w-full rounded-2xl shadow-2xl ring-1 overflow-hidden ${FRAME_RING}`}
           style={{
-            aspectRatio: `${COLS} / ${ROWS}`,
+            aspectRatio: debug ? `${aspectW} / ${aspectH}` : `${COLS} / ${ROWS}`,
             background: BOARD_BG,
             transform: debug && zoom !== 1 ? `scale(${zoom})` : undefined,
             transformOrigin: "top left",
@@ -115,9 +121,13 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             src={boardBg}
             alt=""
             aria-hidden
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none opacity-70"
             draggable={false}
           />
+
           <div
             aria-hidden
             className="absolute inset-0 pointer-events-none"
@@ -129,12 +139,15 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
 
           {/* Строгая сетка 9×8 — единственный источник геометрии клеток */}
           <div
-            className="absolute inset-0 grid p-[0.6%] gap-[0.5%]"
+            className="absolute inset-0 grid"
             style={{
+              padding: `${debug ? padPct : 0.6}%`,
+              gap: `${debug ? gapPct : 0.5}%`,
               gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
             }}
           >
+
             {ids.map((id) => {
               const cell = BOARD[id - 1];
               const { row, col } = rowColForId(id);
@@ -356,11 +369,43 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
               1:1
             </button>
           </div>
-          <span className="opacity-60 self-center">
-            Сетка 9×8 фиксирована · перетаскивание клеток отключено
-          </span>
+          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <span className="opacity-70">W</span>
+            <input type="range" min={4} max={16} step={0.1} value={aspectW}
+              onChange={(e) => setAspectW(parseFloat(e.target.value))}
+              className="w-20" />
+            <span className="tabular-nums w-8 text-right">{aspectW.toFixed(1)}</span>
+          </label>
+          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <span className="opacity-70">H</span>
+            <input type="range" min={4} max={16} step={0.1} value={aspectH}
+              onChange={(e) => setAspectH(parseFloat(e.target.value))}
+              className="w-20" />
+            <span className="tabular-nums w-8 text-right">{aspectH.toFixed(1)}</span>
+          </label>
+          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <span className="opacity-70">gap</span>
+            <input type="range" min={0} max={3} step={0.1} value={gapPct}
+              onChange={(e) => setGapPct(parseFloat(e.target.value))}
+              className="w-16" />
+            <span className="tabular-nums w-8 text-right">{gapPct.toFixed(1)}%</span>
+          </label>
+          <label className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 ring-1 ring-white/20">
+            <span className="opacity-70">pad</span>
+            <input type="range" min={0} max={3} step={0.1} value={padPct}
+              onChange={(e) => setPadPct(parseFloat(e.target.value))}
+              className="w-16" />
+            <span className="tabular-nums w-8 text-right">{padPct.toFixed(1)}%</span>
+          </label>
+          <button
+            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); }}
+            className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
+          >
+            Сброс
+          </button>
         </div>
       )}
+
     </div>
   );
 }
