@@ -19,6 +19,7 @@ import { MyPurchasesSheet } from "./MyPurchasesSheet";
 import { SupportFAQSheet } from "./SupportFAQSheet";
 import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { isInTelegram } from "@/hooks/use-telegram";
 import { BellRing } from "lucide-react";
 import { safeClear } from "@/lib/safe-storage";
 
