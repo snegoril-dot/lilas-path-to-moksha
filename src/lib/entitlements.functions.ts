@@ -69,4 +69,18 @@ export const createStarsInvoice = createServerFn({ method: "POST" })
     return { url: body.result, product };
   });
 
+export const getLastPayment = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({}).default({}).parse(d ?? {}))
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("stars_payments")
+      .select("product_id, stars_amount, telegram_payment_charge_id, created_at")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data ?? null;
+  });
+
 export const STARS_CATALOG = STARS_PRODUCTS;
