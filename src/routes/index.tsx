@@ -40,6 +40,7 @@ import { GameHeader } from "@/components/lila/GameHeader";
 import { GameActionBar } from "@/components/lila/GameActionBar";
 import { PathAnalysisSheet, type PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
+import { HintToast, hasSeenHint, markHintSeen, type HintId } from "@/components/lila/HintToast";
 
 
 
@@ -135,6 +136,15 @@ function Index() {
   }, []);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hint, setHint] = useState<{ id: HintId; text: string } | null>(null);
+  const showHint = useCallback((id: HintId, text: string) => {
+    if (hasSeenHint(id)) return;
+    markHintSeen(id);
+    setHint({ id, text });
+    setTimeout(() => {
+      setHint((h) => (h && h.id === id ? null : h));
+    }, 8000);
+  }, []);
 
   // Init Telegram SDK
   useTelegramInit();
@@ -143,6 +153,25 @@ function Index() {
   useEffect(() => {
     trackEvent("app_opened");
   }, []);
+
+  // Contextual hints — shown once per user (localStorage).
+  useEffect(() => {
+    if (!started || won) return;
+    if (pos === 0 && totalRolls === 0) {
+      showHint(
+        "before_first_roll",
+        "Чтобы войти в путь, дождись рождения через кубик.",
+      );
+    }
+    if (pos >= 63 && pos < 68) {
+      showHint(
+        "near_moksha",
+        "До Мокши нужен точный шаг. Если выпало больше, путь продолжается.",
+      );
+    }
+  }, [started, won, pos, totalRolls, showHint]);
+
+
 
 
 
@@ -513,6 +542,7 @@ function Index() {
           }
           trackEvent("entered_board", { cell: 1, dice: value, sessionId: sessionIdRef.current, extra: { mercy: !!entry.mercy } });
           trackEvent("cell_landed", { cell: 1, sessionId: sessionIdRef.current });
+          showHint("first_board", "Теперь каждая клетка — зеркало для твоей Санкальпы.");
           openLanded(1);
           setRolling(false);
         });
@@ -613,11 +643,19 @@ function Index() {
               `🐍 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЗмея не наказывает — она мягко возвращает внимание к теме, которая просит осознания.\n\n${landed.wisdom}`,
               "guru"
             );
+            showHint(
+              "first_snake",
+              "Змея — не наказание. Она показывает тему, которая просит осознания.",
+            );
           } else {
             play("ladder"); hapticNotify("success");
             addMsg(
               `🪜 Клетка ${landed.id} — «${landed.name}» → ${final} — «${dest.name}».\n\nЛестница показывает качество, которое сейчас поднимает сознание выше. Можно заметить, откуда оно приходит в тебе.\n\n${landed.wisdom}`,
               "guru"
+            );
+            showHint(
+              "first_ladder",
+              "Лестница — не награда за правильность. Это качество, которое помогает подняться выше.",
             );
           }
           // Кармический счётчик: повтор того же узла.
@@ -655,6 +693,10 @@ function Index() {
             // Рефлексия: пауза с заметкой о связи с Санкальпой.
             pendingResume.current = doJump;
             trackEvent("reflection_opened", { cell: landed.id, sessionId: sessionIdRef.current });
+            showHint(
+              "first_reflection",
+              "Инсайты сохраняются в дневнике. Позже из них сложится карта пути.",
+            );
             setReflection({
               fromId: landed.id,
               fromName: landed.name,
@@ -673,7 +715,7 @@ function Index() {
       });
 
     }, diceDelay);
-  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded]);
+  }, [pos, rolling, won, sixStreak, entryMisses, entryGrace, mode, cellVisits, addMsg, animateStep, reduceMotion, play, notesEnabled, openLanded, showHint, totalRolls]);
 
   const closeReflection = useCallback(
     (note: string | null) => {
@@ -946,6 +988,7 @@ function Index() {
       />
 
       <SaveIndicator state={saveState} />
+      <HintToast text={hint?.text ?? null} onDismiss={() => setHint(null)} />
       {tgAuth.status === "dev_mode" && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
           Приложение открыто вне Telegram. Некоторые функции могут быть недоступны.
