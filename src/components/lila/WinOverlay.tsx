@@ -34,6 +34,7 @@ export function WinOverlay({
   startedAt = null,
   sessionId = null,
   currentCell = 68,
+  pathLog = [],
 }: {
   open: boolean;
   onRestart: () => void;
@@ -44,6 +45,7 @@ export function WinOverlay({
   startedAt?: string | null;
   sessionId?: string | null;
   currentCell?: number;
+  pathLog?: PathStep[];
 }) {
   const loadSessions = useServerFn(getMySessions);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
