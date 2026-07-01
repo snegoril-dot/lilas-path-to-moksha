@@ -894,7 +894,15 @@ function Index() {
         onCycleToken={cycleToken}
         debug={debug}
         onToggleDebug={() => setDebug((d) => !d)}
+        started={started}
+        won={won}
+        currentCell={pos}
+        totalRolls={totalRolls}
+        onPause={() => setPauseOpen(true)}
+        onNewPath={doRestart}
+        onStart={() => setSettingsOpen(false)}
       />
+
       <SaveIndicator state={saveState} />
       {tgAuth.status === "dev_mode" && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
