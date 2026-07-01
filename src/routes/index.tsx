@@ -196,7 +196,7 @@ function Index() {
   const isTelegramSnegoril =
     telegramAdminHint ||
     (tgAuth.status === "authenticated" &&
-    (tgAuth.profile?.telegram_id === 253752301 || tgAuth.profile?.username?.toLowerCase() === "snegoril");
+      (tgAuth.profile?.telegram_id === 253752301 || tgAuth.profile?.username?.toLowerCase() === "snegoril"));
   // Вне Telegram (web-превью Lovable / ПК) отладка сетки доступна всем — для удобства работы с раскладкой.
   const debugAllowed = isAdmin || isTelegramSnegoril || !isInTelegram();
   const [debug, setDebug] = useState(false);
