@@ -118,8 +118,11 @@ function Index() {
   const { token, cycle: cycleToken } = usePlayerToken();
   const [debug, setDebug] = useState(() => {
     if (typeof window === "undefined") return false;
+    // Дебаг-оверлей доски доступен только в dev-сборке.
+    if (import.meta.env.PROD) return false;
     return new URLSearchParams(window.location.search).get("debug") === "1";
   });
+
 
   const addMsg = useCallback((text: string, kind: ChatMessage["kind"] = "guru") => {
     idRef.current += 1;
