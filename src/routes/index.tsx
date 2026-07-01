@@ -349,14 +349,13 @@ function Index() {
   const handleRoll = useCallback(() => {
     if (rolling || won) return;
     setRolling(true);
-    // Правило милости: после 3 неудачных попыток входа — гарантированная шестёрка.
-    const raw = rollDice(getRuntimeRng());
-    const value = pos === 0 && entryGrace ? 6 : raw;
+    // Классическое правило: игрок должен сам выбросить шестёрку, чтобы войти в игру.
+    const value = rollDice(getRuntimeRng());
     setDice(value);
     setDiceHistory((d) => [...d, value]);
     setTotalRolls((n) => n + 1);
     play("roll");
-    addMsg(`🎲 Бросок: ${value}${value !== raw ? " (милость)" : ""}`, "player");
+    addMsg(`🎲 Бросок: ${value}`, "player");
 
     const diceDelay = reduceMotion ? 280 : 1150;
 
