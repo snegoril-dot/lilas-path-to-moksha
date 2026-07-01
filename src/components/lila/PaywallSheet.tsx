@@ -139,6 +139,8 @@ export function PaywallSheet({ open, onClose }: Props) {
           {PRODUCT_LIST.map((p) => {
             const active = isActive(p.features);
             const busy = busyId === p.id;
+            const price = getProductPrice(p, ent?.userId);
+            const discounted = price < p.stars;
             return (
               <div
                 key={p.id}
