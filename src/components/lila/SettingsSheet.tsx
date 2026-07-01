@@ -26,10 +26,10 @@ interface Props {
   won: boolean;
   currentCell: number; // 0 = ещё не в игре
   totalRolls: number;
-  onContinue: () => void;
   onPause: () => void;
   onNewPath: () => void;
   onStart: () => void;
+
 }
 
 function Row({
