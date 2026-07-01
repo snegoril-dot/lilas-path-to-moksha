@@ -4,6 +4,7 @@
 // stack frame + url. Safe replacement for Sentry until we wire a real SDK.
 
 import { trackEvent } from "./analytics";
+import { reportClientCrash } from "./telegram-diagnostics";
 
 let installed = false;
 
@@ -24,6 +25,7 @@ function log(kind: "error" | "unhandledrejection", message: string, stack?: stri
   });
   // eslint-disable-next-line no-console
   console.error(`[client_error:${kind}]`, message);
+  reportClientCrash(`window_${kind}`, message, { stack: shortStack(stack) });
 }
 
 export function installErrorLogger(): void {

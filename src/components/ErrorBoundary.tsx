@@ -1,5 +1,6 @@
 import { Component, type ReactNode, type ErrorInfo } from "react";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
+import { getAuthDiagnosticState, reportClientCrash, sendTelegramDiagnostic } from "@/lib/telegram-diagnostics";
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,9 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ info });
     try {
       reportLovableError(error, { boundary: "app_error_boundary", stack: info.componentStack });
+      reportClientCrash("react_error_boundary", error, {
+        componentStack: info.componentStack?.split("\n").slice(0, 8).join("\n"),
+      });
     } catch {
       /* noop */
     }
@@ -64,12 +68,12 @@ export class ErrorBoundary extends Component<Props, State> {
       >
         <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
           <h1 style={{ fontSize: "1.25rem", margin: "0 0 0.5rem" }}>
-            Что-то пошло не так
+            Игра не открылась
           </h1>
           <p style={{ opacity: 0.8, margin: "0 0 1rem" }}>
             {isSecurityError
               ? "Браузер заблокировал доступ к локальному хранилищу. Отключите «Prevent Cross-Site Tracking» в настройках Telegram/Safari и попробуйте снова."
-              : "Приложение столкнулось с непредвиденной ошибкой. Попробуйте перезагрузить."}
+              : "Мы записали техническую ошибку. Попробуйте перезагрузить игру — путь продолжится с последнего доступного состояния."}
           </p>
           <button
             onClick={this.handleReload}
@@ -84,6 +88,22 @@ export class ErrorBoundary extends Component<Props, State> {
             }}
           >
             Перезагрузить
+          </button>
+          <button
+            onClick={() => sendTelegramDiagnostic("manual_error_report", error, { auth: getAuthDiagnosticState() })}
+            style={{
+              display: "block",
+              margin: "0.75rem auto 0",
+              padding: "0.5rem 0.9rem",
+              borderRadius: 8,
+              border: "1px solid rgba(0,0,0,.14)",
+              background: "transparent",
+              color: "inherit",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Отправить диагностику
           </button>
           <details
             style={{
@@ -110,6 +130,9 @@ export class ErrorBoundary extends Component<Props, State> {
                   {info.componentStack.split("\n").slice(0, 6).join("\n")}
                 </pre>
               )}
+              <pre style={{ marginTop: 8, fontSize: 11 }}>
+                {JSON.stringify(getAuthDiagnosticState(), null, 2)}
+              </pre>
             </div>
           </details>
         </div>
