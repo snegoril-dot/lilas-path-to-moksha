@@ -73,12 +73,20 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const [zoom, setZoom] = useState(1);
   // Debug-only «растяжка» сетки: не влияет на прод-рендер.
-  const [aspectW, setAspectW] = useState(COLS);
-  const [aspectH, setAspectH] = useState(ROWS);
-  const [gapPct, setGapPct] = useState(0.5);
-  const [padPct, setPadPct] = useState(0.6);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [sizePct, setSizePct] = useState(100); // ширина в % от контейнера
+  // Все параметры дебаг-разметки персистятся в localStorage.
+  const debugInit = (() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem("lila:debug:board");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+  const [aspectW, setAspectW] = useState<number>(debugInit?.aspectW ?? COLS);
+  const [aspectH, setAspectH] = useState<number>(debugInit?.aspectH ?? ROWS);
+  const [gapPct, setGapPct] = useState<number>(debugInit?.gapPct ?? 0.5);
+  const [padPct, setPadPct] = useState<number>(debugInit?.padPct ?? 0.6);
+  const [offset, setOffset] = useState<{ x: number; y: number }>(debugInit?.offset ?? { x: 0, y: 0 });
+  const [sizePct, setSizePct] = useState<number>(debugInit?.sizePct ?? 100);
   const [dragging, setDragging] = useState(false);
   const [cellOffsets, setCellOffsets] = useState<Record<number, { x: number; y: number }>>(() => {
     if (typeof window === "undefined") return {};
