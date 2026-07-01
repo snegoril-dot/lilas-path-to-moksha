@@ -28,6 +28,7 @@ import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
 import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
+import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
