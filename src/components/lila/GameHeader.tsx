@@ -39,7 +39,7 @@ export function GameHeader({
         </div>
         <div className="leading-tight min-w-0">
           <div className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
-            <span className="truncate">Гуру</span>
+            <span className="truncate">Лила</span>
             <span
               className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/70 font-medium"
               title="Приложение в бета-версии"
