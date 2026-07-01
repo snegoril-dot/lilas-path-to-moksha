@@ -119,3 +119,9 @@ Never commit secrets. In particular:
 - Any AI provider key, including `LOVABLE_API_KEY`
 
 Only the `VITE_*` publishable keys are safe in the client bundle — everything else must stay server-side. If a secret is ever pushed by accident, rotate it immediately.
+
+## Privacy: analytics
+
+The app records lightweight product-analytics events (see `src/lib/analytics.ts`) such as `app_opened`, `dice_rolled`, `cell_landed`, `snake_triggered`, `ladder_triggered`, `moksha_reached`, `guru_opened`, `session_paused/resumed`, `share_completed`, etc. Events are written to the `analytics_events` table via RLS-restricted inserts and fail silently — analytics never blocks gameplay.
+
+**We never store** your Sankalpa text, reflection notes, Guru chat messages, or journal entries in analytics. Only non-sensitive metadata is captured: event name, current cell id, dice value, session/anon id, platform (telegram/browser), and app version.
