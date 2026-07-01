@@ -73,6 +73,7 @@ function Index() {
   const [landedOpen, setLandedOpen] = useState(false);
   const [winOpen, setWinOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [birthIntroOpen, setBirthIntroOpen] = useState(false);
   // Persistent session bookkeeping
   const sessionIdRef = useRef<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
