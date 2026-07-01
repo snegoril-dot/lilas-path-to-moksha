@@ -120,7 +120,7 @@ export const completePractice = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
+    const { data: session, error } = await supabase
       .from("practice_sessions")
       .update({
         status: "completed",
@@ -130,8 +130,32 @@ export const completePractice = createServerFn({ method: "POST" })
         emotions: data.emotions,
       })
       .eq("id", data.sessionId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .select("cell_id")
+      .maybeSingle();
     if (error) throw error;
+
+    // Push в Telegram — не критично, ошибки глотаем.
+    try {
+      const [{ sendTelegramMessage, resolveNotifiableChatId }, { BOARD }] = await Promise.all([
+        import("@/lib/telegram-notify.server"),
+        import("@/lib/lila-board"),
+      ]);
+      const chatId = await resolveNotifiableChatId(supabase as any, userId, {
+        requireEnabled: true,
+      });
+      if (chatId) {
+        const cell = session?.cell_id ? BOARD[session.cell_id - 1] : null;
+        const title = cell ? `Практика клетки «${cell.name}» завершена` : "Практика завершена";
+        const body =
+          "Ты дошёл до конца круга. Загляни в дневник — запись ждёт тебя.\n" +
+          "Готов к следующему броску?";
+        await sendTelegramMessage(chatId, `<b>${title}</b>\n\n${body}`);
+      }
+    } catch {
+      /* noop */
+    }
+
     return { ok: true };
   });
 

@@ -5,6 +5,8 @@ import { Sparkles, Check, RefreshCw, Loader2, Bug } from "lucide-react";
 import { STARS_PRODUCTS, FEATURE_CATALOG, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
 import { listEntitlements, restorePurchases, createStarsInvoice, getLastPayment } from "@/lib/entitlements.functions";
 import { notifyEntitlementsChanged } from "@/hooks/use-entitlements";
+import { getProductPrice, getPriceVariant } from "@/lib/ab-pricing";
+import { trackEvent } from "@/lib/analytics";
 
 function haptic(type: "success" | "error" | "light") {
   const tg = typeof window !== "undefined" ? (window as any).Telegram?.WebApp : undefined;
@@ -65,8 +67,15 @@ export function PaywallSheet({ open, onClose }: Props) {
   };
 
   useEffect(() => {
-    if (open) void refresh();
+    if (open) {
+      void refresh();
+      trackEvent("paywall_viewed", {
+        extra: { variant: getPriceVariant(ent?.userId) },
+      });
+    }
   }, [open]);
+
+  const priceVariant = getPriceVariant(ent?.userId);
 
   const isActive = (features: FeatureId[]) =>
     !!ent && features.every((f) => ent.features?.[f]?.active);
@@ -76,6 +85,13 @@ export function PaywallSheet({ open, onClose }: Props) {
     setError(null);
     try {
       haptic("light");
+      trackEvent("paywall_buy_clicked", {
+        extra: {
+          product: product.id,
+          variant: priceVariant,
+          stars: getProductPrice(product, ent?.userId),
+        },
+      });
       const { url } = await createStarsInvoice({ data: { productId: product.id } });
       openTelegramInvoice(url, async () => {
         haptic("success");
@@ -123,6 +139,8 @@ export function PaywallSheet({ open, onClose }: Props) {
           {PRODUCT_LIST.map((p) => {
             const active = isActive(p.features);
             const busy = busyId === p.id;
+            const price = getProductPrice(p, ent?.userId);
+            const discounted = price < p.stars;
             return (
               <div
                 key={p.id}
@@ -151,8 +169,13 @@ export function PaywallSheet({ open, onClose }: Props) {
                       >
                         {busy ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : discounted ? (
+                          <>
+                            <span className="opacity-60 line-through mr-1">{p.stars}</span>
+                            Открыть за {price} ⭐
+                          </>
                         ) : (
-                          <>Открыть за {p.stars} ⭐</>
+                          <>Открыть за {price} ⭐</>
                         )}
                       </button>
                     )}
@@ -203,6 +226,10 @@ export function PaywallSheet({ open, onClose }: Props) {
               <div>
                 <div className="text-white/50 mb-1">User ID</div>
                 <code className="break-all">{ent?.userId ?? "—"}</code>
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">A/B ценовой вариант</div>
+                <code>{priceVariant}</code>
               </div>
               <div>
                 <div className="text-white/50 mb-1">isPremium</div>
