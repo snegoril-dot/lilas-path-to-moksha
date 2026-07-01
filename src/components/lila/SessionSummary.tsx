@@ -515,45 +515,83 @@ export function SessionSummary({
       )}
 
       {/* Share */}
-      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 space-y-2">
+      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 space-y-3">
         <div className="text-[11px] uppercase tracking-wider text-amber-300/80">
           Поделиться
         </div>
         <p className="text-xs opacity-70 leading-relaxed">
-          По умолчанию делимся только результатом и одной поэтичной строкой.
-          Санкальпа и заметки остаются с тобой.
+          По умолчанию мы делимся только результатом, клеткой и одной поэтичной
+          строкой. Санкальпа, заметки и разговоры с Гуру остаются с тобой.
         </p>
-        <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+
+        <label className="flex items-start gap-2 text-xs cursor-pointer select-none">
           <input
             type="checkbox"
             checked={includeSankalpa}
             onChange={(e) => setIncludeSankalpa(e.target.checked)}
             disabled={!sankalpa}
-            className="accent-amber-400"
+            className="accent-amber-400 mt-0.5"
           />
           <span className={sankalpa ? "" : "opacity-40"}>
             Включить мою Санкальпу
           </span>
         </label>
-        <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+        <label className="flex items-start gap-2 text-xs cursor-pointer select-none">
           <input
             type="checkbox"
             checked={includeNotes}
             onChange={(e) => setIncludeNotes(e.target.checked)}
             disabled={notesCount === 0}
-            className="accent-amber-400"
+            className="accent-amber-400 mt-0.5"
           />
           <span className={notesCount > 0 ? "" : "opacity-40"}>
             Включить последние заметки ({notesCount})
           </span>
         </label>
+
+        {(includeSankalpa || includeNotes) && (
+          <div className="flex items-start gap-2 rounded-xl bg-amber-300/10 ring-1 ring-amber-300/30 p-2.5 text-[11px] text-amber-100/90">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+            <span>
+              Санкальпа и заметки могут быть личными. Включай их только если
+              точно хочешь поделиться.
+            </span>
+          </div>
+        )}
+
+        {/* Preview of exact text that will be shared */}
+        <div>
+          <div className="text-[10px] uppercase tracking-wider opacity-60 mb-1">
+            Предпросмотр
+          </div>
+          <pre className="whitespace-pre-wrap break-words rounded-xl bg-black/30 ring-1 ring-white/10 p-3 text-xs text-amber-50/90 font-sans leading-relaxed max-h-48 overflow-auto">
+            {previewText}
+          </pre>
+        </div>
+
         <button
-          onClick={() => shareText(buildShareText())}
+          onClick={doShare}
           className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 ring-1 ring-amber-200/30 text-amber-100 text-sm font-semibold active:scale-95 transition"
         >
           <Share2 size={15} />
           {shareLabel}
         </button>
+
+        {shareStatus === "clipboard" && (
+          <div className="flex items-start gap-2 rounded-xl bg-emerald-400/10 ring-1 ring-emerald-300/30 p-2.5 text-[11px] text-emerald-100">
+            <Clipboard size={14} className="mt-0.5 shrink-0" />
+            <div>
+              <div className="font-semibold">Текст скопирован</div>
+              <div className="opacity-80">Можно отправить его в Telegram.</div>
+            </div>
+          </div>
+        )}
+        {shareStatus === "failed" && (
+          <div className="rounded-xl bg-rose-400/10 ring-1 ring-rose-300/30 p-2.5 text-[11px] text-rose-100">
+            Не удалось поделиться автоматически. Скопируй текст выше вручную.
+          </div>
+        )}
+
         <Link
           to="/journal"
           className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 ring-1 ring-white/10 text-amber-100/90 text-sm font-medium active:scale-95 transition"
@@ -562,6 +600,7 @@ export function SessionSummary({
           Открыть дневник
         </Link>
       </div>
+
     </div>
   );
 }
