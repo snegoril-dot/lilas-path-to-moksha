@@ -643,7 +643,6 @@ function Index() {
   );
 
   const currentCell = useMemo(() => (pos === 0 ? null : BOARD[pos - 1]), [pos]);
-  const currentLoka = useMemo(() => getLoka(pos), [pos]);
   const visitedCells = useMemo(() => {
     const s = new Set<number>();
     for (const p of pathLog) {
@@ -652,6 +651,33 @@ function Index() {
     }
     return s;
   }, [pathLog]);
+
+  const buildGuruCtx = useCallback(
+    (opts?: { prompt?: string }): GuruChatContext => {
+      const c = pos === 0 ? 1 : pos;
+      const landedCell = BOARD[c - 1] ?? BOARD[0];
+      return {
+        cell: c,
+        cellName: landedCell.name,
+        sankalpa,
+        sessionId: sessionIdRef.current,
+        eventKind:
+          pos === 0
+            ? "waiting"
+            : landedCell.type === "end"
+              ? "moksha"
+              : landedCell.type === "snake"
+                ? "snake"
+                : landedCell.type === "ladder"
+                  ? "ladder"
+                  : "normal",
+        initialPrompt: opts?.prompt,
+        recentPath: pathLog.slice(-8),
+      };
+    },
+    [pos, sankalpa, pathLog],
+  );
+
 
   if (!authReady) {
     return (
