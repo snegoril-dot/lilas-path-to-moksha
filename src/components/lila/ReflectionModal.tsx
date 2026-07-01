@@ -198,7 +198,7 @@ export function ReflectionModal({
                   Пропустить
                 </button>
                 <button
-                  onClick={() => { hapticNotify("success"); onSubmit(note.trim()); }}
+                  onClick={handleSubmit}
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-stone-900 font-semibold text-sm shadow active:scale-95 transition"
                 >
                   Принять урок
