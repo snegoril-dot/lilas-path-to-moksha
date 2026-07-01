@@ -14,6 +14,7 @@ import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as ApiPublicHealthcheckRouteImport } from './routes/api/public/healthcheck'
 import { Route as ApiGuruChatRouteImport } from './routes/api/guru.chat'
 import { Route as ApiAuthTelegramRouteImport } from './routes/api/auth.telegram'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
@@ -42,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
 const LegalDocRoute = LegalDocRouteImport.update({
   id: '/legal/$doc',
   path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHealthcheckRoute = ApiPublicHealthcheckRouteImport.update({
+  id: '/api/public/healthcheck',
+  path: '/api/public/healthcheck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGuruChatRoute = ApiGuruChatRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
+  '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
+  '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/legal/$doc': typeof LegalDocRoute
   '/api/auth/telegram': typeof ApiAuthTelegramRoute
   '/api/guru/chat': typeof ApiGuruChatRoute
+  '/api/public/healthcheck': typeof ApiPublicHealthcheckRoute
   '/api/public/practice/send-reminders': typeof ApiPublicPracticeSendRemindersRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/legal/$doc'
     | '/api/auth/telegram'
     | '/api/guru/chat'
+    | '/api/public/healthcheck'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/legal/$doc'
     | '/api/auth/telegram'
     | '/api/guru/chat'
+    | '/api/public/healthcheck'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
   id:
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/legal/$doc'
     | '/api/auth/telegram'
     | '/api/guru/chat'
+    | '/api/public/healthcheck'
     | '/api/public/practice/send-reminders'
     | '/api/public/telegram/webhook'
   fileRoutesById: FileRoutesById
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   LegalDocRoute: typeof LegalDocRoute
   ApiAuthTelegramRoute: typeof ApiAuthTelegramRoute
   ApiGuruChatRoute: typeof ApiGuruChatRoute
+  ApiPublicHealthcheckRoute: typeof ApiPublicHealthcheckRoute
   ApiPublicPracticeSendRemindersRoute: typeof ApiPublicPracticeSendRemindersRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
 }
@@ -186,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalDocRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/healthcheck': {
+      id: '/api/public/healthcheck'
+      path: '/api/public/healthcheck'
+      fullPath: '/api/public/healthcheck'
+      preLoaderRoute: typeof ApiPublicHealthcheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/guru/chat': {
       id: '/api/guru/chat'
       path: '/api/guru/chat'
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalDocRoute: LegalDocRoute,
   ApiAuthTelegramRoute: ApiAuthTelegramRoute,
   ApiGuruChatRoute: ApiGuruChatRoute,
+  ApiPublicHealthcheckRoute: ApiPublicHealthcheckRoute,
   ApiPublicPracticeSendRemindersRoute: ApiPublicPracticeSendRemindersRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
 }
