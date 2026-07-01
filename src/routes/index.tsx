@@ -146,6 +146,16 @@ function Index() {
   const persistUpsert = useServerFn(upsertSession);
   const persistAbandon = useServerFn(abandonSession);
   const fetchActiveSession = useServerFn(getActiveSession);
+  const fetchLastCellNote = useServerFn(getLastCellNote);
+  const sendReflection = useServerFn(saveReflection);
+
+  // Return-баннер: показываем, если возвращение >24ч.
+  const [returnBanner, setReturnBanner] = useState<{
+    cellId: number;
+    sankalpa: string | null;
+    lastNote: string | null;
+    hoursSince: number;
+  } | null>(null);
 
   const idRef = useRef(0);
   const reduceMotion = useReducedMotion();
