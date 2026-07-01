@@ -30,7 +30,7 @@ import { saveSession, upsertSession, getActiveSession, abandonSession, saveRefle
 import { registerOnlineFlush } from "@/lib/note-queue";
 import { saveLastCell } from "@/lib/last-cell-cache";
 import { ReturnBanner } from "@/components/lila/ReturnBanner";
-import { useTelegramInit, hapticNotify } from "@/hooks/use-telegram";
+import { useTelegramInit, hapticNotify, isInTelegram } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
