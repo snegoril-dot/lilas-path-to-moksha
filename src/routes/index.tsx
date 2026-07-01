@@ -746,11 +746,25 @@ function Index() {
       />
       <WinOverlay
         open={won}
-        onRestart={restart}
+        onRestart={doRestart}
         sankalpa={sankalpa}
         keyCells={keyCells}
         totalRolls={totalRolls}
         mode={mode}
+        startedAt={startedAt}
+        sessionId={sessionIdRef.current}
+        currentCell={pos}
+      />
+      <PauseSheet
+        open={pauseOpen}
+        onContinue={() => setPauseOpen(false)}
+        onExit={doRestart}
+        sankalpa={sankalpa}
+        startedAt={startedAt}
+        currentCell={pos}
+        totalRolls={totalRolls}
+        keyCells={keyCells}
+        sessionId={sessionIdRef.current}
       />
 
       <GuruChatSheet ctx={guruCtx} onClose={() => setGuruCtx(null)} />
