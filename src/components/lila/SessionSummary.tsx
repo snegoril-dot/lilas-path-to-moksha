@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Share2, Save, BookOpen } from "lucide-react";
+import { Share2, Save, BookOpen, Clipboard, AlertTriangle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection, getJournal } from "@/lib/guru.functions";
 import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
+import { buildShareText as buildShareTextLib, shareToTelegram, type ShareResult } from "@/lib/share";
 import type { KeyCell } from "./WinOverlay";
 
 export type SessionResult = "in_progress" | "moksha" | "paused";
@@ -41,29 +42,7 @@ function fmtDuration(startedAt: string | null | undefined): string | null {
   return m === 0 ? `${h} ч` : `${h} ч ${m} мин`;
 }
 
-function shareText(text: string) {
-  const tg = (window as unknown as {
-    Telegram?: {
-      WebApp?: {
-        switchInlineQuery?: (q: string, types?: string[]) => void;
-        openTelegramLink?: (url: string) => void;
-      };
-    };
-  }).Telegram?.WebApp;
-  if (tg?.switchInlineQuery) {
-    try {
-      tg.switchInlineQuery(text, ["users", "groups"]);
-      return;
-    } catch {
-      /* fall through */
-    }
-  }
-  const url = `https://t.me/share/url?url=${encodeURIComponent(
-    typeof window !== "undefined" ? window.location.href : "https://t.me"
-  )}&text=${encodeURIComponent(text)}`;
-  if (tg?.openTelegramLink) tg.openTelegramLink(url);
-  else if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
-}
+// share helpers moved to src/lib/share.ts
 
 type JournalRow = {
   id: string;
@@ -239,34 +218,49 @@ export function SessionSummary({
     }
   };
 
-  const buildShareText = (): string => {
-    const cellLine = cell
-      ? `Клетка ${cell.id} · ${cell.name}`
-      : "Душа ждёт воплощения";
-    const poetic = isMoksha
-      ? "🕉 Путь завершён — я дошёл до Мокши."
-      : result === "paused"
-        ? "🌿 Пауза в пути — но зерно уже посеяно."
-        : "🎲 Иду по карте своей жизни.";
-    const parts: string[] = [poetic, cellLine];
-    if (isMoksha) parts.push("Итог: Мокша · Освобождение");
-    if (includeSankalpa && sankalpa) parts.push(`Санкальпа: «${sankalpa}»`);
-    if (includeNotes && notesCount > 0) {
-      const withNotes = keyCells.filter((k) => k.note);
-      const excerpts = withNotes
-        .slice(-2)
-        .map((k) => `${k.kind === "snake" ? "🐍" : "🪜"} ${k.name}: «${k.note}»`)
-        .join("\n");
-      parts.push(excerpts);
-    }
-    parts.push("\nЛила — древняя игра самопознания. Пройди свой путь.");
-    return parts.join("\n");
-  };
+  const notesForShare = useMemo(
+    () =>
+      keyCells
+        .filter((k) => k.note && k.note.trim().length > 0)
+        .map((k) => ({
+          kind: k.kind,
+          name: k.name,
+          note: (k.note ?? "").trim(),
+        })),
+    [keyCells]
+  );
+
+  const shareResult: ShareResult =
+    result === "moksha" ? "moksha" : result === "paused" ? "paused" : "in_progress";
+
+  const previewText = useMemo(
+    () =>
+      buildShareTextLib({
+        result: shareResult,
+        cellId: cell?.id ?? null,
+        cellName: cell?.name ?? null,
+        includeSankalpa,
+        sankalpa,
+        includeNotes,
+        notes: notesForShare,
+      }),
+    [shareResult, cell, includeSankalpa, sankalpa, includeNotes, notesForShare]
+  );
 
   const shareLabel =
     includeSankalpa || includeNotes
-      ? "Поделиться в Telegram"
+      ? "Поделиться (включая личные поля)"
       : "Поделиться без личных заметок";
+
+  const [shareStatus, setShareStatus] = useState<null | "shared" | "clipboard" | "failed">(null);
+  const doShare = async () => {
+    const outcome = await shareToTelegram(previewText);
+    setShareStatus(outcome);
+    if (outcome !== "failed") {
+      setTimeout(() => setShareStatus(null), 4000);
+    }
+  };
+
 
   const cellName = (id: number | null | undefined) =>
     id && id > 0 ? BOARD[id - 1]?.name ?? `Клетка ${id}` : null;
@@ -521,45 +515,83 @@ export function SessionSummary({
       )}
 
       {/* Share */}
-      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 space-y-2">
+      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 space-y-3">
         <div className="text-[11px] uppercase tracking-wider text-amber-300/80">
           Поделиться
         </div>
         <p className="text-xs opacity-70 leading-relaxed">
-          По умолчанию делимся только результатом и одной поэтичной строкой.
-          Санкальпа и заметки остаются с тобой.
+          По умолчанию мы делимся только результатом, клеткой и одной поэтичной
+          строкой. Санкальпа, заметки и разговоры с Гуру остаются с тобой.
         </p>
-        <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+
+        <label className="flex items-start gap-2 text-xs cursor-pointer select-none">
           <input
             type="checkbox"
             checked={includeSankalpa}
             onChange={(e) => setIncludeSankalpa(e.target.checked)}
             disabled={!sankalpa}
-            className="accent-amber-400"
+            className="accent-amber-400 mt-0.5"
           />
           <span className={sankalpa ? "" : "opacity-40"}>
             Включить мою Санкальпу
           </span>
         </label>
-        <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+        <label className="flex items-start gap-2 text-xs cursor-pointer select-none">
           <input
             type="checkbox"
             checked={includeNotes}
             onChange={(e) => setIncludeNotes(e.target.checked)}
             disabled={notesCount === 0}
-            className="accent-amber-400"
+            className="accent-amber-400 mt-0.5"
           />
           <span className={notesCount > 0 ? "" : "opacity-40"}>
             Включить последние заметки ({notesCount})
           </span>
         </label>
+
+        {(includeSankalpa || includeNotes) && (
+          <div className="flex items-start gap-2 rounded-xl bg-amber-300/10 ring-1 ring-amber-300/30 p-2.5 text-[11px] text-amber-100/90">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+            <span>
+              Санкальпа и заметки могут быть личными. Включай их только если
+              точно хочешь поделиться.
+            </span>
+          </div>
+        )}
+
+        {/* Preview of exact text that will be shared */}
+        <div>
+          <div className="text-[10px] uppercase tracking-wider opacity-60 mb-1">
+            Предпросмотр
+          </div>
+          <pre className="whitespace-pre-wrap break-words rounded-xl bg-black/30 ring-1 ring-white/10 p-3 text-xs text-amber-50/90 font-sans leading-relaxed max-h-48 overflow-auto">
+            {previewText}
+          </pre>
+        </div>
+
         <button
-          onClick={() => shareText(buildShareText())}
+          onClick={doShare}
           className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 ring-1 ring-amber-200/30 text-amber-100 text-sm font-semibold active:scale-95 transition"
         >
           <Share2 size={15} />
           {shareLabel}
         </button>
+
+        {shareStatus === "clipboard" && (
+          <div className="flex items-start gap-2 rounded-xl bg-emerald-400/10 ring-1 ring-emerald-300/30 p-2.5 text-[11px] text-emerald-100">
+            <Clipboard size={14} className="mt-0.5 shrink-0" />
+            <div>
+              <div className="font-semibold">Текст скопирован</div>
+              <div className="opacity-80">Можно отправить его в Telegram.</div>
+            </div>
+          </div>
+        )}
+        {shareStatus === "failed" && (
+          <div className="rounded-xl bg-rose-400/10 ring-1 ring-rose-300/30 p-2.5 text-[11px] text-rose-100">
+            Не удалось поделиться автоматически. Скопируй текст выше вручную.
+          </div>
+        )}
+
         <Link
           to="/journal"
           className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 ring-1 ring-white/10 text-amber-100/90 text-sm font-medium active:scale-95 transition"
@@ -568,6 +600,7 @@ export function SessionSummary({
           Открыть дневник
         </Link>
       </div>
+
     </div>
   );
 }
