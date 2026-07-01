@@ -185,6 +185,72 @@ export function PaywallSheet({ open, onClose }: Props) {
             {ent?.isPremium ? "Полный доступ активен" : "Оплата через Telegram Stars"}
           </span>
         </div>
+
+        <div className="mt-5 border-t border-white/10 pt-3">
+          <button
+            type="button"
+            onClick={() => setShowDebug((v) => !v)}
+            className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80"
+          >
+            <Bug className="h-3.5 w-3.5" />
+            {showDebug ? "Скрыть отладку" : "Показать отладку"}
+          </button>
+
+          {showDebug && (
+            <div className="mt-2 rounded-xl bg-black/30 p-3 text-xs text-white/70 space-y-2">
+              <div>
+                <div className="text-white/50 mb-1">User ID</div>
+                <code className="break-all">{ent?.userId ?? "—"}</code>
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">isPremium</div>
+                <code>{String(!!ent?.isPremium)}</code>
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">Active features</div>
+                {ent?.features && Object.keys(ent.features).length > 0 ? (
+                  <ul className="space-y-0.5">
+                    {Object.entries(ent.features).map(([f, v]) => (
+                      <li key={f} className="flex items-center justify-between gap-2">
+                        <code>{f}</code>
+                        <span className="text-white/50">
+                          {FEATURE_CATALOG[f as FeatureId]?.tier ?? "—"}
+                          {v?.expiresAt ? ` · до ${new Date(v.expiresAt).toLocaleDateString()}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="text-white/50">нет</span>
+                )}
+              </div>
+              <div>
+                <div className="text-white/50 mb-1">Last payment</div>
+                {lastPayment ? (
+                  <div className="space-y-0.5">
+                    <div><code>{lastPayment.product_id}</code></div>
+                    <div className="text-white/50">
+                      {lastPayment.stars_amount} ⭐ · {new Date(lastPayment.created_at).toLocaleString()}
+                    </div>
+                    <div className="text-white/40 break-all">
+                      charge: {lastPayment.telegram_payment_charge_id}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-white/50">платежей ещё не было</span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={refresh}
+                disabled={loading}
+                className="inline-flex items-center gap-1 text-white/60 hover:text-white"
+              >
+                <RefreshCw className="h-3.5 w-3.5" /> Обновить
+              </button>
+            </div>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
