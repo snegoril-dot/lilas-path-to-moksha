@@ -5,6 +5,8 @@ import { Sparkles, Check, RefreshCw, Loader2, Bug } from "lucide-react";
 import { STARS_PRODUCTS, FEATURE_CATALOG, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
 import { listEntitlements, restorePurchases, createStarsInvoice, getLastPayment } from "@/lib/entitlements.functions";
 import { notifyEntitlementsChanged } from "@/hooks/use-entitlements";
+import { getProductPrice, getPriceVariant } from "@/lib/ab-pricing";
+import { trackEvent } from "@/lib/analytics";
 
 function haptic(type: "success" | "error" | "light") {
   const tg = typeof window !== "undefined" ? (window as any).Telegram?.WebApp : undefined;
