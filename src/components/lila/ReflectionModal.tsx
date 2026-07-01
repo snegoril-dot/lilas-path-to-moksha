@@ -17,11 +17,13 @@ export interface ReflectionPayload {
 export function ReflectionModal({
   data,
   sankalpa,
+  sessionId,
   onSubmit,
   onSkip,
 }: {
   data: ReflectionPayload | null;
   sankalpa?: string;
+  sessionId?: string | null;
   onSubmit: (note: string) => void;
   onSkip: () => void;
 }) {
@@ -35,6 +37,8 @@ export function ReflectionModal({
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleId = "reflection-modal-title";
   const save = useServerFn(saveReflection);
+  const journalKind: "snake_lesson" | "ladder_gift" =
+    data?.kind === "snake" ? "snake_lesson" : "ladder_gift";
 
   useEffect(() => {
     if (open) {
