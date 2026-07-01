@@ -108,6 +108,11 @@ function Index() {
   // "Landed" experience — focused card shown after each successful move.
   const [landed, setLanded] = useState<{ cell: number; from?: number; kind?: "snake" | "ladder" } | null>(null);
   const [landedOpen, setLandedOpen] = useState(false);
+  // Практики: активная сессия + открытые sheets
+  const activePractice = useActivePractice();
+  const [practiceChooserCell, setPracticeChooserCell] = useState<number | null>(null);
+  const [practiceReturnOpen, setPracticeReturnOpen] = useState(false);
+  const [practiceJournalOpen, setPracticeJournalOpen] = useState(false);
   const [winOpen, setWinOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [birthIntroOpen, setBirthIntroOpen] = useState(false);
