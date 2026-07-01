@@ -115,7 +115,8 @@ export function SessionSummary({
         : result === "paused"
           ? "🌿 Пауза в пути — но зерно уже посеяно."
           : "🎲 Иду по карте своей жизни.";
-    const parts: string[] = [poetic, cellLine, `Бросков: ${totalRolls}`];
+    const parts: string[] = [poetic, cellLine];
+    if (result === "moksha") parts.push("Итог: Мокша · Освобождение");
     if (includeSankalpa && sankalpa) parts.push(`Санкальпа: «${sankalpa}»`);
     if (includeNotes && notesCount > 0) {
       const withNotes = keyCells.filter((k) => k.note);
@@ -125,9 +126,15 @@ export function SessionSummary({
         .join("\n");
       parts.push(excerpts);
     }
-    parts.push("\nЛила — древняя игра самопознания. Попробуй свой путь.");
+    parts.push("\nЛила — древняя игра самопознания. Пройди свой путь.");
     return parts.join("\n");
   };
+
+  const shareLabel =
+    includeSankalpa || includeNotes
+      ? "Поделиться в Telegram"
+      : "Поделиться без личных заметок";
+
 
   return (
     <div className="w-full max-w-md space-y-3 text-left">
