@@ -848,12 +848,24 @@ function Index() {
         sankalpa={sankalpa}
         sessionId={sessionIdRef.current}
         onContinue={() => setLandedOpen(false)}
-        onAskGuru={(cellId) => {
+        onAskGuru={(cellId, opts) => {
           setLandedOpen(false);
+          const landedCell = BOARD[cellId - 1] ?? BOARD[0];
+          const kind = landed?.kind;
           setGuruCtx({
             cell: cellId,
-            cellName: (BOARD[cellId - 1] ?? BOARD[0]).name,
+            cellName: landedCell.name,
             sankalpa,
+            sessionId: sessionIdRef.current,
+            eventKind:
+              landedCell.type === "end"
+                ? "moksha"
+                : kind === "snake"
+                  ? "snake"
+                  : kind === "ladder"
+                    ? "ladder"
+                    : "normal",
+            initialPrompt: opts?.prompt,
             recentPath: pathLog.slice(-8),
           });
         }}
