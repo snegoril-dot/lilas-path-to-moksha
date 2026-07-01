@@ -7,8 +7,33 @@ import { BOARD, getLoka } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
 
 const DAILY_LIMIT = 10;
+const BURST_WINDOW_MS = 60_000; // 1 минута
+const BURST_MAX = 6; // не более 6 сообщений в минуту от одного пользователя
 const FALLBACK_MSG = "Гуру сейчас молчит. Попробуй вернуться к вопросу чуть позже.";
 const LIMIT_MSG = `Вы достигли дневного лимита сообщений Гуру (${DAILY_LIMIT}/день). Пожалуйста, попробуйте завтра.`;
+const BURST_MSG = "Слишком много сообщений подряд. Сделай паузу и попробуй через минуту.";
+
+// In-memory sliding window per user. Worker-instance-scoped:
+// защищает от burst в рамках одного воркера, дневной лимит остаётся в БД.
+const burstBuckets = new Map<string, number[]>();
+function checkBurst(userId: string): boolean {
+  const now = Date.now();
+  const arr = burstBuckets.get(userId) ?? [];
+  const fresh = arr.filter((t) => now - t < BURST_WINDOW_MS);
+  if (fresh.length >= BURST_MAX) {
+    burstBuckets.set(userId, fresh);
+    return false;
+  }
+  fresh.push(now);
+  burstBuckets.set(userId, fresh);
+  // мягкий GC чтоб мапа не росла
+  if (burstBuckets.size > 5000) {
+    for (const [k, v] of burstBuckets) {
+      if (!v.some((t) => now - t < BURST_WINDOW_MS)) burstBuckets.delete(k);
+    }
+  }
+  return true;
+}
 
 const messagePartSchema = z.object({
   type: z.string(),
