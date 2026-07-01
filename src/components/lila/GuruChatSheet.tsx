@@ -9,7 +9,7 @@ import { useTelegramBackButton, haptic, hapticNotify } from "@/hooks/use-telegra
 import { supabase } from "@/integrations/supabase/client";
 import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
-import { getGuruCellAnswer } from "@/content/guru-cell-answers";
+import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
 
 
 export type GuruEventKind = "normal" | "snake" | "ladder" | "moksha" | "waiting";
