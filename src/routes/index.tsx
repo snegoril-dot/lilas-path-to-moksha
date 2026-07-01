@@ -40,6 +40,7 @@ import { GameHeader } from "@/components/lila/GameHeader";
 import { GameActionBar } from "@/components/lila/GameActionBar";
 import { PathAnalysisSheet, type PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
+import { HintToast, hasSeenHint, markHintSeen, type HintId } from "@/components/lila/HintToast";
 
 
 
