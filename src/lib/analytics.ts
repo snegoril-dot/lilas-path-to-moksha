@@ -42,6 +42,8 @@ export type AnalyticsEventName =
   | "sankalpa_history_opened"
   | "quiet_mode_toggled"
   | "deep_link_opened"
+  | "paywall_viewed"
+  | "paywall_buy_clicked"
   | "client_error"
   | "server_error";
 
