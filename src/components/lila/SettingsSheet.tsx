@@ -376,6 +376,20 @@ export function SettingsSheet(props: Props) {
               </button>
             </Section>
 
+            <Section title="Поддержка и вопросы" icon={<LifeBuoy size={16} />}>
+              <p className="opacity-80">
+                Не работает покупка, вопрос про Stars или приватность — мы поможем.
+              </p>
+              <button
+                type="button"
+                onClick={handle(() => setSupportOpen(true))}
+                className="mt-2 w-full rounded-xl bg-amber-500/15 hover:bg-amber-500/25 ring-1 ring-amber-400/30 px-3 py-2 text-sm flex items-center justify-center gap-2 text-amber-100"
+              >
+                <LifeBuoy size={14} /> Написать в поддержку
+              </button>
+            </Section>
+
+
             <Section title="Юридическая информация" icon={<Scale size={16} />}>
               <ul className="space-y-1">
                 {LEGAL_INDEX.map((d) => (
