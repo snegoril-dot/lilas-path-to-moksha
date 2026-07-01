@@ -19,6 +19,7 @@ import { MyPurchasesSheet } from "./MyPurchasesSheet";
 import { SupportFAQSheet } from "./SupportFAQSheet";
 import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { isInTelegram } from "@/hooks/use-telegram";
 import { BellRing } from "lucide-react";
 import { safeClear } from "@/lib/safe-storage";
 
@@ -180,11 +181,11 @@ export function SettingsSheet(props: Props) {
               hint={token.name}
               onClick={onCycleToken}
             />
-            {isAdmin && (
+            {(isAdmin || !isInTelegram()) && (
               <Row
                 icon={<Ruler size={18} />}
                 label="Отладка сетки"
-                hint={debug ? "Включена (админ)" : "Только для админа"}
+                hint={debug ? (isAdmin ? "Включена (админ)" : "Включена (dev)") : (isAdmin ? "Только для админа" : "Доступно вне Telegram")}
                 onClick={onToggleDebug}
                 active={debug}
               />
