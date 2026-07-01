@@ -254,12 +254,15 @@ export function SessionSummary({
 
   const [shareStatus, setShareStatus] = useState<null | "shared" | "clipboard" | "failed">(null);
   const doShare = async () => {
+    const { trackEvent } = await import("@/lib/analytics").catch(() => ({ trackEvent: () => {} }));
+    try { (trackEvent as (n: string, m?: unknown) => void)("share_preview_opened", { extra: { include_sankalpa: !!includeSankalpa, include_notes: !!includeNotes } }); } catch {}
     const outcome = await shareToTelegram(previewText);
     setShareStatus(outcome);
     if (outcome !== "failed") {
       setTimeout(() => setShareStatus(null), 4000);
     }
   };
+
 
 
   const cellName = (id: number | null | undefined) =>
