@@ -792,10 +792,22 @@ function Index() {
           <button
             onClick={() => {
               haptic("light");
+              const c = pos === 0 ? 1 : pos;
+              const landedCell = BOARD[c - 1] ?? BOARD[0];
               setGuruCtx({
-                cell: pos === 0 ? 1 : pos,
-                cellName: (BOARD[(pos === 0 ? 1 : pos) - 1] ?? BOARD[0]).name,
+                cell: c,
+                cellName: landedCell.name,
                 sankalpa,
+                sessionId: sessionIdRef.current,
+                eventKind: pos === 0
+                  ? "waiting"
+                  : landedCell.type === "end"
+                    ? "moksha"
+                    : landedCell.type === "snake"
+                      ? "snake"
+                      : landedCell.type === "ladder"
+                        ? "ladder"
+                        : "normal",
                 recentPath: pathLog.slice(-8),
               });
             }}
