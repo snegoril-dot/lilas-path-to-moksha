@@ -895,18 +895,22 @@ function Index() {
         onSubmit={(note) => closeReflection(note)}
         onSkip={() => closeReflection(null)}
       />
-      <WinOverlay
-        open={won && winOpen}
-        onRestart={doRestart}
-        sankalpa={sankalpa}
-        keyCells={keyCells}
-        totalRolls={totalRolls}
-        mode={mode}
-        startedAt={startedAt}
-        sessionId={sessionIdRef.current}
-        currentCell={pos}
-        pathLog={pathLog}
-      />
+      {won && winOpen && (
+        <Suspense fallback={null}>
+          <WinOverlay
+            open={won && winOpen}
+            onRestart={doRestart}
+            sankalpa={sankalpa}
+            keyCells={keyCells}
+            totalRolls={totalRolls}
+            mode={mode}
+            startedAt={startedAt}
+            sessionId={sessionIdRef.current}
+            currentCell={pos}
+            pathLog={pathLog}
+          />
+        </Suspense>
+      )}
       <CurrentCellSheet
         cellId={landedOpen ? landed?.cell ?? null : null}
         fromCellId={landed?.from ?? null}
