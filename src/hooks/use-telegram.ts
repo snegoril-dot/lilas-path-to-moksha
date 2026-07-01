@@ -157,7 +157,10 @@ export function useTelegramInit() {
           themeHandler = () => applyThemeParams(tg.themeParams);
           tg.onEvent("viewportChanged", viewportHandler);
           tg.onEvent("themeChanged", themeHandler);
+          tg.onEvent("safeAreaChanged", viewportHandler);
+          tg.onEvent("contentSafeAreaChanged", viewportHandler);
         }
+
       } catch {
         // ignore
       }
