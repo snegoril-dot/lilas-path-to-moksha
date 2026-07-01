@@ -524,14 +524,14 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             drag: {offset.x | 0},{offset.y | 0} · cells: {Object.keys(cellOffsets).length}
           </span>
           <button
-            onClick={() => setCellOffsets({})}
+            onClick={() => { setCellOffsets({}); setCellSizes({}); }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
-            title="Сбросить позиции клеток"
+            title="Сбросить позиции и размеры клеток"
           >
             Сброс клеток
           </button>
           <button
-            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); setCellOffsets({}); }}
+            onClick={() => { setAspectW(COLS); setAspectH(ROWS); setGapPct(0.5); setPadPct(0.6); setOffset({x:0,y:0}); setSizePct(100); setZoom(1); setCellOffsets({}); setCellSizes({}); }}
             className="px-2 h-7 rounded-lg bg-white/10 ring-1 ring-white/20 hover:bg-white/20"
           >
             Сброс
