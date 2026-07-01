@@ -33,6 +33,21 @@ describe("board-layout / бустрофедон 9×8", () => {
     expect(rowIds(ROWS - 1)).toEqual([72, 71, 70, 69, 68, 67, 66, 65, 64]);
   });
 
+  it("канонические стыки бустрофедона (после 27 идёт 28, не 35)", () => {
+    // ряд 3 (r=3), правый край — 28; левый край — 36
+    expect(idForRowCol(3, 8)).toBe(28);
+    expect(idForRowCol(3, 0)).toBe(36);
+    // соседство ID через стыки рядов
+    const pairs: Array<[number, number]> = [
+      [9, 10], [18, 19], [27, 28], [36, 37], [45, 46], [54, 55], [63, 64],
+    ];
+    for (const [a, b] of pairs) {
+      const pa = rowColForId(a);
+      const pb = rowColForId(b);
+      expect(Math.abs(pa.col - pb.col) + Math.abs(pa.row - pb.row)).toBe(1);
+    }
+  });
+
   it("любая чётная строка идёт слева-направо, нечётная — справа-налево", () => {
     for (let r = 0; r < ROWS; r++) {
       const ids = rowIds(r);
