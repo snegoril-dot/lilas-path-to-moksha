@@ -33,7 +33,7 @@ function detectPlatform(): "telegram" | "browser" {
 export function FeedbackModal({ open, onClose, context, cell, sessionId }: FeedbackModalProps) {
   useTelegramBackButton(open, onClose);
   const ref = useRef<HTMLDivElement>(null);
-  useDialogA11y(open, ref);
+  useDialogA11y(open, onClose);
 
   const [rating, setRating] = useState<number | null>(null);
   const [understood, setUnderstood] = useState("");
