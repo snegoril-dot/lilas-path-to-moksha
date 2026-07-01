@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Sparkles, Check, RefreshCw, Loader2, Bug } from "lucide-react";
 import { STARS_PRODUCTS, FEATURE_CATALOG, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
