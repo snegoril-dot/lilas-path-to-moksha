@@ -14,35 +14,7 @@ import {
 } from "@/lib/achievements";
 import { SessionSummary } from "./SessionSummary";
 
-function shareResult(text: string) {
-  const tg = (window as unknown as {
-    Telegram?: {
-      WebApp?: {
-        shareMessage?: (id: string) => void;
-        switchInlineQuery?: (q: string, types?: string[]) => void;
-        openTelegramLink?: (url: string) => void;
-      };
-    };
-  }).Telegram?.WebApp;
-  // 1) современный API (требует prepared message) — пробуем switchInlineQuery
-  if (tg?.switchInlineQuery) {
-    try {
-      tg.switchInlineQuery(text, ["users", "groups"]);
-      return;
-    } catch {
-      /* fallthrough */
-    }
-  }
-  // 2) универсальный share через t.me/share/url
-  const url = `https://t.me/share/url?url=${encodeURIComponent(
-    typeof window !== "undefined" ? window.location.href : "https://t.me"
-  )}&text=${encodeURIComponent(text)}`;
-  if (tg?.openTelegramLink) {
-    tg.openTelegramLink(url);
-  } else if (typeof window !== "undefined") {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-}
+// Share logic lives in SessionSummary now.
 
 export interface KeyCell {
   id: number;
