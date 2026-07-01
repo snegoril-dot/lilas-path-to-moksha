@@ -562,7 +562,7 @@ function BoardImpl({ playerPos, onSelectCell, debug, token, visited }: Props) {
             loading="lazy"
             decoding="async"
             fetchPriority="low"
-            className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none opacity-70"
+            className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none opacity-70"
             draggable={false}
           />
 
