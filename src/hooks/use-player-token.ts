@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { PLAYER_TOKENS, DEFAULT_TOKEN_ID, getToken } from "@/lib/player-tokens";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 const KEY = "lila.token";
 
 export function usePlayerToken() {
-  const [tokenId, setTokenId] = useState<string>(() => {
-    if (typeof window === "undefined") return DEFAULT_TOKEN_ID;
-    return window.localStorage.getItem(KEY) ?? DEFAULT_TOKEN_ID;
-  });
+  const [tokenId, setTokenId] = useState<string>(() => safeGet(KEY) ?? DEFAULT_TOKEN_ID);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(KEY, tokenId);
+    safeSet(KEY, tokenId);
   }, [tokenId]);
 
   const cycle = useCallback(() => {
