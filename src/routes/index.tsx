@@ -988,6 +988,7 @@ function Index() {
       />
 
       <SaveIndicator state={saveState} />
+      <HintToast text={hint?.text ?? null} onDismiss={() => setHint(null)} />
       {tgAuth.status === "dev_mode" && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 rounded-full bg-amber-500/90 text-amber-950 text-xs px-3 py-1 shadow-lg max-w-[92vw] text-center">
           Приложение открыто вне Telegram. Некоторые функции могут быть недоступны.
