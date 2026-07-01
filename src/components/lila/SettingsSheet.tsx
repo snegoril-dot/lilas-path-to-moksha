@@ -3,7 +3,7 @@ import { SANKALPA_INTRO_SHORT } from "@/content/narration";
 import {
   Volume2, VolumeX, NotebookPen, NotebookText, Ruler, BookOpen, Sparkles,
   Play, Pause, RotateCcw, Shield, MessageSquarePlus, Info, ChevronRight, CalendarDays,
-  Receipt, Scale,
+  Receipt, Scale, LifeBuoy,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -16,6 +16,7 @@ import { WeeklyReviewSheet } from "./WeeklyReviewSheet";
 import { RemindersToggles } from "./RemindersToggles";
 import { PaywallSheet } from "./PaywallSheet";
 import { MyPurchasesSheet } from "./MyPurchasesSheet";
+import { SupportFAQSheet } from "./SupportFAQSheet";
 import { LEGAL_INDEX } from "@/content/legal";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { BellRing } from "lucide-react";
@@ -111,6 +112,7 @@ export function SettingsSheet(props: Props) {
   const [weeklyOpen, setWeeklyOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [purchasesOpen, setPurchasesOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => onPaywallOpen(() => setPaywallOpen(true)), []);
@@ -375,6 +377,20 @@ export function SettingsSheet(props: Props) {
               </button>
             </Section>
 
+            <Section title="Поддержка и вопросы" icon={<LifeBuoy size={16} />}>
+              <p className="opacity-80">
+                Не работает покупка, вопрос про Stars или приватность — мы поможем.
+              </p>
+              <button
+                type="button"
+                onClick={handle(() => setSupportOpen(true))}
+                className="mt-2 w-full rounded-xl bg-amber-500/15 hover:bg-amber-500/25 ring-1 ring-amber-400/30 px-3 py-2 text-sm flex items-center justify-center gap-2 text-amber-100"
+              >
+                <LifeBuoy size={14} /> Написать в поддержку
+              </button>
+            </Section>
+
+
             <Section title="Юридическая информация" icon={<Scale size={16} />}>
               <ul className="space-y-1">
                 {LEGAL_INDEX.map((d) => (
@@ -408,6 +424,7 @@ export function SettingsSheet(props: Props) {
       <WeeklyReviewSheet open={weeklyOpen} onClose={() => setWeeklyOpen(false)} />
       <PaywallSheet open={paywallOpen} onClose={() => setPaywallOpen(false)} />
       <MyPurchasesSheet open={purchasesOpen} onClose={() => setPurchasesOpen(false)} />
+      <SupportFAQSheet open={supportOpen} onClose={() => setSupportOpen(false)} />
     </>
   );
 }
