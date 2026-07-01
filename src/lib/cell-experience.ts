@@ -445,16 +445,22 @@ export function getCellExperience(id: number): CellExperience | null {
   const cell = BOARD[id - 1];
   if (!cell) return null;
   const loka = getLoka(id);
+  const tone = TONE_OVERRIDE[id] ?? fallbackTone(cell);
+  const primary = QUESTION[id] ?? DEFAULT_QUESTION;
+  const extra = EXTRA_QUESTIONS[id] ?? TONE_QUESTIONS[tone] ?? [];
+  const reflectionQuestions = [primary, ...extra.filter((q) => q !== primary)].slice(0, 3);
   return {
     cell,
     lokaName: loka?.name ?? null,
     shortMeaning: SHORT[id] ?? firstSentence(cell.wisdom),
-    reflectionQuestion: QUESTION[id] ?? DEFAULT_QUESTION,
+    reflectionQuestion: primary,
+    reflectionQuestions,
     dailyPractice: PRACTICE[id] ?? DEFAULT_PRACTICE,
-    tone: TONE_OVERRIDE[id] ?? fallbackTone(cell),
+    tone,
     keywords: KEYWORDS[id] ?? [],
   };
 }
+
 
 export const TONE_LABEL: Record<CellTone, string> = {
   shadow: "Тень",
