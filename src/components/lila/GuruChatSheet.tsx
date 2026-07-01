@@ -71,8 +71,11 @@ export function GuruChatSheet({
   useTelegramBackButton(open, onClose);
   const [input, setInput] = useState("");
   const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
+  const [askedCanned, setAskedCanned] = useState<Set<string>>(new Set());
+  const [showMorePrompts, setShowMorePrompts] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const persist = useServerFn(saveReflection);
+  const cannedCounter = useRef(0);
   const titleId = "guru-chat-title";
   const eventKind: GuruEventKind = ctx?.eventKind ?? "normal";
 
