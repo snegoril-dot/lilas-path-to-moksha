@@ -18,6 +18,8 @@ interface Props {
   onSelectCell?: (id: number) => void;
   debug?: boolean;
   token?: PlayerToken;
+  /** ids the player has already touched — rendered as subtle path trail. */
+  visited?: Set<number> | number[];
 }
 
 const GRID_INSET = { top: 4, right: 4, bottom: 4, left: 4 };
