@@ -161,6 +161,67 @@ async function handleCommand(
   }
 }
 
+async function handleSuccessfulPayment(token: string, msg: TgMessage): Promise<void> {
+  const pay = msg.successful_payment;
+  if (!pay) return;
+  const [productId, userId] = (pay.invoice_payload ?? "").split(":");
+  const product = findProductById(productId ?? "");
+  if (!product || !userId) {
+    console.error("stars payment: unknown product or userId", pay.invoice_payload);
+    return;
+  }
+
+  // Идемпотентность: telegram_payment_charge_id уникален.
+  const { data: existing } = await supabaseAdmin
+    .from("stars_payments")
+    .select("id")
+    .eq("telegram_payment_charge_id", pay.telegram_payment_charge_id)
+    .maybeSingle();
+  if (existing) return;
+
+  const { error: payErr } = await supabaseAdmin.from("stars_payments").insert({
+    user_id: userId,
+    telegram_user_id: msg.from?.id ?? null,
+    product_id: product.id,
+    stars_amount: pay.total_amount,
+    telegram_payment_charge_id: pay.telegram_payment_charge_id,
+    provider_payment_charge_id: pay.provider_payment_charge_id ?? null,
+    invoice_payload: pay.invoice_payload,
+    raw_payload: pay as unknown as Record<string, unknown>,
+  });
+  if (payErr) {
+    console.error("stars payment insert failed", payErr);
+    return;
+  }
+
+  const rows = product.features.map((feature) => ({
+    user_id: userId,
+    feature,
+    status: "active",
+    source: "stars",
+    product_id: product.id,
+    stars_charge_id: pay.telegram_payment_charge_id,
+  }));
+  const { error: entErr } = await supabaseAdmin
+    .from("user_entitlements")
+    .upsert(rows, { onConflict: "user_id,feature" });
+  if (entErr) {
+    console.error("entitlements upsert failed", entErr);
+    return;
+  }
+
+  await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: msg.chat.id,
+      text: `🕉 Спасибо! «${product.title}» открыт. Возвращайся в путь — новые возможности уже доступны.`,
+      parse_mode: "HTML",
+    }),
+  });
+}
+
+
 export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
     handlers: {
