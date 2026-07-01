@@ -1,19 +1,26 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Dice5 as DiceIcon, Map as MapIcon, MessageCircle, Pause, Menu, Sparkles, Eye, Route as RouteIcon } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Board } from "@/components/lila/Board";
-import { Dice } from "@/components/lila/Dice";
 import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import { RulesModal } from "@/components/lila/RulesModal";
 import { CellModal } from "@/components/lila/CellModal";
-import { WinOverlay, type KeyCell } from "@/components/lila/WinOverlay";
-import { GuruChatSheet, type GuruChatContext } from "@/components/lila/GuruChatSheet";
+import { WinOverlay } from "@/components/lila/WinOverlay";
+import { GuruChatSheet } from "@/components/lila/GuruChatSheet";
 import { SettingsSheet } from "@/components/lila/SettingsSheet";
-import { BOARD, computeNewPosition, resolveJump, applySixRule, getLoka } from "@/lib/lila-board";
-import { resolveEntry, MODE_LABEL, type GameMode } from "@/lib/game-mode";
-import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
+import { BOARD, computeNewPosition, resolveJump, applySixRule } from "@/lib/lila-board";
+import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
+import { ReflectionModal } from "@/components/lila/ReflectionModal";
+import type {
+  GameMode,
+  GuruContext,
+  KeyCell,
+  MoveEvent,
+  PathLogItem,
+  ReflectionEntry,
+  ResumeSnapshot,
+} from "@/lib/game-types";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { getRuntimeRng, rollDice } from "@/lib/rng";
 import { useSound } from "@/hooks/use-sound";
@@ -22,13 +29,16 @@ import { usePlayerToken } from "@/hooks/use-player-token";
 import { useAuth } from "@/hooks/use-auth";
 import { useTelegramAuth } from "@/hooks/use-telegram-auth";
 import { saveSession, upsertSession, getActiveSession, abandonSession } from "@/lib/guru.functions";
-import { useTelegramInit, haptic, hapticNotify } from "@/hooks/use-telegram";
+import { useTelegramInit, hapticNotify } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import { PauseSheet } from "@/components/lila/PauseSheet";
 import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
 import { PathTimelineSheet } from "@/components/lila/PathTimelineSheet";
 import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
+import { GameHeader } from "@/components/lila/GameHeader";
+import { GameActionBar } from "@/components/lila/GameActionBar";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
