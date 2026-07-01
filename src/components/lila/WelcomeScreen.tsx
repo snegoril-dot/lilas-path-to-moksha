@@ -60,34 +60,27 @@ export function WelcomeScreen({
     [trimmed],
   );
   const canStart = trimmed.length > 0 && validation.ok;
+  const DEFAULT_SANKALPA = "Хочу увидеть, что для меня сейчас важно.";
 
   const startedRef = useRef(false);
   const handleStart = () => {
-    if (!canStart) {
-      setTouched(true);
-      haptic("light");
-      setStep(1);
-      return;
-    }
     if (startedRef.current) return;
     startedRef.current = true;
-    haptic("medium");
-    onStart(trimmed, mode);
+    try { haptic("medium"); } catch { /* noop outside TG */ }
+    const finalSankalpa = canStart ? trimmed : DEFAULT_SANKALPA;
+    onStart(finalSankalpa, mode);
   };
 
   const goNext = () => {
-    if (step === 1 && !canStart) {
-      setTouched(true);
-      haptic("light");
-      return;
-    }
-    haptic("light");
+    try { haptic("light"); } catch { /* noop */ }
     setStep((s) => (Math.min(2, s + 1) as Step));
   };
   const goBack = () => {
-    haptic("light");
+    try { haptic("light"); } catch { /* noop */ }
     setStep((s) => (Math.max(0, s - 1) as Step));
   };
+
+
 
   const applySuggestion = (s: string) => {
     setSankalpa(s);
