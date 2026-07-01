@@ -12,7 +12,7 @@
  *   - `reminder_sent_at` пуст (одно напоминание на сессию).
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { createSupabaseServerAdminClient } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { BOARD } from "@/lib/lila-board";
 import { pickReminderCopy } from "@/content/reminder-copy";
 
@@ -42,7 +42,7 @@ async function handle(request: Request) {
     return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
 
-  const supabase = createSupabaseServerAdminClient();
+  const supabase = supabaseAdmin;
   const now = Date.now();
   const from = new Date(now - 6 * 60 * 60 * 1000).toISOString();
   const to = new Date(now + 30 * 60 * 1000).toISOString();
@@ -64,14 +64,20 @@ async function handle(request: Request) {
     return Response.json({ ok: true, sent: 0, checked: 0 });
   }
 
-  const userIds = Array.from(new Set(sessions.map((s) => s.user_id)));
+  const userIds = Array.from(new Set(sessions.map((s: { user_id: string }) => s.user_id)));
   const [{ data: prefs }, { data: profiles }] = await Promise.all([
     supabase.from("practice_reminders").select("user_id, enabled").in("user_id", userIds),
     supabase.from("profiles").select("id, telegram_id").in("id", userIds),
   ]);
 
-  const prefsMap = new Map(prefs?.map((p) => [p.user_id, p.enabled]) ?? []);
-  const chatMap = new Map(profiles?.map((p) => [p.id, p.telegram_id]) ?? []);
+  const prefsMap = new Map<string, boolean>(
+    (prefs ?? []).map((p) => [p.user_id, Boolean(p.enabled)]),
+  );
+  const chatMap = new Map<string, number>(
+    (profiles ?? [])
+      .filter((p): p is { id: string; telegram_id: number } => typeof p.telegram_id === "number")
+      .map((p) => [p.id, p.telegram_id]),
+  );
 
   let sent = 0;
   for (const s of sessions) {
