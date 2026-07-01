@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Sparkles, Check, RefreshCw, Loader2 } from "lucide-react";
-import { STARS_PRODUCTS, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
-import { listEntitlements, restorePurchases, createStarsInvoice } from "@/lib/entitlements.functions";
+import { Sparkles, Check, RefreshCw, Loader2, Bug } from "lucide-react";
+import { STARS_PRODUCTS, FEATURE_CATALOG, type FeatureId, type StarsProduct, type UserEntitlements } from "@/lib/entitlements";
+import { listEntitlements, restorePurchases, createStarsInvoice, getLastPayment } from "@/lib/entitlements.functions";
+import { notifyEntitlementsChanged } from "@/hooks/use-entitlements";
 
 function haptic(type: "success" | "error" | "light") {
   const tg = typeof window !== "undefined" ? (window as any).Telegram?.WebApp : undefined;
@@ -36,16 +37,25 @@ function openTelegramInvoice(url: string, onPaid?: () => void): void {
 
 export function PaywallSheet({ open, onClose }: Props) {
   const [ent, setEnt] = useState<UserEntitlements | null>(null);
+  const [lastPayment, setLastPayment] = useState<{
+    product_id: string; stars_amount: number; telegram_payment_charge_id: string; created_at: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await listEntitlements({ data: {} });
+      const [data, payment] = await Promise.all([
+        listEntitlements({ data: {} }),
+        getLastPayment({ data: {} }).catch(() => null),
+      ]);
       setEnt(data);
+      setLastPayment(payment as typeof lastPayment);
+      notifyEntitlementsChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить покупки");
     } finally {
