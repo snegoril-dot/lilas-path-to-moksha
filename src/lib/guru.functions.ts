@@ -11,7 +11,7 @@ const SaveReflectionInput = z.object({
   prompt: z.string().max(400).optional(),
   sankalpa: z.string().max(400).optional(),
   kind: z
-    .enum(["reflection", "insight", "final_insight", "guru", "guru_note", "snake_lesson", "ladder_gift"])
+    .enum(["reflection", "insight", "final_insight", "guru", "guru_note", "guru_path_analysis", "snake_lesson", "ladder_gift"])
     .default("reflection"),
 });
 
