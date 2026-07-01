@@ -64,15 +64,15 @@ export function PaywallSheet({ open, onClose }: Props) {
     setBusyId(product.id);
     setError(null);
     try {
-      hapticImpact("light");
+      haptic("light");
       const { url } = await createStarsInvoice({ data: { productId: product.id } });
       openTelegramInvoice(url, async () => {
-        hapticNotification("success");
+        haptic("success");
         // После оплаты webhook начислит entitlements. Дождёмся и перечитаем.
         setTimeout(() => void refresh(), 1500);
       });
     } catch (e) {
-      hapticNotification("error");
+      haptic("error");
       setError(e instanceof Error ? e.message : "Не удалось открыть оплату");
     } finally {
       setBusyId(null);
@@ -85,7 +85,7 @@ export function PaywallSheet({ open, onClose }: Props) {
     try {
       const data = await restorePurchases({ data: {} });
       setEnt(data);
-      hapticNotification("success");
+      haptic("success");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось восстановить покупки");
     } finally {
