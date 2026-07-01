@@ -148,19 +148,61 @@ export function WelcomeScreen({
           value={sankalpa}
           onChange={(e) => setSankalpa(e.target.value.slice(0, 240))}
           onBlur={() => setTouched(true)}
-          placeholder="Например: «Что мне сейчас важнее всего понять о себе?»"
+          placeholder="Сформулируй вопрос или намерение…"
           rows={3}
           aria-invalid={touched && !canStart}
           className="mt-1 w-full rounded-2xl bg-[var(--lila-surface)] border border-white/10 px-4 py-3 text-[16px] text-[var(--tg-theme-text-color,#fff)] placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-amber-400/60 resize-none"
         />
-        <div className="text-[10px] opacity-50 text-right mt-1">
-          {sankalpa.length}/240
+        <div className="flex items-center justify-between text-[10px] opacity-50 mt-1">
+          <span>Можно написать коротко. Главное — честно.</span>
+          <span>{sankalpa.length}/240</span>
         </div>
         {touched && !canStart && (
           <div className="mt-1 text-[11px] text-amber-200/90 leading-snug">
             Сформулируй вопрос или намерение, чтобы войти в путь.
           </div>
         )}
+        {touched && sankalpa.length >= 240 && (
+          <div className="mt-1 text-[11px] text-amber-200/90 leading-snug">
+            Попробуй оставить главное — один вопрос или одно намерение.
+          </div>
+        )}
+
+        <details className="mt-3 rounded-2xl bg-white/5 ring-1 ring-white/10 px-3 py-2 text-[12px] leading-relaxed">
+          <summary className="cursor-pointer opacity-80 select-none">
+            Примеры Санкальпы
+          </summary>
+          <div className="mt-2 space-y-2 opacity-90">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider opacity-60 mb-1">
+                Что откликается глубже
+              </div>
+              <ul className="list-disc pl-5 space-y-0.5">
+                <li>«Что мне важно понять о себе сейчас?»</li>
+                <li>«Где я теряю внутреннюю опору?»</li>
+                <li>«Что я не хочу видеть в этой ситуации?»</li>
+                <li>«Какой следующий честный шаг мне доступен?»</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-wider opacity-60 mb-1">
+                Меньше подходят
+              </div>
+              <ul className="list-disc pl-5 space-y-0.5 opacity-80">
+                <li>«Когда я стану богатым?»</li>
+                <li>«Любит ли меня конкретный человек?»</li>
+                <li>«Что точно случится в будущем?»</li>
+              </ul>
+              <div className="mt-1 opacity-70">
+                Лила лучше работает не как предсказание, а как зеркало.
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div className="mt-2 text-[10px] opacity-50 leading-snug">
+          Санкальпа приватна и не попадёт в шаринг без твоего выбора.
+        </div>
       </motion.div>
 
       <motion.fieldset
