@@ -71,8 +71,11 @@ export function GuruChatSheet({
   useTelegramBackButton(open, onClose);
   const [input, setInput] = useState("");
   const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
+  const [askedCanned, setAskedCanned] = useState<Set<string>>(new Set());
+  const [showMorePrompts, setShowMorePrompts] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const persist = useServerFn(saveReflection);
+  const cannedCounter = useRef(0);
   const titleId = "guru-chat-title";
   const eventKind: GuruEventKind = ctx?.eventKind ?? "normal";
 
@@ -106,13 +109,14 @@ export function GuruChatSheet({
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSentKey = useRef<string | null>(null);
 
+  // Reset conversation state whenever the sheet closes or the target cell changes.
   useEffect(() => {
-    if (!open) {
-      setMessages([]);
-      setSavedMsgIds(new Set());
-      setSaveErr(null);
-      autoSentKey.current = null;
-    }
+    setMessages([]);
+    setSavedMsgIds(new Set());
+    setAskedCanned(new Set());
+    setShowMorePrompts(false);
+    setSaveErr(null);
+    autoSentKey.current = null;
   }, [open, ctx?.cell, setMessages]);
 
   // Auto-send initial prompt once per open
@@ -148,20 +152,22 @@ export function GuruChatSheet({
 
   /** Insert a pre-written Q&A locally, without hitting the AI. */
   const sendCanned = (q: string, a: string) => {
-    if (busy) return;
+    if (busy || askedCanned.has(q)) return;
     haptic("light");
     trackEvent("guru_message_sent", {
       cell: ctx?.cell ?? null,
       sessionId: ctx?.sessionId ?? null,
       extra: { length: q.length, quick: true, canned: true },
     });
-    const now = Date.now();
+    const n = ++cannedCounter.current;
+    const stamp = `${ctx?.cell ?? 0}-${Date.now()}-${n}`;
     setMessages((prev) => [
       ...prev,
-      { id: `canned-q-${now}`, role: "user", parts: [{ type: "text", text: q }] },
-      { id: `canned-a-${now}`, role: "assistant", parts: [{ type: "text", text: a }] },
+      { id: `canned-q-${stamp}`, role: "user", parts: [{ type: "text", text: q }] },
+      { id: `canned-a-${stamp}`, role: "assistant", parts: [{ type: "text", text: a }] },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ] as any);
+    setAskedCanned((prev) => new Set(prev).add(q));
   };
 
 
@@ -279,16 +285,19 @@ export function GuruChatSheet({
                     С чего можно начать
                   </div>
                   <div className="flex flex-col gap-2">
-                    {cellPack?.prompts.map((p) => (
-                      <button
-                        key={p.q}
-                        onClick={() => sendCanned(p.q, p.a)}
-                        disabled={busy}
-                        className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-50"
-                      >
-                        {p.q}
-                      </button>
-                    ))}
+                    {cellPack?.prompts.map((p) => {
+                      const asked = askedCanned.has(p.q);
+                      return (
+                        <button
+                          key={p.q}
+                          onClick={() => sendCanned(p.q, p.a)}
+                          disabled={busy || asked}
+                          className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition disabled:opacity-40"
+                        >
+                          {asked ? "✓ " : ""}{p.q}
+                        </button>
+                      );
+                    })}
                   </div>
                   <div className="text-[11px] uppercase tracking-wider opacity-40 pt-1">
                     Или спросить Гуру напрямую
@@ -347,6 +356,40 @@ export function GuruChatSheet({
                   </div>
                 );
               })}
+              {messages.length > 0 && cellPack && !busy && (() => {
+                const remaining = cellPack.prompts.filter((p) => !askedCanned.has(p.q));
+                if (remaining.length === 0) return null;
+                return (
+                  <div className="pt-1">
+                    {!showMorePrompts ? (
+                      <button
+                        onClick={() => setShowMorePrompts(true)}
+                        className="text-[11px] uppercase tracking-wider text-amber-200/70 hover:text-amber-100"
+                      >
+                        Ещё вопросы по клетке {ctx.cell} ({remaining.length})
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-[11px] uppercase tracking-wider text-amber-200/70">
+                          Вопросы по клетке {ctx.cell}
+                          {ctx.cellName ? ` · ${ctx.cellName}` : ""}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {remaining.map((p) => (
+                            <button
+                              key={p.q}
+                              onClick={() => sendCanned(p.q, p.a)}
+                              className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition"
+                            >
+                              {p.q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {busy && (
                 <div className="text-xs opacity-50 italic">Гуру размышляет…</div>
               )}
