@@ -109,13 +109,14 @@ export function GuruChatSheet({
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSentKey = useRef<string | null>(null);
 
+  // Reset conversation state whenever the sheet closes or the target cell changes.
   useEffect(() => {
-    if (!open) {
-      setMessages([]);
-      setSavedMsgIds(new Set());
-      setSaveErr(null);
-      autoSentKey.current = null;
-    }
+    setMessages([]);
+    setSavedMsgIds(new Set());
+    setAskedCanned(new Set());
+    setShowMorePrompts(false);
+    setSaveErr(null);
+    autoSentKey.current = null;
   }, [open, ctx?.cell, setMessages]);
 
   // Auto-send initial prompt once per open
