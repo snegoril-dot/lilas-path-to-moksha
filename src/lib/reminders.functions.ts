@@ -35,10 +35,13 @@ export const setReminderPrefs = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const patch: Record<string, unknown> = { user_id: userId };
-    if (typeof data.enabled === "boolean") patch.enabled = data.enabled;
-    if (typeof data.morningSankalpaEnabled === "boolean")
-      patch.morning_sankalpa_enabled = data.morningSankalpaEnabled;
+    const patch = {
+      user_id: userId,
+      ...(typeof data.enabled === "boolean" ? { enabled: data.enabled } : {}),
+      ...(typeof data.morningSankalpaEnabled === "boolean"
+        ? { morning_sankalpa_enabled: data.morningSankalpaEnabled }
+        : {}),
+    };
     const { error } = await supabase
       .from("practice_reminders")
       .upsert(patch, { onConflict: "user_id" });
