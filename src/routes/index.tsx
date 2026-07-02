@@ -940,6 +940,8 @@ function Index() {
           }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
+          const lokaMsg = narrateLokaTransition(pos, landed.id);
+          if (lokaMsg) addMsg(lokaMsg, "system");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
           trackEvent("cell_landed", { cell: landed.id, sessionId: sessionIdRef.current });
           openLanded(landed.id);
