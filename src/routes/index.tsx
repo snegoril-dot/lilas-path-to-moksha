@@ -251,6 +251,23 @@ function Index() {
   // Fire once on mount.
   useEffect(() => {
     trackEvent("app_opened");
+    // Прогреваем тяжёлые чанки, пока пользователь на WelcomeScreen —
+    // чтобы после «Начать игру» не было задержки на загрузку Board/ChatFeed/и т.п.
+    const idle = (cb: () => void) => {
+      const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+      if (w.requestIdleCallback) w.requestIdleCallback(cb);
+      else setTimeout(cb, 400);
+    };
+    idle(() => {
+      void import("@/components/lila/Board");
+      void import("@/components/lila/ChatFeed");
+      void import("@/components/lila/CellModal");
+      void import("@/components/lila/ReflectionModal");
+      void import("@/components/lila/CurrentCellSheet");
+      void import("@/components/lila/BirthIntroCard");
+      void import("@/components/lila/GameHeader");
+      void import("@/components/lila/GameActionBar");
+    });
   }, []);
 
   // Telegram deep-link: ?startapp=... — one-shot on mount.
