@@ -60,6 +60,12 @@ function Index() {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [initialGame, setInitialGame] = useState<{ sankalpa: string; mode: GameMode } | null>(null);
 
+  // Warm up the game/rules chunks while the user is reading the welcome screen
+  // so tapping «Начать игру» opens instantly instead of waiting for a network round-trip.
+  useEffect(() => {
+    if (!initialGame) prefetchGameChunks();
+  }, [initialGame]);
+
   if (initialGame) {
     return (
       <Suspense fallback={<GameBootFallback />}>
