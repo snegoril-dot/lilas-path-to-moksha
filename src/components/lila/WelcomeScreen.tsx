@@ -1,23 +1,38 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { SANKALPA_INTRO_LONG } from "@/content/narration";
 import { Trophy, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { DailyCard } from "./DailyCard";
-import { MorningSankalpaCard } from "./MorningSankalpaCard";
-import { AchievementsModal } from "./AchievementsModal";
-import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import type { GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 import { getProfileSummary } from "@/lib/profile-summary.functions";
+import { safeGet } from "@/lib/safe-storage";
 import {
   validateSankalpa,
   type SankalpaValidation,
   GOOD_EXAMPLES,
   BAD_EXAMPLES,
 } from "@/lib/sankalpa-validation";
+
+const MorningSankalpaCard = lazy(() =>
+  import("./MorningSankalpaCard").then((m) => ({ default: m.MorningSankalpaCard })),
+);
+const AchievementsModal = lazy(() =>
+  import("./AchievementsModal").then((m) => ({ default: m.AchievementsModal })),
+);
+const OnboardingModal = lazy(() =>
+  import("./OnboardingModal").then((m) => ({ default: m.OnboardingModal })),
+);
+
+const ONBOARDING_STORAGE_KEY = "lila.onboarding.v1";
+
+function hasSeenOnboardingFast(): boolean {
+  if (typeof window === "undefined") return true;
+  return safeGet(ONBOARDING_STORAGE_KEY) === "1";
+}
 
 type Step = 0 | 1;
 const STEP_TITLES = ["Приветствие", "Санкальпа"] as const;
@@ -34,16 +49,42 @@ export function WelcomeScreen({
 
   const [achOpen, setAchOpen] = useState(false);
   const [onbOpen, setOnbOpen] = useState(false);
+  const [deferredCards, setDeferredCards] = useState(false);
+  const [summaryEnabled, setSummaryEnabled] = useState(false);
   const inTg = isInTelegram();
 
   useEffect(() => {
-    if (!hasSeenOnboarding()) setOnbOpen(true);
+    if (!hasSeenOnboardingFast()) setOnbOpen(true);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const runWhenIdle = (cb: () => void) => {
+      const w = window as unknown as {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+        cancelIdleCallback?: (id: number) => void;
+      };
+      if (w.requestIdleCallback) return w.requestIdleCallback(cb, { timeout: 3500 });
+      return window.setTimeout(cb, 2200);
+    };
+    const id = runWhenIdle(() => {
+      if (cancelled) return;
+      setDeferredCards(true);
+      setSummaryEnabled(true);
+    });
+    return () => {
+      cancelled = true;
+      const w = window as unknown as { cancelIdleCallback?: (id: number) => void };
+      if (w.cancelIdleCallback) w.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
   }, []);
 
   const fetchSummary = useServerFn(getProfileSummary);
   const { data: summary } = useQuery({
     queryKey: ["profile-summary"],
     queryFn: () => fetchSummary({ data: {} }),
+    enabled: summaryEnabled,
     staleTime: 60_000,
     retry: false,
   });
@@ -165,9 +206,13 @@ export function WelcomeScreen({
               <div className="mt-4 w-full">
                 <DailyCard />
               </div>
-              <div className="mt-3 w-full">
-                <MorningSankalpaCard />
-              </div>
+              {deferredCards && (
+                <div className="mt-3 w-full">
+                  <Suspense fallback={null}>
+                    <MorningSankalpaCard />
+                  </Suspense>
+                </div>
+              )}
 
               {showReturning && (
                 <div className="mt-4 w-full rounded-2xl bg-white/5 ring-1 ring-white/10 px-4 py-3 text-left">
@@ -325,8 +370,16 @@ export function WelcomeScreen({
         </div>
       )}
 
-      <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
-      <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
+      {achOpen && (
+        <Suspense fallback={null}>
+          <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
+        </Suspense>
+      )}
+      {onbOpen && (
+        <Suspense fallback={null}>
+          <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }
