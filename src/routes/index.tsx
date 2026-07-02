@@ -1362,5 +1362,6 @@ function Index() {
         </Suspense>
       )}
     </div>
+    </Suspense>
   );
 }
