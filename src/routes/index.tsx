@@ -51,6 +51,7 @@ import {
   HINT_NEAR_MOKSHA,
   HINT_BEFORE_FIRST_ROLL,
 } from "@/content/narration";
+import { narrateLokaTransition } from "@/content/loka-transitions";
 
 // Lazy-loaded heavy modals — only fetched when the user opens them.
 const RulesModal = lazy(() => import("@/components/lila/RulesModal").then(m => ({ default: m.RulesModal })));
