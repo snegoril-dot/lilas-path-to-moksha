@@ -1,14 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Board } from "@/components/lila/Board";
-import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
+import { PathLoadingSkeleton } from "@/components/lila/PathLoadingSkeleton";
 
-import { CellModal } from "@/components/lila/CellModal";
+// Игровые компоненты подгружаем лениво — WelcomeScreen должен появляться мгновенно,
+// без тяжёлого Board/ChatFeed/CellModal и т.п. в первичном чанке (важно для Telegram Mini App).
+const Board = lazy(() => import("@/components/lila/Board").then(m => ({ default: m.Board })));
+const ChatFeed = lazy(() => import("@/components/lila/ChatFeed").then(m => ({ default: m.ChatFeed })));
+const CellModal = lazy(() => import("@/components/lila/CellModal").then(m => ({ default: m.CellModal })));
+const ReflectionModal = lazy(() => import("@/components/lila/ReflectionModal").then(m => ({ default: m.ReflectionModal })));
+const CurrentCellSheet = lazy(() => import("@/components/lila/CurrentCellSheet").then(m => ({ default: m.CurrentCellSheet })));
+const BirthIntroCard = lazy(() => import("@/components/lila/BirthIntroCard").then(m => ({ default: m.BirthIntroCard })));
+const GameHeader = lazy(() => import("@/components/lila/GameHeader").then(m => ({ default: m.GameHeader })));
+const GameActionBar = lazy(() => import("@/components/lila/GameActionBar").then(m => ({ default: m.GameActionBar })));
+import type { ChatMessage } from "@/components/lila/ChatFeed";
+import type { ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, canExitCell, exitHint } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
-import { ReflectionModal, type ReflectionPayload } from "@/components/lila/ReflectionModal";
 import type { GuruChatContext } from "@/components/lila/GuruChatSheet";
 import type {
   GameMode,
@@ -33,10 +42,6 @@ import { ReturnBanner } from "@/components/lila/ReturnBanner";
 import { useTelegramInit, hapticNotify, isInTelegram, getTg } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
-import { CurrentCellSheet } from "@/components/lila/CurrentCellSheet";
-import { BirthIntroCard } from "@/components/lila/BirthIntroCard";
-import { GameHeader } from "@/components/lila/GameHeader";
-import { GameActionBar } from "@/components/lila/GameActionBar";
 import type { PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
 import { trackEvent } from "@/lib/analytics";
 import { HintToast, hasSeenHint, markHintSeen, type HintId } from "@/components/lila/HintToast";
@@ -246,6 +251,23 @@ function Index() {
   // Fire once on mount.
   useEffect(() => {
     trackEvent("app_opened");
+    // Прогреваем тяжёлые чанки, пока пользователь на WelcomeScreen —
+    // чтобы после «Начать игру» не было задержки на загрузку Board/ChatFeed/и т.п.
+    const idle = (cb: () => void) => {
+      const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+      if (w.requestIdleCallback) w.requestIdleCallback(cb);
+      else setTimeout(cb, 400);
+    };
+    idle(() => {
+      void import("@/components/lila/Board");
+      void import("@/components/lila/ChatFeed");
+      void import("@/components/lila/CellModal");
+      void import("@/components/lila/ReflectionModal");
+      void import("@/components/lila/CurrentCellSheet");
+      void import("@/components/lila/BirthIntroCard");
+      void import("@/components/lila/GameHeader");
+      void import("@/components/lila/GameActionBar");
+    });
   }, []);
 
   // Telegram deep-link: ?startapp=... — one-shot on mount.
@@ -1044,6 +1066,7 @@ function Index() {
   }
 
   return (
+    <Suspense fallback={<PathLoadingSkeleton />}>
     <div className="flex flex-col h-app min-h-app overflow-hidden bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
       {debug && (
         <div
@@ -1356,5 +1379,6 @@ function Index() {
         </Suspense>
       )}
     </div>
+    </Suspense>
   );
 }
