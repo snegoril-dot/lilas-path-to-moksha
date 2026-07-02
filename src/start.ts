@@ -33,6 +33,6 @@ const attachSafeSupabaseAuth = createMiddleware({ type: "function" }).client(asy
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth, attachSafeSupabaseAuth],
+  functionMiddleware: [attachSafeSupabaseAuth],
   requestMiddleware: [errorMiddleware],
 }));
