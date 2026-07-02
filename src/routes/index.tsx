@@ -46,6 +46,7 @@ function Index() {
           autoStart
           initialSankalpa={initialGame.sankalpa}
           initialMode={initialGame.mode}
+          onExitToWelcome={() => setInitialGame(null)}
         />
       </Suspense>
     );
