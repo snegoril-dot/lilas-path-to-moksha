@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase-safe-client";
 import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
+import { GURU_FALLBACK } from "@/content/guru-fallback";
 import { CellContextChip } from "./CellContextChip";
 import { Glyph } from "./Glyph";
 import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
@@ -79,6 +80,7 @@ export function GuruChatSheet({
   const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
   const [askedCanned, setAskedCanned] = useState<Set<string>>(new Set());
   const [showMorePrompts, setShowMorePrompts] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const persist = useServerFn(saveReflection);
   const cannedCounter = useRef(0);
@@ -405,6 +407,40 @@ export function GuruChatSheet({
                               key={p.q}
                               onClick={() => sendCanned(p.q, p.a)}
                               className="text-left text-sm rounded-2xl bg-amber-300/10 hover:bg-amber-300/20 ring-1 ring-amber-300/30 text-amber-100 px-3 py-2 transition"
+                            >
+                              {p.q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {!busy && (() => {
+                const remaining = GURU_FALLBACK.filter((p) => !askedCanned.has(p.q));
+                if (remaining.length === 0) return null;
+                return (
+                  <div className="pt-1">
+                    {!showFallback ? (
+                      <button
+                        onClick={() => setShowFallback(true)}
+                        className="text-[11px] uppercase tracking-wider text-white/50 hover:text-white/80"
+                      >
+                        Частые вопросы ({remaining.length})
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-[11px] uppercase tracking-wider text-white/50">
+                          Частые вопросы
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {remaining.map((p) => (
+                            <button
+                              key={p.q}
+                              onClick={() => sendCanned(p.q, p.a)}
+                              className="text-left text-sm rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[var(--tg-theme-text-color,#fff)]/80 px-3 py-2 transition"
                             >
                               {p.q}
                             </button>

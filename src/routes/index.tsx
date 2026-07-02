@@ -51,6 +51,7 @@ import {
   HINT_NEAR_MOKSHA,
   HINT_BEFORE_FIRST_ROLL,
 } from "@/content/narration";
+import { narrateLokaTransition } from "@/content/loka-transitions";
 
 // Lazy-loaded heavy modals — only fetched when the user opens them.
 const RulesModal = lazy(() => import("@/components/lila/RulesModal").then(m => ({ default: m.RulesModal })));
@@ -911,6 +912,10 @@ function Index() {
                 }, 600);
               } else {
                 addMsg(`Клетка «${dest.name}». ${dest.wisdom}`, "guru");
+                if (kind === "ladder") {
+                  const lokaMsg = narrateLokaTransition(landed.id, final);
+                  if (lokaMsg) addMsg(lokaMsg, "system");
+                }
                 openLanded(final, { from: landed.id, kind });
                 finishTurn();
               }
@@ -939,6 +944,8 @@ function Index() {
           }, reduceMotion ? 500 : 1300);
         } else {
           addMsg(`Клетка «${landed.name}». ${landed.wisdom}`, "guru");
+          const lokaMsg = narrateLokaTransition(pos, landed.id);
+          if (lokaMsg) addMsg(lokaMsg, "system");
           setPathLog((p) => [...p, { cell: landed.id, kind: "land" }]);
           trackEvent("cell_landed", { cell: landed.id, sessionId: sessionIdRef.current });
           openLanded(landed.id);
