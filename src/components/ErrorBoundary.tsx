@@ -113,6 +113,22 @@ export class ErrorBoundary extends Component<Props, State> {
             Перезагрузить
           </button>
           <button
+            onClick={this.handleHardReset}
+            style={{
+              display: "block",
+              margin: "0.75rem auto 0",
+              padding: "0.5rem 0.9rem",
+              borderRadius: 8,
+              border: "1px solid rgba(0,0,0,.14)",
+              background: "transparent",
+              color: "inherit",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Сбросить кеш и перезагрузить
+          </button>
+          <button
             onClick={() => sendTelegramDiagnostic("manual_error_report", error, { auth: getAuthDiagnosticState() })}
             style={{
               display: "block",
