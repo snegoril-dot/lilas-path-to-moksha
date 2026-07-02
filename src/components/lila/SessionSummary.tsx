@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { saveReflection, getJournal } from "@/lib/guru.functions";
 import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
+import { buildFinalReport } from "@/lib/final-report";
 import { getCellExperience } from "@/lib/cell-experience";
 import { buildShareText as buildShareTextLib, shareToTelegram, type ShareResult } from "@/lib/share";
 import type { KeyCell } from "./WinOverlay";
@@ -487,6 +488,47 @@ export function SessionSummary({
           </p>
         </div>
       )}
+
+      {/* Non-AI final report template */}
+      {isMoksha && (() => {
+        const report = buildFinalReport({
+          sankalpa,
+          currentCell,
+          totalRolls,
+          keyCells: keyCells.map((k) => ({
+            id: k.id,
+            name: k.name,
+            kind: k.kind,
+            visitCount: k.visitCount,
+            note: k.note,
+          })),
+          pathLog,
+        });
+        return (
+          <details className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 group">
+            <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-amber-300/80 flex items-center justify-between">
+              <span>🪞 Тихий разбор пути</span>
+              <span className="text-[10px] opacity-60 group-open:hidden">развернуть</span>
+            </summary>
+            <pre className="mt-3 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-amber-50/90">
+              {report}
+            </pre>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(report);
+                  setShareStatus("clipboard");
+                  setTimeout(() => setShareStatus(null), 3000);
+                } catch { /* ignore */ }
+              }}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 ring-1 ring-white/10 text-xs"
+            >
+              <Clipboard size={13} /> Скопировать разбор
+            </button>
+          </details>
+        );
+      })()}
 
       {/* Insight capture */}
       {showInsightCapture && (

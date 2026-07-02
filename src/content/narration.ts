@@ -23,6 +23,12 @@ export function narrateOvershoot(need: number): string {
   return `До Мокши нужен точный шаг: остаётся ровно ${need}. Путь пока продолжается — фишка мягко возвращается назад.`;
 }
 
+import {
+  getSnakeTransition,
+  getLadderTransition,
+  getCycleHint,
+} from "./transitions";
+
 export function narrateSnake(
   fromId: number,
   fromName: string,
@@ -30,7 +36,9 @@ export function narrateSnake(
   toName: string,
   wisdom: string,
 ): string {
-  return `🐍 Клетка ${fromId} — «${fromName}» → ${toId} — «${toName}».\n\nЗмея не наказывает — она мягко возвращает внимание к теме, которая просит осознания.\n\n${wisdom}`;
+  const t = getSnakeTransition(fromId);
+  const tail = t ? `\n\n${t.insight}\n\n❓ ${t.question}` : "";
+  return `🐍 Клетка ${fromId} — «${fromName}» → ${toId} — «${toName}».\n\nЗмея не наказывает — она мягко возвращает внимание к теме, которая просит осознания.\n\n${wisdom}${tail}`;
 }
 
 export function narrateLadder(
@@ -40,13 +48,22 @@ export function narrateLadder(
   toName: string,
   wisdom: string,
 ): string {
-  return `🪜 Клетка ${fromId} — «${fromName}» → ${toId} — «${toName}».\n\nСтрела показывает качество, которое сейчас поднимает сознание выше. Можно заметить, откуда оно приходит в тебе.\n\n${wisdom}`;
+  const t = getLadderTransition(fromId);
+  const tail = t ? `\n\n${t.insight}\n\n❓ ${t.question}` : "";
+  return `🪜 Клетка ${fromId} — «${fromName}» → ${toId} — «${toName}».\n\nСтрела показывает качество, которое сейчас поднимает сознание выше. Можно заметить, откуда оно приходит в тебе.\n\n${wisdom}${tail}`;
 }
 
-export function narrateRepeat(kind: "snake" | "ladder", visitCount: number): string {
-  return kind === "snake"
-    ? `↩️ Эта тема возвращается уже ${visitCount}-й раз. Можно посмотреть на неё как на приглашение задержаться подольше — что здесь ещё не увидено?`
-    : `🌟 И снова это качество (${visitCount}-й раз). Похоже, оно всё ближе становится своим.`;
+export function narrateRepeat(
+  kind: "snake" | "ladder",
+  visitCount: number,
+  fromId?: number,
+): string {
+  const cycle = fromId != null ? getCycleHint(fromId, visitCount) : null;
+  const base =
+    kind === "snake"
+      ? `↩️ Эта тема возвращается уже ${visitCount}-й раз. Можно посмотреть на неё как на приглашение задержаться подольше — что здесь ещё не увидено?`
+      : `🌟 И снова это качество (${visitCount}-й раз). Похоже, оно всё ближе становится своим.`;
+  return cycle ? `${base}\n\n${cycle}` : base;
 }
 
 // ─── Подсказки-однократки ───────────────────────────────────────

@@ -896,7 +896,7 @@ function Index() {
           // Кармический счётчик: повтор того же узла.
           if (visitCount > 1) {
             addMsg(
-              narrateRepeat(kind, visitCount),
+              narrateRepeat(kind, visitCount, landed.id),
               "system"
             );
           }
