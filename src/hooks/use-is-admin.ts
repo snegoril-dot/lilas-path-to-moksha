@@ -9,11 +9,16 @@ import { checkIsAdmin } from "@/lib/admin.functions";
  * 2) Клиентское чтение user_roles с RLS — как fallback при недоступности сервера.
  * Роль admin выдаётся только через service_role (INSERT в user_roles закрыт RLS).
  */
-export function useIsAdmin() {
+export function useIsAdmin(enabled = true) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsAdmin(false);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
 
     const check = async () => {
@@ -56,7 +61,7 @@ export function useIsAdmin() {
       document.removeEventListener("visibilitychange", onVisible);
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [enabled]);
 
   return { isAdmin, loading };
 }

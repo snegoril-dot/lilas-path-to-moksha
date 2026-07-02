@@ -36,12 +36,16 @@ export function onPaywallOpen(cb: (from?: string) => void) {
  * Loads user entitlements and refreshes on ENT_CHANGED events.
  * SSR-safe: returns null until the first fetch resolves in the browser.
  */
-export function useEntitlements() {
+export function useEntitlements(enabled = true) {
   const [ent, setEnt] = useState<UserEntitlements | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -52,14 +56,15 @@ export function useEntitlements() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     void refresh();
     const handler = () => void refresh();
     window.addEventListener(ENT_CHANGED, handler);
     return () => window.removeEventListener(ENT_CHANGED, handler);
-  }, [refresh]);
+  }, [enabled, refresh]);
 
   const has = useCallback(
     (f: FeatureId) => canUseFeature(ent, f),

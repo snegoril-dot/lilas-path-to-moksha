@@ -30,7 +30,55 @@ export function useAuth() {
         setAuthDiagnosticState({ authReady: true, stage: "timeout_guest", timedOut: true });
         setReady(true);
       }
-    }, 1500);
+    }, 450);
+
+    const runWhenIdle = (cb: () => void) => {
+      const w = window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number };
+      if (w.requestIdleCallback) w.requestIdleCallback(cb, { timeout: 2500 });
+      else window.setTimeout(cb, 900);
+    };
+
+    const signInAnonymouslyInBackground = () => {
+      runWhenIdle(() => {
+        if (cancelled) return;
+        tgLog("no session — signing in anonymously in background");
+        setAuthDiagnosticState({ stage: "anonymous_sign_in", hasSession: false, anonAttempted: true, authReady: true });
+        supabase.auth.signInAnonymously()
+          .then(({ data: signed, error }) => {
+            if (cancelled) return;
+            if (error) {
+              console.error("[auth] anonymous sign-in failed", error);
+              tgLog(`anon sign-in failed: ${error.message}`);
+              setAuthDiagnosticState({
+                authReady: true,
+                stage: "anonymous_failed_guest",
+                anonOk: false,
+                lastError: error.message,
+              });
+              return;
+            }
+            tgLog(`anon sign-in ok user=${signed?.user?.id?.slice(0, 8) ?? "?"}`);
+            setAuthDiagnosticState({
+              authReady: true,
+              userId: signed?.user?.id ?? null,
+              stage: "anonymous_ok",
+              anonOk: true,
+              timedOut: false,
+            });
+            setUserId(signed?.user?.id ?? null);
+          })
+          .catch((e) => {
+            if (cancelled) return;
+            console.error("[auth] anonymous sign-in failed", e);
+            setAuthDiagnosticState({
+              authReady: true,
+              stage: "anonymous_failed_guest",
+              anonOk: false,
+              lastError: (e as Error)?.message ?? "unknown",
+            });
+          });
+      });
+    };
 
     const ensureSession = async () => {
       try {
@@ -51,33 +99,13 @@ export function useAuth() {
           window.clearTimeout(releaseTimer);
           return;
         }
-        tgLog("no session — signing in anonymously");
-        setAuthDiagnosticState({ stage: "anonymous_sign_in", hasSession: false, anonAttempted: true });
-        const { data: signed, error } = await supabase.auth.signInAnonymously();
         if (!cancelled) {
-          if (error) {
-            console.error("[auth] anonymous sign-in failed", error);
-            tgLog(`anon sign-in failed: ${error.message}`);
-            setAuthDiagnosticState({
-              authReady: true,
-              stage: "anonymous_failed_guest",
-              anonOk: false,
-              lastError: error.message,
-            });
-          } else {
-            tgLog(`anon sign-in ok user=${signed?.user?.id?.slice(0, 8) ?? "?"}`);
-            setAuthDiagnosticState({
-              authReady: true,
-              userId: signed?.user?.id ?? null,
-              stage: "anonymous_ok",
-              anonOk: true,
-              timedOut: false,
-            });
-          }
-          setUserId(signed?.user?.id ?? null);
+          tgLog("no session — release UI, anonymous auth deferred");
+          setAuthDiagnosticState({ authReady: true, stage: "guest_deferred_auth", hasSession: false, anonAttempted: false });
           setReady(true);
         }
         window.clearTimeout(releaseTimer);
+        signInAnonymouslyInBackground();
       } catch (e) {
         // Telegram iOS WKWebView может блокировать localStorage/куки —
         // в этом случае supabase-клиент кидает исключение. Не блокируем UI:

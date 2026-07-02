@@ -1,13 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { SANKALPA_INTRO_LONG } from "@/content/narration";
 import { Trophy, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { DailyCard } from "./DailyCard";
-import { MorningSankalpaCard } from "./MorningSankalpaCard";
-import { AchievementsModal } from "./AchievementsModal";
 import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import type { GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
@@ -18,6 +16,13 @@ import {
   GOOD_EXAMPLES,
   BAD_EXAMPLES,
 } from "@/lib/sankalpa-validation";
+
+const MorningSankalpaCard = lazy(() =>
+  import("./MorningSankalpaCard").then((m) => ({ default: m.MorningSankalpaCard })),
+);
+const AchievementsModal = lazy(() =>
+  import("./AchievementsModal").then((m) => ({ default: m.AchievementsModal })),
+);
 
 type Step = 0 | 1;
 const STEP_TITLES = ["Приветствие", "Санкальпа"] as const;
@@ -34,16 +39,32 @@ export function WelcomeScreen({
 
   const [achOpen, setAchOpen] = useState(false);
   const [onbOpen, setOnbOpen] = useState(false);
+  const [deferredCards, setDeferredCards] = useState(false);
+  const [summaryEnabled, setSummaryEnabled] = useState(false);
   const inTg = isInTelegram();
 
   useEffect(() => {
     if (!hasSeenOnboarding()) setOnbOpen(true);
   }, []);
 
+  useEffect(() => {
+    const runWhenIdle = (cb: () => void) => {
+      const w = window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number };
+      if (w.requestIdleCallback) return w.requestIdleCallback(cb, { timeout: 3500 });
+      return window.setTimeout(cb, 2200);
+    };
+    const id = runWhenIdle(() => {
+      setDeferredCards(true);
+      setSummaryEnabled(true);
+    });
+    return () => window.clearTimeout(id);
+  }, []);
+
   const fetchSummary = useServerFn(getProfileSummary);
   const { data: summary } = useQuery({
     queryKey: ["profile-summary"],
     queryFn: () => fetchSummary({ data: {} }),
+    enabled: summaryEnabled,
     staleTime: 60_000,
     retry: false,
   });
@@ -165,9 +186,13 @@ export function WelcomeScreen({
               <div className="mt-4 w-full">
                 <DailyCard />
               </div>
-              <div className="mt-3 w-full">
-                <MorningSankalpaCard />
-              </div>
+              {deferredCards && (
+                <div className="mt-3 w-full">
+                  <Suspense fallback={null}>
+                    <MorningSankalpaCard />
+                  </Suspense>
+                </div>
+              )}
 
               {showReturning && (
                 <div className="mt-4 w-full rounded-2xl bg-white/5 ring-1 ring-white/10 px-4 py-3 text-left">
@@ -325,7 +350,11 @@ export function WelcomeScreen({
         </div>
       )}
 
-      <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
+      {achOpen && (
+        <Suspense fallback={null}>
+          <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
+        </Suspense>
+      )}
       <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
     </div>
   );

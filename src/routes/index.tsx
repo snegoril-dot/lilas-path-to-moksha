@@ -2,19 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
-import { PathLoadingSkeleton } from "@/components/lila/PathLoadingSkeleton";
+import { ChatFeed, type ChatMessage } from "@/components/lila/ChatFeed";
+import { GameHeader } from "@/components/lila/GameHeader";
+import { GameActionBar } from "@/components/lila/GameActionBar";
 
 // Игровые компоненты подгружаем лениво — WelcomeScreen должен появляться мгновенно,
 // без тяжёлого Board/ChatFeed/CellModal и т.п. в первичном чанке (важно для Telegram Mini App).
 const Board = lazy(() => import("@/components/lila/Board").then(m => ({ default: m.Board })));
-const ChatFeed = lazy(() => import("@/components/lila/ChatFeed").then(m => ({ default: m.ChatFeed })));
 const CellModal = lazy(() => import("@/components/lila/CellModal").then(m => ({ default: m.CellModal })));
 const ReflectionModal = lazy(() => import("@/components/lila/ReflectionModal").then(m => ({ default: m.ReflectionModal })));
 const CurrentCellSheet = lazy(() => import("@/components/lila/CurrentCellSheet").then(m => ({ default: m.CurrentCellSheet })));
 const BirthIntroCard = lazy(() => import("@/components/lila/BirthIntroCard").then(m => ({ default: m.BirthIntroCard })));
-const GameHeader = lazy(() => import("@/components/lila/GameHeader").then(m => ({ default: m.GameHeader })));
-const GameActionBar = lazy(() => import("@/components/lila/GameActionBar").then(m => ({ default: m.GameActionBar })));
-import type { ChatMessage } from "@/components/lila/ChatFeed";
 import type { ReflectionPayload } from "@/components/lila/ReflectionModal";
 import { BOARD, computeNewPosition, resolveJump, applySixRule, canExitCell, exitHint } from "@/lib/lila-board";
 import { resolveEntry, MODE_LABEL } from "@/lib/game-mode";
@@ -151,10 +149,10 @@ function Index() {
     cellVisits: Record<number, number>;
   } | null>(null);
   const resumeCheckedRef = useRef(false);
-  const { ready: authReady, userId } = useAuth(); // ensures anonymous session when storage/network allow it
-  const activePractice = useActivePractice(authReady && !!userId);
-  const tgAuth = useTelegramAuth(authReady);
-  const { ent } = useEntitlements();
+  const { ready: authReady, userId } = useAuth(); // starts as guest quickly; auth continues in background
+  const activePractice = useActivePractice(started && authReady && !!userId);
+  const tgAuth = useTelegramAuth(started && authReady);
+  const { ent } = useEntitlements(started);
   const paywallShownRef = useRef(false);
 
   const persistSession = useServerFn(saveSession);
@@ -177,7 +175,7 @@ function Index() {
   const { enabled: soundEnabled, toggle: toggleSound, play } = useSound();
   const { enabled: notesEnabled, toggle: toggleNotes } = useNotes();
   const { token, cycle: cycleToken } = usePlayerToken();
-  const { isAdmin } = useIsAdmin();
+  const { isAdmin } = useIsAdmin(started);
   const [telegramAdminHint, setTelegramAdminHint] = useState(false);
   useEffect(() => {
     let cancelled = false;
@@ -251,23 +249,8 @@ function Index() {
   // Fire once on mount.
   useEffect(() => {
     trackEvent("app_opened");
-    // Прогреваем тяжёлые чанки, пока пользователь на WelcomeScreen —
-    // чтобы после «Начать игру» не было задержки на загрузку Board/ChatFeed/и т.п.
-    const idle = (cb: () => void) => {
-      const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
-      if (w.requestIdleCallback) w.requestIdleCallback(cb);
-      else setTimeout(cb, 400);
-    };
-    idle(() => {
-      void import("@/components/lila/Board");
-      void import("@/components/lila/ChatFeed");
-      void import("@/components/lila/CellModal");
-      void import("@/components/lila/ReflectionModal");
-      void import("@/components/lila/CurrentCellSheet");
-      void import("@/components/lila/BirthIntroCard");
-      void import("@/components/lila/GameHeader");
-      void import("@/components/lila/GameActionBar");
-    });
+    // Не прогреваем тяжёлые игровые чанки на входе в Mini App: в Telegram это
+    // конкурирует с первым рендером и создаёт ощущение «вечной загрузки».
   }, []);
 
   // Telegram deep-link: ?startapp=... — one-shot on mount.
@@ -1066,7 +1049,6 @@ function Index() {
   }
 
   return (
-    <Suspense fallback={<PathLoadingSkeleton />}>
     <div className="flex flex-col h-app min-h-app overflow-hidden bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
       {debug && (
         <div
@@ -1132,7 +1114,13 @@ function Index() {
             maxWidth: "min(100%, calc(min(38dvh, 42svh) * 1330 / 1182))",
           }}
         >
-          <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
+          <Suspense
+            fallback={
+              <div className="aspect-[1330/1182] w-full rounded-2xl bg-white/[0.03] ring-1 ring-white/10 animate-pulse" />
+            }
+          >
+            <Board playerPos={pos} onSelectCell={(id) => setCellOpen(id)} debug={debug} token={token} visited={visitedCells} />
+          </Suspense>
         </div>
       </div>
 
@@ -1185,14 +1173,22 @@ function Index() {
 
 
 
-      <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
-      <ReflectionModal
-        data={reflection}
-        sankalpa={sankalpa}
-        sessionId={sessionIdRef.current}
-        onSubmit={(note) => closeReflection(note)}
-        onSkip={() => closeReflection(null)}
-      />
+      {cellOpen !== null && (
+        <Suspense fallback={null}>
+          <CellModal cellId={cellOpen} onClose={() => setCellOpen(null)} />
+        </Suspense>
+      )}
+      {reflection && (
+        <Suspense fallback={null}>
+          <ReflectionModal
+            data={reflection}
+            sankalpa={sankalpa}
+            sessionId={sessionIdRef.current}
+            onSubmit={(note) => closeReflection(note)}
+            onSkip={() => closeReflection(null)}
+          />
+        </Suspense>
+      )}
       {won && winOpen && (
         <Suspense fallback={null}>
           <WinOverlay
@@ -1209,48 +1205,48 @@ function Index() {
           />
         </Suspense>
       )}
-      <CurrentCellSheet
-        cellId={landedOpen ? landed?.cell ?? null : null}
-        fromCellId={landed?.from ?? null}
-        jumpKind={landed?.kind ?? null}
-        sankalpa={sankalpa}
-        sessionId={sessionIdRef.current}
-        visitCount={
-          landed?.cell
-            ? pathLog.filter((p) => p.cell === landed.cell).length
-            : undefined
-        }
-        onContinue={() => { setLandedOpen(false); setLanded(null); }}
-        onTakeAsPractice={(id) => {
-          setLandedOpen(false);
-          setLanded(null);
-          setPracticeChooserCell(id);
-        }}
-        onAskGuru={(cellId, opts) => {
-          setLandedOpen(false);
-          setLanded(null);
-          const landedCell = BOARD[cellId - 1] ?? BOARD[0];
-          const kind = landed?.kind;
-          trackEvent("guru_opened", { cell: cellId, sessionId: sessionIdRef.current });
-          setGuruCtx({
+      {landedOpen && landed && (
+        <Suspense fallback={null}>
+          <CurrentCellSheet
+            cellId={landed.cell}
+            fromCellId={landed.from ?? null}
+            jumpKind={landed.kind ?? null}
+            sankalpa={sankalpa}
+            sessionId={sessionIdRef.current}
+            visitCount={pathLog.filter((p) => p.cell === landed.cell).length}
+            onContinue={() => { setLandedOpen(false); setLanded(null); }}
+            onTakeAsPractice={(id) => {
+              setLandedOpen(false);
+              setLanded(null);
+              setPracticeChooserCell(id);
+            }}
+            onAskGuru={(cellId, opts) => {
+              setLandedOpen(false);
+              setLanded(null);
+              const landedCell = BOARD[cellId - 1] ?? BOARD[0];
+              const kind = landed?.kind;
+              trackEvent("guru_opened", { cell: cellId, sessionId: sessionIdRef.current });
+              setGuruCtx({
 
-            cell: cellId,
-            cellName: landedCell.name,
-            sankalpa,
-            sessionId: sessionIdRef.current,
-            eventKind:
-              landedCell.type === "end"
-                ? "moksha"
-                : kind === "snake"
-                  ? "snake"
-                  : kind === "ladder"
-                    ? "ladder"
-                    : "normal",
-            initialPrompt: opts?.prompt,
-            recentPath: pathLog.slice(-8),
-          });
-        }}
-      />
+                cell: cellId,
+                cellName: landedCell.name,
+                sankalpa,
+                sessionId: sessionIdRef.current,
+                eventKind:
+                  landedCell.type === "end"
+                    ? "moksha"
+                    : kind === "snake"
+                      ? "snake"
+                      : kind === "ladder"
+                        ? "ladder"
+                        : "normal",
+                initialPrompt: opts?.prompt,
+                recentPath: pathLog.slice(-8),
+              });
+            }}
+          />
+        </Suspense>
+      )}
       {pauseOpen && (
         <Suspense fallback={null}>
           <PauseSheet
@@ -1289,15 +1285,19 @@ function Index() {
           />
         </Suspense>
       )}
-      <BirthIntroCard
-        open={birthIntroOpen && pos === 0 && !won}
-        sankalpa={sankalpa}
-        onRoll={() => {
-          setBirthIntroOpen(false);
-          setTimeout(() => handleRoll(), 60);
-        }}
-        onClose={() => setBirthIntroOpen(false)}
-      />
+      {birthIntroOpen && pos === 0 && !won && (
+        <Suspense fallback={null}>
+          <BirthIntroCard
+            open={birthIntroOpen && pos === 0 && !won}
+            sankalpa={sankalpa}
+            onRoll={() => {
+              setBirthIntroOpen(false);
+              setTimeout(() => handleRoll(), 60);
+            }}
+            onClose={() => setBirthIntroOpen(false)}
+          />
+        </Suspense>
+      )}
       {settingsOpen && (
         <Suspense fallback={null}>
           <SettingsSheet
@@ -1379,6 +1379,5 @@ function Index() {
         </Suspense>
       )}
     </div>
-    </Suspense>
   );
 }
