@@ -36,7 +36,7 @@ import { saveSession, upsertSession, getActiveSession, abandonSession, saveRefle
 import { registerOnlineFlush } from "@/lib/note-queue";
 import { saveLastCell } from "@/lib/last-cell-cache";
 import { ReturnBanner } from "@/components/lila/ReturnBanner";
-import { useTelegramInit, hapticNotify, isInTelegram, getTg } from "@/hooks/use-telegram";
+import { hapticNotify, isInTelegram, getTg } from "@/hooks/use-telegram";
 import { ResumeDialog } from "@/components/lila/ResumeDialog";
 import { SaveIndicator } from "@/components/lila/SaveIndicator";
 import type { PathAnalysisContext } from "@/components/lila/PathAnalysisSheet";
@@ -221,9 +221,6 @@ export function GameApp({ autoStart = false, initialSankalpa = "", initialMode =
       setHint((h) => (h && h.id === id ? null : h));
     }, 8000);
   }, []);
-
-  // Init Telegram SDK
-  useTelegramInit();
 
   useEffect(() => {
     if (!debugAllowed) return;
