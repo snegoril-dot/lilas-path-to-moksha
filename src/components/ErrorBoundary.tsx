@@ -47,6 +47,29 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   };
 
+  handleHardReset = () => {
+    try {
+      // Bad cached state (corrupted JSON, stale snapshot) is the most common
+      // cause of a boot-time crash we can't see remotely. Clear all local
+      // caches, keep auth tokens intact, then hard-reload.
+      const keep: Record<string, string> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        if (k.startsWith("sb-") || k.includes("auth-token")) {
+          const v = localStorage.getItem(k);
+          if (v != null) keep[k] = v;
+        }
+      }
+      localStorage.clear();
+      for (const [k, v] of Object.entries(keep)) localStorage.setItem(k, v);
+      try { sessionStorage.clear(); } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
+    try { window.location.reload(); } catch { /* noop */ }
+  };
+
   render() {
     const { error, info } = this.state;
     if (!error) return this.props.children;
@@ -88,6 +111,22 @@ export class ErrorBoundary extends Component<Props, State> {
             }}
           >
             Перезагрузить
+          </button>
+          <button
+            onClick={this.handleHardReset}
+            style={{
+              display: "block",
+              margin: "0.75rem auto 0",
+              padding: "0.5rem 0.9rem",
+              borderRadius: 8,
+              border: "1px solid rgba(0,0,0,.14)",
+              background: "transparent",
+              color: "inherit",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Сбросить кеш и перезагрузить
           </button>
           <button
             onClick={() => sendTelegramDiagnostic("manual_error_report", error, { auth: getAuthDiagnosticState() })}
