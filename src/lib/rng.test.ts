@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getRuntimeRng, mulberry32, rollDice } from "./rng";
+import { cryptoRandom, getRuntimeRng, mulberry32, rollDice } from "./rng";
 import { computeNewPosition, resolveJump } from "./lila-board";
 
 describe("seeded RNG (mulberry32)", () => {
@@ -44,8 +44,12 @@ describe("getRuntimeRng", () => {
     delete g.window;
   });
 
-  it("returns Math.random when no seed is configured", () => {
-    expect(getRuntimeRng()).toBe(Math.random);
+  it("returns the crypto-backed RNG when no seed is configured", () => {
+    const r = getRuntimeRng();
+    expect(r).toBe(cryptoRandom);
+    const v = r();
+    expect(v).toBeGreaterThanOrEqual(0);
+    expect(v).toBeLessThan(1);
   });
 
   it("uses ?seed= URL param for a deterministic stream", () => {
