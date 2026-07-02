@@ -25,15 +25,18 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-function readEnv(name: string): string | undefined {
-  const viteEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
-  if (viteEnv?.[`VITE_${name}`]) return viteEnv[`VITE_${name}`];
+function readServerEnv(name: string): string | undefined {
   return (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
 }
 
 function createSafeSupabaseClient() {
-  const supabaseUrl = readEnv("SUPABASE_URL");
-  const supabaseKey = readEnv("SUPABASE_PUBLISHABLE_KEY");
+  // Static access lets Vite inline these at build time for the client bundle.
+  const supabaseUrl =
+    import.meta.env.VITE_SUPABASE_URL || readServerEnv("SUPABASE_URL") || readServerEnv("VITE_SUPABASE_URL");
+  const supabaseKey =
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    readServerEnv("SUPABASE_PUBLISHABLE_KEY") ||
+    readServerEnv("VITE_SUPABASE_PUBLISHABLE_KEY");
 
   if (!supabaseUrl || !supabaseKey) {
     const missing = [!supabaseUrl ? "SUPABASE_URL" : null, !supabaseKey ? "SUPABASE_PUBLISHABLE_KEY" : null]
