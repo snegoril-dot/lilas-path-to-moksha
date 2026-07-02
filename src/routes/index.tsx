@@ -1,15 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import type { GameMode } from "@/lib/game-mode";
 import { useTelegramInit } from "@/hooks/use-telegram";
 
+const importGameApp = () => import("@/components/lila/GameApp");
+const importRulesModal = () => import("@/components/lila/RulesModal");
+
 const GameApp = lazy(() =>
-  import("@/components/lila/GameApp").then((m) => ({ default: m.GameApp })),
+  importGameApp().then((m) => ({ default: m.GameApp })),
 );
 const RulesModal = lazy(() =>
-  import("@/components/lila/RulesModal").then((m) => ({ default: m.RulesModal })),
+  importRulesModal().then((m) => ({ default: m.RulesModal })),
 );
+
+function prefetchGameChunks() {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+  };
+  const run = () => {
+    void importGameApp().catch(() => {});
+    void importRulesModal().catch(() => {});
+  };
+  if (w.requestIdleCallback) w.requestIdleCallback(run, { timeout: 4000 });
+  else window.setTimeout(run, 2500);
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,6 +59,12 @@ function Index() {
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [initialGame, setInitialGame] = useState<{ sankalpa: string; mode: GameMode } | null>(null);
+
+  // Warm up the game/rules chunks while the user is reading the welcome screen
+  // so tapping «Начать игру» opens instantly instead of waiting for a network round-trip.
+  useEffect(() => {
+    if (!initialGame) prefetchGameChunks();
+  }, [initialGame]);
 
   if (initialGame) {
     return (
