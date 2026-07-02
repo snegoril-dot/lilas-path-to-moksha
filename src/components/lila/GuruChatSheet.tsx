@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase-safe-client";
 import { saveReflection } from "@/lib/guru.functions";
 import { trackEvent } from "@/lib/analytics";
 import { getGuruCellAnswer, getGuruCellPack } from "@/content/guru-cell-answers";
+import { GURU_FALLBACK } from "@/content/guru-fallback";
 import { CellContextChip } from "./CellContextChip";
 import { Glyph } from "./Glyph";
 import { useEntitlements, openPaywallGlobal } from "@/hooks/use-entitlements";
