@@ -80,6 +80,7 @@ export function GuruChatSheet({
   const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
   const [askedCanned, setAskedCanned] = useState<Set<string>>(new Set());
   const [showMorePrompts, setShowMorePrompts] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const persist = useServerFn(saveReflection);
   const cannedCounter = useRef(0);
