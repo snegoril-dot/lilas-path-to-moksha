@@ -29,14 +29,24 @@ function readServerEnv(name: string): string | undefined {
   return (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
 }
 
+// Public Lovable Cloud fallbacks — the publishable URL/key are safe to embed
+// (they are already shipped to every browser via VITE_*). Guarantees the app
+// boots even if a build ran without .env access.
+const FALLBACK_SUPABASE_URL = "https://rheuhqumoahefebvoerm.supabase.co";
+const FALLBACK_SUPABASE_KEY = "sb_publishable_NVZdItmy2LqcxLpmlUlpKg_ft5rRBDW";
+
 function createSafeSupabaseClient() {
   // Static access lets Vite inline these at build time for the client bundle.
   const supabaseUrl =
-    import.meta.env.VITE_SUPABASE_URL || readServerEnv("SUPABASE_URL") || readServerEnv("VITE_SUPABASE_URL");
+    import.meta.env.VITE_SUPABASE_URL ||
+    readServerEnv("SUPABASE_URL") ||
+    readServerEnv("VITE_SUPABASE_URL") ||
+    FALLBACK_SUPABASE_URL;
   const supabaseKey =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     readServerEnv("SUPABASE_PUBLISHABLE_KEY") ||
-    readServerEnv("VITE_SUPABASE_PUBLISHABLE_KEY");
+    readServerEnv("VITE_SUPABASE_PUBLISHABLE_KEY") ||
+    FALLBACK_SUPABASE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     const missing = [!supabaseUrl ? "SUPABASE_URL" : null, !supabaseKey ? "SUPABASE_PUBLISHABLE_KEY" : null]
