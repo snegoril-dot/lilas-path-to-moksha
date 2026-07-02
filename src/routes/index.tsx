@@ -1049,6 +1049,7 @@ function Index() {
   }
 
   return (
+    <Suspense fallback={<PathLoadingSkeleton />}>
     <div className="flex flex-col h-app min-h-app overflow-hidden bg-gradient-to-b from-[var(--lila-bg)] to-[var(--lila-bg-2)] text-[var(--tg-theme-text-color,#fff)]">
       {debug && (
         <div
