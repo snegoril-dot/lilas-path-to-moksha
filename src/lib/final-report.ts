@@ -7,7 +7,7 @@
  * Никаких обещаний и диагнозов. Только зеркало и вопросы.
  */
 
-import { BOARD, LADDERS, SNAKES } from "@/lib/lila-board";
+import { BOARD, LADDERS, SNAKES, getLoka } from "@/lib/lila-board";
 import { getCellExperience } from "@/lib/cell-experience";
 import {
   getSnakeTransition,
@@ -99,6 +99,19 @@ export function buildFinalReport(input: FinalReportInput): string {
     .slice(0, 5)
     .map(([k]) => k);
 
+  // --- Loka distribution ---
+  const lokaCounter = new Map<number, { name: string; n: number }>();
+  for (const id of visited) {
+    const l = getLoka(id);
+    if (!l) continue;
+    const prev = lokaCounter.get(l.id);
+    lokaCounter.set(l.id, { name: l.name, n: (prev?.n ?? 0) + 1 });
+  }
+  const lokaBreakdown = [...lokaCounter.entries()]
+    .sort((a, b) => b[1].n - a[1].n)
+    .slice(0, 3)
+    .map(([, v]) => `${v.name} (${v.n})`);
+
   // --- Compose ---
   const lines: string[] = [];
   lines.push("🕉 Тихий разбор пути");
@@ -110,22 +123,45 @@ export function buildFinalReport(input: FinalReportInput): string {
   lines.push(
     `Пройдено ${visited.size} клеток за ${totalRolls} бросков. Змей — ${snakes.length}, стрел — ${ladders.length}.`,
   );
+  if (lokaBreakdown.length > 0) {
+    lines.push(`Больше всего времени — на планах: ${lokaBreakdown.join(" · ")}.`);
+  }
   lines.push("");
 
+  // Небольшое повествование, а не сводка
+  const arc: string[] = [];
+  if (snakes.length === 0 && ladders.length > 0) {
+    arc.push("Путь шёл преимущественно вверх — можно заметить, что именно поддерживало движение.");
+  } else if (ladders.length === 0 && snakes.length > 0) {
+    arc.push("Путь долго удерживал в нижних планах — это чаще про темп, чем про «неправильность».");
+  } else if (snakes.length > 0 && ladders.length > 0) {
+    arc.push("Путь чередовал подъёмы и спуски — обычный ритм внутренней работы, а не сбой.");
+  }
+  if (arc.length > 0) {
+    lines.push(arc.join(" "));
+    lines.push("");
+  }
+
   if (repeatedSnakes.length > 0) {
-    lines.push("— Повторяющиеся змеи:");
+    lines.push("— Темы, которые возвращались:");
     for (const [id, n] of repeatedSnakes) {
       const t = getSnakeTransition(id);
-      lines.push(`  • ${id}. ${cellName(id)} — ${n} раза. ${t ? t.insight : ""}`);
+      lines.push(`  • ${id}. ${cellName(id)} — ${n} раза.`);
+      if (t?.reflection) lines.push(`    ${t.reflection}`);
+      else if (t?.insight) lines.push(`    ${t.insight}`);
+      if (t?.question) lines.push(`    ❓ ${t.question}`);
     }
     lines.push("");
   }
 
   if (repeatedLadders.length > 0) {
-    lines.push("— Повторяющиеся стрелы:");
+    lines.push("— Качества, которые повторялись:");
     for (const [id, n] of repeatedLadders) {
       const t = getLadderTransition(id);
-      lines.push(`  • ${id}. ${cellName(id)} — ${n} раза. ${t ? t.insight : ""}`);
+      lines.push(`  • ${id}. ${cellName(id)} — ${n} раза.`);
+      if (t?.reflection) lines.push(`    ${t.reflection}`);
+      else if (t?.insight) lines.push(`    ${t.insight}`);
+      if (t?.question) lines.push(`    ❓ ${t.question}`);
     }
     lines.push("");
   }
@@ -135,7 +171,9 @@ export function buildFinalReport(input: FinalReportInput): string {
     lines.push(
       `— Самое глубокое падение: ${deepest.id}. ${cellName(deepest.id)} → ${deepest.to}. ${cellName(deepest.to)} (−${deepest.delta}).`,
     );
-    if (t) lines.push(`  ${t.question}`);
+    if (t?.reflection) lines.push(`  ${t.reflection}`);
+    else if (t?.insight) lines.push(`  ${t.insight}`);
+    if (t?.question) lines.push(`  ❓ ${t.question}`);
     lines.push("");
   }
 
@@ -144,7 +182,9 @@ export function buildFinalReport(input: FinalReportInput): string {
     lines.push(
       `— Самый большой подъём: ${highest.id}. ${cellName(highest.id)} → ${highest.to}. ${cellName(highest.to)} (+${highest.delta}).`,
     );
-    if (t) lines.push(`  ${t.question}`);
+    if (t?.reflection) lines.push(`  ${t.reflection}`);
+    else if (t?.insight) lines.push(`  ${t.insight}`);
+    if (t?.question) lines.push(`  ❓ ${t.question}`);
     lines.push("");
   }
 
@@ -155,22 +195,18 @@ export function buildFinalReport(input: FinalReportInput): string {
 
   lines.push("Связь с Санкальпой:");
   if (sankalpa) {
-    lines.push(
-      "  • Где на этом пути Санкальпа проявилась сильнее всего?",
-    );
-    lines.push(
-      "  • Какая змея показала, что именно мешает её осуществлению?",
-    );
-    lines.push(
-      "  • Какая стрела показала качество, которое приближает к ней?",
-    );
+    lines.push("  • Где на этом пути Санкальпа проявилась сильнее всего?");
+    lines.push("  • Какая змея показала, что именно мешает её осуществлению?");
+    lines.push("  • Какая стрела показала качество, которое приближает к ней?");
   } else {
     lines.push(
       "  • Какой один короткий шаг ты можешь сделать сегодня, опираясь на увиденное?",
     );
   }
   lines.push("");
-  lines.push("Это не диагноз и не пророчество — только зеркало. Проверь внутри себя.");
+  lines.push(
+    "Этот разбор — зеркало, а не приговор. Прочитай его один раз, отложи на день и вернись — второе прочтение обычно точнее первого.",
+  );
 
   return lines.join("\n");
 }
