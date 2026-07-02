@@ -912,6 +912,10 @@ function Index() {
                 }, 600);
               } else {
                 addMsg(`Клетка «${dest.name}». ${dest.wisdom}`, "guru");
+                if (kind === "ladder") {
+                  const lokaMsg = narrateLokaTransition(landed.id, final);
+                  if (lokaMsg) addMsg(lokaMsg, "system");
+                }
                 openLanded(final, { from: landed.id, kind });
                 finishTurn();
               }
