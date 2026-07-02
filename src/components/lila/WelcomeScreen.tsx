@@ -48,16 +48,26 @@ export function WelcomeScreen({
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const runWhenIdle = (cb: () => void) => {
-      const w = window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number };
+      const w = window as unknown as {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+        cancelIdleCallback?: (id: number) => void;
+      };
       if (w.requestIdleCallback) return w.requestIdleCallback(cb, { timeout: 3500 });
       return window.setTimeout(cb, 2200);
     };
     const id = runWhenIdle(() => {
+      if (cancelled) return;
       setDeferredCards(true);
       setSummaryEnabled(true);
     });
-    return () => window.clearTimeout(id);
+    return () => {
+      cancelled = true;
+      const w = window as unknown as { cancelIdleCallback?: (id: number) => void };
+      if (w.cancelIdleCallback) w.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
   }, []);
 
   const fetchSummary = useServerFn(getProfileSummary);
