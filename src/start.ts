@@ -2,9 +2,9 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
 import { supabase } from "@/lib/supabase-safe-client";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 // NOTE: generated attachSupabaseAuth намеренно НЕ используется — он падает
 // в iOS WKWebView (SecurityError из localStorage). См. audit P0-2.
+// Используем безопасную обёртку attachSafeSupabaseAuth ниже.
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
