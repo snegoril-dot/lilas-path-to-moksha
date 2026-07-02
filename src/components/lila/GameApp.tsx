@@ -81,9 +81,10 @@ interface GameAppProps {
   autoStart?: boolean;
   initialSankalpa?: string;
   initialMode?: GameMode;
+  onExitToWelcome?: () => void;
 }
 
-export function GameApp({ autoStart = false, initialSankalpa = "", initialMode = "classic" }: GameAppProps) {
+export function GameApp({ autoStart = false, initialSankalpa = "", initialMode = "classic", onExitToWelcome }: GameAppProps) {
   const [started, setStarted] = useState(false);
   const autoStartedRef = useRef(false);
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -483,6 +484,7 @@ export function GameApp({ autoStart = false, initialSankalpa = "", initialMode =
     }
     sessionIdRef.current = null;
     setPauseOpen(false);
+    onExitToWelcome?.();
     setStarted(false);
     setWon(false);
     setPos(0);
@@ -503,7 +505,7 @@ export function GameApp({ autoStart = false, initialSankalpa = "", initialMode =
     setLanded(null);
     setLandedOpen(false);
     setWinOpen(false);
-  }, [persistAbandon]);
+  }, [persistAbandon, onExitToWelcome]);
 
   // Клик по «Начать заново» посреди игры → открываем итог сессии,
   // чтобы игрок мог зафиксировать инсайт и решить.
