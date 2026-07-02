@@ -1,28 +1,16 @@
 /**
  * Feature access layer.
  *
- * Готовит почву под будущую монетизацию через Telegram Stars,
- * но не запирает основной путь. Сейчас в бете почти всё открыто.
+ * Основной путь (кубик, клетки, дневник, базовый Гуру) всегда открыт бесплатно.
+ * Премиум-фичи (deep_guru, final_ai_analysis и т.д.) выдаются через
+ * таблицу public.user_entitlements — она уже существует и наполняется
+ * серверной верификацией Telegram Stars транзакций
+ * (см. src/routes/api/public/stars/*, admin_grant_entitlement).
  *
  * Как расширять:
  *   - добавить фичу в FEATURE_IDS
- *   - описать её в FEATURE_CATALOG (free | premium | beta)
- *   - при появлении покупок — заполнить UserEntitlements из БД
- *
- * Планируемая таблица (создать позже, когда появятся реальные покупки):
- *
- *   create table public.user_entitlements (
- *     id uuid primary key default gen_random_uuid(),
- *     user_id uuid not null references auth.users(id) on delete cascade,
- *     feature text not null,
- *     status text not null check (status in ('active','expired','refunded')),
- *     source text not null check (source in ('stars','grant','beta')),
- *     created_at timestamptz not null default now(),
- *     expires_at timestamptz,
- *     unique (user_id, feature)
- *   );
- *   -- + GRANTs, RLS: select/insert только своим, запись — через серверную функцию
- *   -- после верификации Telegram Stars транзакции.
+ *   - описать её в FEATURE_CATALOG (free | premium)
+ *   - привязать к продукту в STARS_PRODUCTS
  */
 
 export const FEATURE_IDS = {
