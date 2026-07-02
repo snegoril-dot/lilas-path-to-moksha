@@ -417,6 +417,40 @@ export function GuruChatSheet({
                   </div>
                 );
               })()}
+
+              {!busy && (() => {
+                const remaining = GURU_FALLBACK.filter((p) => !askedCanned.has(p.q));
+                if (remaining.length === 0) return null;
+                return (
+                  <div className="pt-1">
+                    {!showFallback ? (
+                      <button
+                        onClick={() => setShowFallback(true)}
+                        className="text-[11px] uppercase tracking-wider text-white/50 hover:text-white/80"
+                      >
+                        Частые вопросы ({remaining.length})
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-[11px] uppercase tracking-wider text-white/50">
+                          Частые вопросы
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {remaining.map((p) => (
+                            <button
+                              key={p.q}
+                              onClick={() => sendCanned(p.q, p.a)}
+                              className="text-left text-sm rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 text-[var(--tg-theme-text-color,#fff)]/80 px-3 py-2 transition"
+                            >
+                              {p.q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {busy && (
                 <div className="text-xs opacity-50 italic">Гуру размышляет…</div>
               )}
