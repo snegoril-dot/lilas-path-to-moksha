@@ -6,10 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { DailyCard } from "./DailyCard";
-import { OnboardingModal, hasSeenOnboarding } from "./OnboardingModal";
 import type { GameMode } from "@/lib/game-mode";
 import { useTelegramMainButton, isInTelegram, haptic } from "@/hooks/use-telegram";
 import { getProfileSummary } from "@/lib/profile-summary.functions";
+import { safeGet } from "@/lib/safe-storage";
 import {
   validateSankalpa,
   type SankalpaValidation,
@@ -23,6 +23,16 @@ const MorningSankalpaCard = lazy(() =>
 const AchievementsModal = lazy(() =>
   import("./AchievementsModal").then((m) => ({ default: m.AchievementsModal })),
 );
+const OnboardingModal = lazy(() =>
+  import("./OnboardingModal").then((m) => ({ default: m.OnboardingModal })),
+);
+
+const ONBOARDING_STORAGE_KEY = "lila.onboarding.v1";
+
+function hasSeenOnboardingFast(): boolean {
+  if (typeof window === "undefined") return true;
+  return safeGet(ONBOARDING_STORAGE_KEY) === "1";
+}
 
 type Step = 0 | 1;
 const STEP_TITLES = ["Приветствие", "Санкальпа"] as const;
@@ -44,7 +54,7 @@ export function WelcomeScreen({
   const inTg = isInTelegram();
 
   useEffect(() => {
-    if (!hasSeenOnboarding()) setOnbOpen(true);
+    if (!hasSeenOnboardingFast()) setOnbOpen(true);
   }, []);
 
   useEffect(() => {
@@ -365,7 +375,11 @@ export function WelcomeScreen({
           <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
         </Suspense>
       )}
-      <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
+      {onbOpen && (
+        <Suspense fallback={null}>
+          <OnboardingModal open={onbOpen} onClose={() => setOnbOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }
