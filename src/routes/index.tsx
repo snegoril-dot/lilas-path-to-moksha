@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
 import { WelcomeScreen } from "@/components/lila/WelcomeScreen";
 import type { GameMode } from "@/lib/game-mode";
+import { useTelegramInit } from "@/hooks/use-telegram";
 
 const GameApp = lazy(() =>
   import("@/components/lila/GameApp").then((m) => ({ default: m.GameApp })),
@@ -36,6 +37,10 @@ function GameBootFallback() {
 }
 
 function Index() {
+  // Must run on the very first route chunk: Telegram keeps its native loader
+  // until WebApp.ready() is called, so don't wait for the heavy game chunk.
+  useTelegramInit();
+
   const [rulesOpen, setRulesOpen] = useState(false);
   const [initialGame, setInitialGame] = useState<{ sankalpa: string; mode: GameMode } | null>(null);
 
