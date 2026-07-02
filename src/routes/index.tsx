@@ -151,7 +151,7 @@ function Index() {
   const resumeCheckedRef = useRef(false);
   const { ready: authReady, userId } = useAuth(); // starts as guest quickly; auth continues in background
   const activePractice = useActivePractice(started && authReady && !!userId);
-  const tgAuth = useTelegramAuth(started && authReady);
+  const tgAuth = useTelegramAuth(started && authReady && !!userId);
   const { ent } = useEntitlements(started);
   const paywallShownRef = useRef(false);
 
